@@ -60,3 +60,4 @@ build/
 # Custom files
 # ------------------------------
 config.bat
+.vercel
