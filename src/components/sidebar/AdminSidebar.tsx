@@ -18,97 +18,82 @@ interface AdminSidebarProps {
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ onItemClick }) => {
   const { pathname } = useLocation();
 
-  const menuItems = [
+  const menuGroups = [
     {
-      path: "dashboard",
-      label: "Dashboard",
-      icon1: GoHomeFill,
-      icon2: CiSliderHorizontal,
+      title: "GENERAL",
+      items: [
+        { path: "dashboard", label: "Dashboard", icon1: GoHomeFill, icon2: CiSliderHorizontal },
+        { path: "quotes", label: "Quotes", icon1: BsBookFill },
+        { path: "invoices", label: "Invoices", icon1: FaFileInvoiceDollar },
+        { path: "customers", label: "Customers", icon1: PiUsersThreeFill },
+        { path: "job-board", label: "Job Board", icon1: SlHandbag },
+        { path: "mockups", label: "Mockups", icon1: BiSolidImageAlt },
+        { path: "products", label: "Products", icon1: Package },
+      ],
     },
     {
-      path: "customers",
-      label: "Customers",
-      icon1: PiUsersThreeFill,
-      icon2: HiPlus,
+      title: "EXTRAS",
+      items: [
+        { path: "messages", label: "Messages", icon1: TbMessageCircleFilled },
+      ],
     },
     {
-      path: "quotes",
-      label: "Quotes",
-      icon1: BsBookFill,
-      icon2: HiPlus,
+      title: "FINANCIALS",
+      items: [
+        { path: "payment", label: "Payment", icon1: FaFileInvoiceDollar },
+        { path: "analytics", label: "Analytics", icon1: LuChartNoAxesCombined },
+      ],
     },
-    {
-      path: "jobs",
-      label: "Jobs",
-      icon1: SlHandbag,
-    },
-    { path: "mockups", label: "Mockups", icon1: BiSolidImageAlt },
-    { path: "products", label: "Products", icon1: Package },
-    {
-      path: "messages",
-      label: "Messages",
-      icon1: TbMessageCircleFilled,
-      icon2: HiPlus,
-    },
-    { path: "billing", label: "Billing", icon1: FaFileInvoiceDollar },
-    { path: "reports", label: "Reports", icon1: LuChartNoAxesCombined },
   ];
 
-  const getIconClass = (isActive: boolean, i: number) => {
+  const getIconClass = (isActive: boolean) => {
     if (isActive) {
       return "rounded-full text-white p-2 bg-[#0077FF] shadow-[inset_0_0_8.853px_#62ABFF] flex items-center justify-center ";
     }
-
-    if (i === 2 || i === 1 || i === 6) {
-      return "rounded-full text-[#0077FF] p-1 border-2 border-dashed border-[#0077FF] bg-[#0077FF]/20";
-    }
-    if (i === 3) {
-      return "rounded-full bg-[#E6ECF2]  flex items-center justify-center min-w-6.5 min-h-6.5";
-    }
-
     return "";
   };
   return (
     <div className="border-2 border-[#F0F3F7] bg-[#F5F7FA] shadow-[inset_0_40px_50px_0_#EBEFF4,_0_40px_34px_-10px_rgba(106,117,131,0.05)] backdrop-blur-[13.5914px] w-full h-full   flex flex-col">
       <LogoWithSearch />
 
-      <nav className="flex-1 px-6 py-4 space-y-4 overflow-y-auto">
-        {menuItems.map((item, i) => {
-          const isActive = pathname.includes(item.path);
-          const Icon1 = item.icon1;
-          const Icon2 = item.icon2;
-          return (
-            <NavLink
-              to={item.path}
-              key={item.path}
-              onClick={onItemClick}
-              className={`w-full flex items-center justify-between gap-3 py-2  pr-2 rounded-full text-sm font-medium transition  ${
-                isActive
-                  ? "rounded-full border-[1.771px] border-[#3885DE] bg-[#0077FF] shadow-[inset_0_8.853px_20.361px_0_rgba(36,80,130,0.40),_0_17.705px_53.116px_0_rgba(0,119,255,0.10)] font-bold text-white transition-all duration-300 ease-in-out pl-4"
-                  : "text-[#5C7899] font-semibold"
-              }`}
-            >
-              <div className="flex items-center gap-6.5">
-                {Icon1 && <Icon1 className=" text-2xl" />}
+      <nav className="flex-1 px-6 py-4 space-y-6 overflow-y-auto">
+        {menuGroups.map((group, groupIndex) => (
+          <div key={groupIndex} className="space-y-4">
+            <h3 className="text-xs font-bold text-[#294566] uppercase tracking-wider pl-4">
+              {group.title}
+            </h3>
+            <div className="space-y-2">
+              {group.items.map((item, i) => {
+                const isActive = pathname.includes(item.path);
+                const Icon1 = item.icon1;
+                const Icon2 = item.icon2;
+                return (
+                  <NavLink
+                    to={item.path}
+                    key={item.path}
+                    onClick={onItemClick}
+                    className={`w-full flex items-center justify-between gap-3 py-3 pr-2 rounded-full text-sm font-medium transition ${
+                      isActive
+                        ? "border-[1.771px] border-[#3885DE] bg-[#0077FF] shadow-[inset_0_8.853px_20.361px_0_rgba(36,80,130,0.40),_0_17.705px_53.116px_0_rgba(0,119,255,0.10)] font-bold text-white pl-4"
+                        : "text-[#5C7899] font-semibold hover:bg-gray-100 pl-4"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      {Icon1 && <Icon1 className="text-xl" />}
+                      <span>{item.label}</span>
+                    </div>
 
-                <span className="">{item.label}</span>
-              </div>
-              {i === 3 && (
-                <div className={getIconClass(isActive, i)}>
-                  <span className="w-6.5 h-6.5 bg-[#E6ECF2] text-[#7D96B3] rounded-full flex items-center justify-center">
-                    5
-                  </span>
-                </div>
-              )}
-
-              {Icon2 && (
-                <div className={getIconClass(isActive, i)}>
-                  <Icon2 className="text-2xl " />
-                </div>
-              )}
-            </NavLink>
-          );
-        })}
+                    {Icon2 && (
+                      <div className={getIconClass(isActive)}>
+                        <Icon2 className="text-xl" />
+                      </div>
+                    )}
+                  </NavLink>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       <div className="p-4 ">

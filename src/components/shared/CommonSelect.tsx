@@ -6,7 +6,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"; // update path if needed
 
-// generic SelectOption interface
 export interface SelectOption<T extends string> {
   label: string;
   value: T;
@@ -26,7 +25,7 @@ interface SelectProps<T extends string> {
 const CommonSelect = <T extends string>({
   value,
   item,
-  w = 200,
+  w = 120,
   onValueChange,
   disabled = false,
   className,
@@ -36,7 +35,7 @@ const CommonSelect = <T extends string>({
     <Select value={value || undefined} onValueChange={onValueChange}>
       <SelectTrigger
         style={{ minWidth: w }}
-        className={` ${className} bg-background border !border-border px-3 py-5 cursor-pointer rounded-md  text-sm  transition-all duration-200 ${
+        className={` ${className} bg-background border border-border! px-3 py-6 cursor-pointer rounded-md  text-sm  transition-all duration-200  ${
           disabled && "opacity-50 cursor-not-allowed"
         } `}
       >

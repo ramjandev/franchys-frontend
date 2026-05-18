@@ -36,7 +36,7 @@ const Pagination: React.FC<PaginationProps> = ({
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="flex items-center gap-1 px-3 py-1 text-sm rounded-md disabled:cursor-not-allowed disabled:opacity-40 hover:bg-cta cursor-pointer hover:text-white"
+        className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-md disabled:cursor-not-allowed disabled:opacity-40 hover:bg-blue cursor-pointer hover:text-white"
       >
         <ChevronLeft size={16} />
         Previous
@@ -44,17 +44,17 @@ const Pagination: React.FC<PaginationProps> = ({
 
       {pages.map((page, idx) =>
         page === "..." ? (
-          <span key={idx} className="px-3 py-1 text-sm">
+          <span key={idx} className="px-3 py-1.5 text-sm">
             ...
           </span>
         ) : (
           <button
             key={idx}
             onClick={() => onPageChange(page as number)}
-            className={`px-3 py-1 text-sm rounded-md cursor-pointer ${
+            className={`px-3 py-1.5 text-sm rounded-md cursor-pointer ${
               currentPage === page
-                ? "bg-cta hover:bg-late-accent border border-border text-white"
-                : "hover:bg-cta hover:text-white"
+                ? "bg-blue border border-border text-white"
+                : "hover:bg-blue hover:text-white"
             }`}
           >
             {page}
@@ -65,7 +65,7 @@ const Pagination: React.FC<PaginationProps> = ({
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="flex items-center gap-1 px-3 py-1 text-sm disabled:cursor-not-allowed rounded-md disabled:opacity-40 hover:bg-cta cursor-pointer hover:text-bg"
+        className="flex items-center gap-1 px-3 py-1.5 text-sm disabled:cursor-not-allowed rounded-md disabled:opacity-40 hover:bg-blue cursor-pointer hover:text-bg"
       >
         Next
         <ChevronRight size={16} />
