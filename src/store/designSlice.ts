@@ -37,7 +37,7 @@ const designSlice = createSlice({
     productColor: "#000000",
     designWidth: 8,
     designHeight: 10,
-    position: "center",
+    position: "Center",
     printMethod: "",
     selectedLayerId: null,
     privacy: false,
