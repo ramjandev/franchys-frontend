@@ -127,7 +127,7 @@ const RightPanel: React.FC = () => {
               key={pos}
               onClick={() => handleAlign(pos)}
               disabled={!selectedLayer}
-              className="h-8 border border-[#D1D5DC] hover:border-[#3B82F6] hover:bg-blue-50 hover:text-blue-700 rounded-lg text-xs font-semibold text-[#4B5563] transition-all disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-[#4B5563] disabled:hover:border-[#D1D5DC]"
+              className="h-8  bg-[#F3F4F6] hover:bg-blue-50 hover:text-blue-700 rounded-lg text-xs font-semibold text-[#4B5563] transition-all disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-[#4B5563] disabled:hover:border-[#D1D5DC]"
             >
               {pos}
             </button>
@@ -143,7 +143,7 @@ const RightPanel: React.FC = () => {
             <button
               key={fmt}
               onClick={() => handleExport(fmt)}
-              className="w-full flex items-center gap-2 h-9 border border-[#D1D5DC] rounded-lg px-3 text-xs font-bold text-[#4B5563] hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center gap-2 h-9 bg-[#F3F4F6] hover:bg-blue-50 hover:text-blue-700 rounded-lg px-3 text-xs font-bold text-[#4B5563] transition-colors"
             >
               <Download className="w-3.5 h-3.5 text-gray-500" />
               Export as {fmt}

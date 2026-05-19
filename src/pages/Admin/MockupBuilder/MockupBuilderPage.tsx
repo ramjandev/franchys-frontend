@@ -11,7 +11,7 @@ const MockupBuilderPage: React.FC = () => {
 
   return (
     <MockupProvider>
-      <div className="flex flex-col h-full  overflow-hidden">
+      <div className="flex flex-col h-auto xl:h-full xl:overflow-hidden">
         {/* Header */}
         <div className=" px-0 pt-6 pb-4 shrink-0">
           <div className="flex flex-col md:flex-row items-center gap-3">
@@ -23,8 +23,8 @@ const MockupBuilderPage: React.FC = () => {
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-[#111827]">Mockup Design</h1>
-                <p className="text-xs text-[#6B7280]">Create product mockups with your custom designs</p>
+                <h1 className="text-[30px] font-bold text-[#0F172B]">Mockup Design</h1>
+                <p className="text-base font-normal text-[#45556C]">Create product mockups with your custom designs</p>
               </div>
             </div>
 
@@ -34,7 +34,7 @@ const MockupBuilderPage: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search jobs..."
-                  className="pl-10 pr-4 py-2 border border-[#D1D5DB] rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:border-[#3B82F6] bg-white transition-all shadow-sm text-[#111827]"
+                  className="pl-10 pr-4 py-2 border border-[#CAD5E2] rounded-lg text-sm w-64 focus:outline-none focus:ring-0.5 focus:ring-[#3B82F6] focus:border-[#3B82F6]  transition-all shadow-sm text-[#111827]"
                 />
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]">
                   <Search size={16} />
@@ -46,7 +46,7 @@ const MockupBuilderPage: React.FC = () => {
 
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto xl:overflow-hidden pb-8 xl:pb-0">
-          <div className="flex flex-col xl:flex-row items-stretch gap-6 h-full min-h-[500px]">
+          <div className="flex flex-col xl:flex-row items-stretch gap-6 h-auto xl:h-full min-h-[500px]">
             <LeftPanel />
             <CenterCanvasArea />
             <RightPanel />

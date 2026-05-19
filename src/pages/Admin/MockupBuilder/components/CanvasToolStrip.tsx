@@ -125,21 +125,20 @@ export const CanvasToolStrip: React.FC<CanvasToolStripProps> = ({
   ];
 
   return (
-    <div className="w-[96px] shrink-0 bg-white border border-[#E6EBF2] rounded-xl flex flex-col items-center py-4 gap-2 shadow-sm overflow-y-auto">
+    <div className="md:w-[96px] px-4 md:px-0 w-full shrink-0 bg-white border border-[#E6EBF2] rounded-xl flex flex-row md:flex-col items-center py-4 gap-2 shadow-sm overflow-y-auto">
       {tools.map((tool) => {
         const isActive = activeTool === tool.id;
         return (
           <button
             key={tool.id}
             onClick={() => onActionClick(tool.id)}
-            className={`w-[80px] h-[80px] rounded-xl flex flex-col items-center justify-center gap-1 transition-all border shadow-sm ${
-              isActive
-                ? "bg-[#007FFF] text-white border-[#007FFF]"
-                : "bg-white text-[#4A5565] border-[#E6EBF2] hover:bg-gray-50"
-            }`}
+            className={`w-[60px] md:w-[80px] h-[60px] md:h-[80px] rounded-xl px-4 py-2 xl:py-0 xl:px-0 flex flex-col items-center justify-center gap-1 transition-all border shadow-sm ${isActive
+              ? "bg-[#007FFF] text-white border-[#007FFF]"
+              : "bg-white text-[#6B7280] border-[#E6EBF2] hover:bg-gray-50"
+              }`}
           >
             {tool.icon}
-            <span className="text-[8.5px] font-bold text-center tracking-tight leading-tight px-1 max-h-[22px] overflow-hidden">
+            <span className="text-[8px] font-bold text-center tracking-tight leading-tight px-1 max-h-[22px] overflow-hidden">
               {tool.label}
             </span>
           </button>

@@ -43,6 +43,15 @@ const CenterCanvasArea: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // States
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth > 1439 && window.innerWidth < 1536);
+
+  React.useEffect(() => {
+    const handleResize = () => { setIsMobile(window.innerWidth < 768 ); setIsTablet(window.innerWidth > 1439 && window.innerWidth < 1536)};
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const [showProductModal, setShowProductModal] = useState(false);
   const [showShapePopover, setShowShapePopover] = useState(false);
   const [activeColor, setActiveColor] = useState("#EF4444");
@@ -148,7 +157,7 @@ const CenterCanvasArea: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex gap-4 overflow-hidden h-full relative">
+    <div className="flex-1 flex flex-col md:flex-row gap-4 overflow-hidden h-[600px] xl:h-full relative">
       <CanvasToolStrip
         activeTool={activeTool}
         onActionClick={handleToolbarAction}
@@ -182,16 +191,15 @@ const CenterCanvasArea: React.FC = () => {
         onSelect={handleSelectQuickGarment}
       />
 
-      <div className="flex-1 flex flex-col bg-white border border-[#E6EBF2] rounded-xl shadow-sm overflow-hidden relative">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-[#F9FAFB]">
-          <div className="flex gap-1.5">
+      <div className="flex-1 flex flex-col bg-[#F9FAFB] border border-[#E6EBF2] rounded-xl shadow-sm overflow-hidden relative">
+        <div className="flex flex-wrap gap-4 md:items-center justify-between px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+          <div className="flex flex-col md:flex-row gap-1.5">
             {["Front", "Back", "Left Sleeve", "Right Sleeve"].map((view) => (
               <button
                 key={view}
                 onClick={() => setActiveView(view)}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                  activeView === view ? "bg-[#3B82F6] text-white shadow-sm" : "text-[#5C7899] hover:bg-gray-100"
-                }`}
+                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeView === view ? "bg-[#3B82F6] text-white shadow-sm" : "text-[#5C7899] hover:bg-gray-100"
+                  }`}
               >
                 {view}
               </button>
@@ -225,21 +233,22 @@ const CenterCanvasArea: React.FC = () => {
                 transformOrigin: "center center",
                 transition: "transform 0.15s ease",
                 padding: 0,
-                width: SHIRT_W,
-                height: SHIRT_H,
+                width: isMobile || isTablet ? SHIRT_W * 0.5 : SHIRT_W,
+                height: isMobile || isTablet ? SHIRT_H * 0.5 : SHIRT_H,
                 background: "transparent",
               }}
             >
-              <div
-                ref={containerRef}
-                className="relative w-full h-full"
-                onClick={() => setSelectedLayerId(null)}
-              >
-                {selectedGarment?.code === "18500" ? (
-                  <HoodieSVG color={productColor} template={activeView} />
-                ) : (
-                  <TShirtSVG color={productColor} template={activeView} />
-                )}
+              <div style={{ transform: isMobile || isTablet ? 'scale(0.5)' : 'scale(1)', transformOrigin: 'top left', width: SHIRT_W, height: SHIRT_H }}>
+                <div
+                  ref={containerRef}
+                  className="relative w-full h-full"
+                  onClick={() => setSelectedLayerId(null)}
+                >
+                  {selectedGarment?.code === "18500" ? (
+                    <HoodieSVG color={productColor} template={activeView} />
+                  ) : (
+                    <TShirtSVG color={productColor} template={activeView} />
+                  )}
 
                 <div
                   className="absolute border border-dashed border-[#3B82F6]/40 overflow-hidden"
@@ -266,6 +275,7 @@ const CenterCanvasArea: React.FC = () => {
                     removeLayer={removeLayer}
                   />
                 </div>
+              </div>
               </div>
             </CardContainer>
           )}

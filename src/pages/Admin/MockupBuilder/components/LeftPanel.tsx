@@ -183,17 +183,27 @@ const LeftPanel: React.FC = () => {
         <div className="flex gap-3 pt-2 border-t border-gray-100 mt-2">
           <button
             onClick={() => toast.info("This allows saving a mockup template.")}
-            className="flex-1 flex items-center justify-center h-10 border border-[#D1D5DC] rounded-lg text-sm text-[#4B5563] hover:bg-gray-50 transition-colors font-medium shadow-sm"
+            className="flex-1 flex items-center justify-center h-10 bg-[#F3F4F6] hover:bg-blue-50 hover:text-blue-700 rounded-lg text-sm text-[#4B5563] transition-colors font-medium shadow-sm"
           >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
+           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <g clip-path="url(#clip0_750_4170)">
+              <path d="M4.81018 1.80469H3.0063C2.68735 1.80469 2.38147 1.93139 2.15594 2.15692C1.93041 2.38245 1.80371 2.68833 1.80371 3.00727V11.4254C1.80371 12.0868 2.34487 12.628 3.0063 12.628H4.81018" stroke="#364153" stroke-width="1.20259" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9.62061 1.80469H11.4245C11.7434 1.80469 12.0493 1.93139 12.2748 2.15692C12.5004 2.38245 12.6271 2.68833 12.6271 3.00727V11.4254C12.6271 11.7443 12.5004 12.0502 12.2748 12.2757C12.0493 12.5013 11.7434 12.628 11.4245 12.628H9.62061" stroke="#364153" stroke-width="1.20259" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7.21558 12.0273V13.2299" stroke="#364153" stroke-width="1.20259" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7.21558 8.41797V9.62055" stroke="#364153" stroke-width="1.20259" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7.21558 4.81055V6.01313" stroke="#364153" stroke-width="1.20259" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7.21558 1.20312V2.40571" stroke="#364153" stroke-width="1.20259" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            <defs>
+              <clipPath id="clip0_750_4170">
+                <rect width="14.431" height="14.431" fill="white"/>
+              </clipPath>
+            </defs>
+          </svg>
           </button>
           <button
             onClick={resetCanvas}
-            className="flex-1 flex items-center justify-center gap-1.5 h-10 border border-[#D1D5DC] rounded-lg text-sm text-[#4B5563] hover:bg-gray-50 transition-colors font-semibold shadow-sm"
+            className="flex-1 flex items-center justify-center gap-1.5 h-10 bg-[#F3F4F6] hover:bg-blue-50 hover:text-blue-700 rounded-lg text-sm text-[#4B5563] transition-colors font-medium shadow-sm"
           >
             <RotateCcw className="w-4 h-4" />
             Reset
