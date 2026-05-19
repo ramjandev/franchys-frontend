@@ -16,10 +16,10 @@ const MockupCreator = () => {
       <DashboardTopSection
         title="Mockup Creator"
         description="Welcome back. Here's what's happening with your business today."
-        buttonText="Save to Quote"
-        action={() => console.log("Save to Quote")}
-        secondaryButtonText="Export Mockup"
-        secondaryAction={handleExport}
+        buttonOne="Save to Quote"
+        actionOne={() => console.log("Save to Quote")}
+        buttonTwo="Export Mockup"
+        actionTwo={handleExport}
       />
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pt-10">
         <Template />

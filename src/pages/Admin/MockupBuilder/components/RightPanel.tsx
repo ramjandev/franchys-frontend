@@ -2,6 +2,8 @@ import React from "react";
 import { Eye, EyeOff, Trash2, Save, Download } from "lucide-react";
 import { useMockup } from "../context/MockupContext";
 import CardContainer from "@/components/shared/CardContainer";
+import { toast } from "react-toastify";
+// import { Toast } from "radix-ui";
 
 const CANVAS_W = 420;
 const CANVAS_H = 500;
@@ -14,7 +16,7 @@ const RightPanel: React.FC = () => {
     setSelectedLayerId,
     updateLayer,
     removeLayer,
-    duplicateLayer
+    // duplicateLayer
   } = useMockup();
 
   const activeLayers = layersByView[activeView] || [];
@@ -50,7 +52,7 @@ const RightPanel: React.FC = () => {
   };
 
   const handleExport = (format: "PNG" | "JPG" | "SVG") => {
-    alert(`Mockup exported successfully as high-resolution ${format}!`);
+    toast.success(`Mockup exported successfully as high-resolution ${format}!`);
   };
 
   const handleSaveMockup = () => {
@@ -59,7 +61,7 @@ const RightPanel: React.FC = () => {
       activeView
     };
     localStorage.setItem("franchys_mockup_design", JSON.stringify(mockupState));
-    alert("Mockup design configuration saved successfully!");
+    toast.success("Mockup design configuration saved successfully!");
   };
 
   return (

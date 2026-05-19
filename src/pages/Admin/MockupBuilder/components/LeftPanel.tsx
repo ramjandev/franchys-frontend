@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import { Upload, Sparkles, RotateCcw } from "lucide-react";
 import { useMockup, GARMENT_OPTIONS } from "../context/MockupContext";
 import CardContainer from "@/components/shared/CardContainer";
+import { toast } from "react-toastify";
 
 export const inputClass = {
   label: "block text-xs font-semibold text-[#4A5565] mb-1.5 uppercase tracking-wider",
@@ -39,7 +40,7 @@ const LeftPanel: React.FC = () => {
       setProductColor(found.colors[0].hex);
       setHasGarment(true);
     } else {
-      alert(`Garment code "${clothingCode}" not found. Try 3001, 5000, 8000, or 18500.`);
+      toast.error(`Garment code "${clothingCode}" not found. Try 3001, 5000, 8000, or 18500.`);
     }
   };
 
@@ -48,7 +49,7 @@ const LeftPanel: React.FC = () => {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      alert("File is too large. Maximum size is 10MB.");
+      toast.error("File is too large. Maximum size is 10MB.");
       return;
     }
 
@@ -114,7 +115,7 @@ const LeftPanel: React.FC = () => {
             />
 
             <button
-              onClick={() => alert("Background removal is a premium feature connected to the API.")}
+              onClick={() => toast.info("Background removal is a premium feature connected to the API.")}
               className="w-full flex items-center gap-2 justify-center h-10 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg text-sm text-purple-700 font-semibold transition-all"
             >
               <Sparkles className="w-4 h-4" />
@@ -181,7 +182,7 @@ const LeftPanel: React.FC = () => {
         {/* Bottom Actions */}
         <div className="flex gap-3 pt-2 border-t border-gray-100 mt-2">
           <button
-            onClick={() => alert("Info: This allows saving mockup template.")}
+            onClick={() => toast.info("This allows saving a mockup template.")}
             className="flex-1 flex items-center justify-center h-10 border border-[#D1D5DC] rounded-lg text-sm text-[#4B5563] hover:bg-gray-50 transition-colors font-medium shadow-sm"
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">

@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { ZoomIn, ZoomOut } from "lucide-react";
 import { useMockup, GARMENT_OPTIONS } from "../context/MockupContext";
 import CardContainer from "@/components/shared/CardContainer";
+import { toast } from "react-toastify";
 
 // Subcomponents & hooks
 import { SHIRT_W, SHIRT_H, TShirtSVG, HoodieSVG } from "./GarmentSVGs";
@@ -85,7 +86,7 @@ const CenterCanvasArea: React.FC = () => {
       if (selectedLayerId) {
         removeLayer(selectedLayerId);
       } else {
-        alert("Erase Mode Active: Click any design layer on the canvas to erase it immediately.");
+        toast.info("Erase Mode Active: Click any design layer on the canvas to erase it immediately.");
       }
     } else if (toolId === "add-logo") {
       fileInputRef.current?.click();
@@ -98,7 +99,7 @@ const CenterCanvasArea: React.FC = () => {
       if (selected && selected.type === "text") {
         updateLayer(selected.id, { curved: !selected.curved });
       } else {
-        alert("Please select a text layer first to apply the Curve effect.");
+        toast.warn("Please select a text layer first to apply the Curve effect.");
       }
     } else if (toolId === "open-project") {
       jsonInputRef.current?.click();
@@ -134,12 +135,12 @@ const CenterCanvasArea: React.FC = () => {
             setClothingCode(parsed.selectedGarment.code);
             setHasGarment(true);
           }
-          alert("Project imported successfully!");
+          toast.success("Project imported successfully!");
         } else {
-          alert("Invalid mockup configuration file.");
+          toast.error("Invalid mockup configuration file.");
         }
       } catch {
-        alert("Error reading mockup project JSON file.");
+        toast.error("Error reading mockup project JSON file.");
       }
     };
     reader.readAsText(file);
