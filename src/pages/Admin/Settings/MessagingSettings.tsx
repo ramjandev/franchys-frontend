@@ -1,85 +1,97 @@
-import { Button } from "@/components/ui/button";
-
+import CardContainer from "@/components/shared/CardContainer";
+import CheckboxField from "@/components/shared/CheckboxField";
+import CommonButton from "@/components/shared/CommonButton";
+import CommonHeader from "@/components/shared/CommonHeader";
+import { inputClass } from "@/pages/Login";
+import { Save } from "lucide-react";
+const notifications = [
+  {
+    label: "Send quote notifications",
+    description: "Notify customers when a new quote is created",
+  },
+  {
+    label: "Send invoice notifications",
+    description: "Email customers when invoices are generated",
+  },
+  {
+    label: "Send payment reminders",
+    description: "Automatic reminders for overdue invoices",
+  },
+  {
+    label: "Send order status updates",
+    description: "Keep customers informed about production progress",
+  },
+];
 const MessagingSettings = () => {
   return (
-    <div className="p-8">
-      <div className="mb-6 pb-4 border-b border-[#F1F5F9]">
-        <h2 className="text-2xl font-bold text-[#111827] mb-1">
-          Message Settings
-        </h2>
-        <p className="text-sm text-[#5C7899]">
-          Configure email signature and messaging templates
-        </p>
+    <div className="">
+      <div className="mb-6 pb-4 border-b border-border flex justify-between">
+        <div>
+          <CommonHeader size="2xl" className="font-medium! ">
+            Message Settings
+          </CommonHeader>
+          <CommonHeader size="sm">
+            Configure email signature and messaging templates
+          </CommonHeader>
+        </div>
       </div>
 
-      <div className="max-w-4xl space-y-6">
-        {/* Email Signature */}
-        <div className="bg-white border border-[#E6EBF2] rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-          <h3 className="text-base font-bold text-[#111827] mb-2">Email Signature</h3>
-          <p className="text-sm text-[#5C7899] mb-4">Create your email signature that will appear on the bottom of every message you send.</p>
-          <textarea 
-            placeholder="Enter your email signature..."
-            className="w-full h-32 border border-[#E6EBF2] rounded-md p-3 text-sm outline-none focus:border-[#0077FF] mb-4"
-          />
-          <Button className="h-9 px-4 bg-[#053F7A] hover:bg-[#042f5a] text-white text-sm rounded-lg">
-            Update Signature
-          </Button>
-        </div>
-
-        {/* Messaging Templates */}
-        <div className="bg-white border border-[#E6EBF2] rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-          <h3 className="text-base font-bold text-[#111827] mb-2">Messaging Templates</h3>
-          <p className="text-sm text-[#5C7899] mb-4">
-            Sending out similar messages to customers? You can customize templates to use when sending messages to customers. Create as many as you'd like to become more efficient.
-          </p>
-          <Button className="h-9 px-4 bg-[#053F7A] hover:bg-[#042f5a] text-white text-sm rounded-lg">
-            Email Templates
-          </Button>
-        </div>
-
-        {/* Email Notifications */}
-        <div className="bg-white border border-[#E6EBF2] rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-          <h3 className="text-base font-bold text-[#111827] mb-4">Email Notifications</h3>
-          
-          <div className="space-y-4">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input type="checkbox" className="mt-1 rounded border-[#A0B0C0] text-[#0077FF] focus:ring-[#0077FF]" />
-              <div>
-                <div className="text-sm font-semibold text-[#111827]">Send quote notifications</div>
-                <div className="text-xs text-[#5C7899] mt-0.5">Notify customers when a new quote is created</div>
-              </div>
-            </label>
-
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input type="checkbox" className="mt-1 rounded border-[#A0B0C0] text-[#0077FF] focus:ring-[#0077FF]" />
-              <div>
-                <div className="text-sm font-semibold text-[#111827]">Send invoice notifications</div>
-                <div className="text-xs text-[#5C7899] mt-0.5">Email customers when invoices are generated</div>
-              </div>
-            </label>
-
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input type="checkbox" className="mt-1 rounded border-[#A0B0C0] text-[#0077FF] focus:ring-[#0077FF]" />
-              <div>
-                <div className="text-sm font-semibold text-[#111827]">Send payment reminders</div>
-                <div className="text-xs text-[#5C7899] mt-0.5">Automatic reminders for overdue invoices</div>
-              </div>
-            </label>
-
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input type="checkbox" className="mt-1 rounded border-[#A0B0C0] text-[#0077FF] focus:ring-[#0077FF]" />
-              <div>
-                <div className="text-sm font-semibold text-[#111827]">Send order status updates</div>
-                <div className="text-xs text-[#5C7899] mt-0.5">Keep customers informed about production progress</div>
-              </div>
-            </label>
+      <div className=" space-y-6">
+        <CardContainer>
+          <div className="spacey-2 mb-5">
+            <CommonHeader size="lg">Email Signature</CommonHeader>
+            <CommonHeader size="sm">
+              Create your email signature that will appear on the bottom of
+              every message you send.
+            </CommonHeader>
           </div>
-        </div>
+          <textarea
+            placeholder="Enter your email signature..."
+            className={inputClass.input}
+            rows={6}
+          />
 
-        <div className="pt-2">
-          <Button className="h-10 px-6 bg-[#16A34A] hover:bg-[#15803D] text-white rounded-lg">
+          <CommonButton variant="gradient" className="mt-5">
+            Update Signature
+          </CommonButton>
+        </CardContainer>
+
+        <CardContainer>
+          <div className="spacey-2 mb-5">
+            <CommonHeader size="lg">Messaging Templates</CommonHeader>
+            <CommonHeader size="sm">
+              Sending out similar messages to customers? You can customize
+              templates to use when sending messages to customers. Create as
+              many as you'd like to become more efficient.
+            </CommonHeader>
+          </div>
+
+          <CommonButton variant="gradient" className="mt-5">
+            Email Templates
+          </CommonButton>
+        </CardContainer>
+
+        <CardContainer className="">
+          <CommonHeader size="lg" className="mb-4">
+            Email Notifications
+          </CommonHeader>
+
+          <div className="space-y-3">
+            {notifications.map((n) => (
+              <CheckboxField
+                key={n.label}
+                label={n.label}
+                description={n.description}
+              />
+            ))}
+          </div>
+        </CardContainer>
+
+        <div className="pt-6 mt-6 border-t border-border">
+          <CommonButton className="bg-[#00A63E]! text-white">
+            <Save size={15} />
             Save changes
-          </Button>
+          </CommonButton>
         </div>
       </div>
     </div>

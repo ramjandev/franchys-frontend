@@ -2,7 +2,17 @@ import { FiBell } from "react-icons/fi";
 import image from "../assets/images/profile.png";
 import DashboardSearch from "./shared/DashboardSearch";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 const Header = () => {
+  const navigate = useNavigate();
   return (
     <div className="pr-8 py-4 pl-16 lg:pl-8">
       <div className="flex items-center justify-between gap-4">
@@ -17,14 +27,30 @@ const Header = () => {
             <FiBell className="w-6 h-6 text-[#45556C]" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-[#FB2C36] shadow-[0_0_0_2px_#FFF] rounded-full"></span>
           </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-9 h-9 rounded-full overflow-hidden focus:outline-none cursor-pointer">
+                <img
+                  src={image}
+                  alt="Profile"
+                  className="w-full h-full object-cover rounded-full"
+                />
+              </button>
+            </DropdownMenuTrigger>
 
-          <div className="w-9 h-9">
-            <img
-              src={image}
-              alt=""
-              className="w-full h-full flex items-center justify-center rounded-full"
-            />
-          </div>
+            <DropdownMenuContent
+              align="end"
+              className="w-40 rounded-xl border border-[#E6EBF2] shadow-lg"
+            >
+              <DropdownMenuItem
+                onClick={() => navigate("/admin/settings")}
+                className="cursor-pointer flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Settings
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>

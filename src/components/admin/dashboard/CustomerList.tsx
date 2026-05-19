@@ -1,14 +1,5 @@
 import Pagination from "@/components/shared/Pagination";
-
-export const tableDesign = {
-  table:
-    "w-full border-separate border-spacing-0 border border-[#EEF2FF] rounded-lg overflow-hidden",
-  thead: "bg-[#EEF2FF] text-black",
-  tbody: "text-[#101828]",
-  tr: "border-b last:border-b-0 border-[#EEF2FF] text-[#101828] text-sm",
-  th: "text-center! py-4 px-6 text-xs font-medium text-[#4A5565] border-b ",
-  td: "text-center! py-4 px-6 text-sm text-[#101828] border-b border-border",
-};
+import { tableDesign } from "../quotes/QuoteLists";
 
 const customerData = [
   {
@@ -72,7 +63,7 @@ const tableHeaders = [
 ];
 const CustomerList = () => {
   return (
-    <div className="bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+    <div className="bg-white rounded-xl  overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-[#5C7899] bg-[#F9FAFB] border-b border-border">

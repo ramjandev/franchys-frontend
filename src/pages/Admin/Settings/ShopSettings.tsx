@@ -1,90 +1,118 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import AvatarUpload from "@/components/settings/AvatarUpload";
+import CommonButton from "@/components/shared/CommonButton";
+import CommonHeader from "@/components/shared/CommonHeader";
+import { inputClass } from "@/pages/Login";
+import { Save } from "lucide-react";
+import { designGrid } from "./ProfileSettings";
 
 const ShopSettings = () => {
   return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold text-[#111827] mb-6 pb-4 border-b border-[#F1F5F9]">
+    <div className="">
+      <CommonHeader
+        size="2xl"
+        className="font-medium! border-b border-border mb-6 pb-3"
+      >
         Shop Information
-      </h2>
+      </CommonHeader>
 
-      <div className="max-w-3xl space-y-6">
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-start">
-          <Label className="w-48 text-sm font-semibold text-[#111827] pt-2">Logo</Label>
+      <div className="space-y-4 sm:space-y-6">
+        <AvatarUpload
+          label="Logo"
+          hint="Recommended size for logos are 600px by 300px using jpg, gif, or png format"
+        />
+
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>
+            Company Name
+          </label>
+          <input defaultValue="Printavo" className={inputClass.input} />
+        </div>
+
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right pt-2`}>
+            Company Email
+          </label>
           <div>
-            <Button variant="outline" className="h-8 px-4 text-xs font-medium border-[#E6EBF2] bg-[#F8FAFC]">
-              Choose File
-            </Button>
-            <p className="text-xs text-[#A0B0C0] mt-2">Recommended size for logos are 600px by 300px using jpg, gif, or png format</p>
+            <input
+              type="email"
+              defaultValue="info@makservius.com"
+              className={inputClass.input}
+            />
+            <p className="text-xs text-[#62748E] mt-1.5">
+              This is used when a customer replies to an invoice being emailed
+              out.
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Company Name</Label>
-          <Input defaultValue="Printavo" className="h-10 border-[#E6EBF2]" />
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>Address</label>
+          <input
+            defaultValue="1102 Pontiac Avenue"
+            className={inputClass.input}
+          />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-start">
-          <Label className="w-48 text-sm font-semibold text-[#111827] pt-2">Company Email</Label>
-          <div className="flex-1">
-            <Input defaultValue="info@makservius.com" className="h-10 border-[#E6EBF2]" />
-            <p className="text-xs text-[#A0B0C0] mt-1.5">This is used when a customer replies to an invoice being emailed out.</p>
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>
+            Address 2
+          </label>
+          <input
+            placeholder="Apartment, suite, etc. (optional)"
+            className={inputClass.input}
+          />
+        </div>
+
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>City</label>
+          <input className={inputClass.input} />
+        </div>
+
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>State</label>
+          <input className={inputClass.input} />
+        </div>
+
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>Zip</label>
+          <input className={inputClass.input} />
+        </div>
+
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>Country</label>
+          <input className={inputClass.input} />
+        </div>
+
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>Phone</label>
+          <input className={inputClass.input} />
+        </div>
+
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>
+            Your Website
+          </label>
+          <input className={inputClass.input} />
+        </div>
+
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right pt-2`}>
+            Custom URL Branding
+          </label>
+          <div>
+            <input defaultValue="makservius" className={inputClass.input} />
+            <p className="text-xs text-[#62748E] mt-1.5">
+              Enter your company name. Resulting example:
+              http://shop-name.printavo.com/invoice/123
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Address</Label>
-          <Input defaultValue="1102 Pontiac Avenue" className="h-10 border-[#E6EBF2]" />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Address</Label>
-          <Input placeholder="Apartment, suite, etc. (optional)" className="h-10 border-[#E6EBF2]" />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">City</Label>
-          <Input className="h-10 border-[#E6EBF2]" />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">State</Label>
-          <Input className="h-10 border-[#E6EBF2]" />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Zip</Label>
-          <Input className="h-10 border-[#E6EBF2]" />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Country</Label>
-          <Input className="h-10 border-[#E6EBF2]" />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Phone</Label>
-          <Input className="h-10 border-[#E6EBF2]" />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Your Website</Label>
-          <Input className="h-10 border-[#E6EBF2]" />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-start">
-          <Label className="w-48 text-sm font-semibold text-[#111827] pt-2">Custom URL Branding</Label>
-          <div className="flex-1">
-            <Input defaultValue="makservius" className="h-10 border-[#E6EBF2]" />
-            <p className="text-xs text-[#A0B0C0] mt-1.5">Enter your company name. Resulting example: http://shop-name.printavo.com/invoice/123</p>
-          </div>
-        </div>
-
-        <div className="pt-6 border-t border-[#F1F5F9]">
-          <Button className="h-10 px-6 bg-[#16A34A] hover:bg-[#15803D] text-white rounded-lg">
+        <div className="pt-6 mt-6 border-t border-border!">
+          <CommonButton className="bg-[#00A63E]! text-white">
+            <Save size={15} />
             Save changes
-          </Button>
+          </CommonButton>
         </div>
       </div>
     </div>

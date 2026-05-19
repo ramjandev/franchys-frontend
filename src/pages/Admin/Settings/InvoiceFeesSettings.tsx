@@ -1,35 +1,53 @@
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import AddFeeModal from "@/components/settings/AddFeeModal";
+import CommonButton from "@/components/shared/CommonButton";
+import CommonHeader from "@/components/shared/CommonHeader";
+import { Save } from "lucide-react";
+import { useState } from "react";
+import { GoPlusCircle } from "react-icons/go";
 
 const feesData = [
   { id: 1, name: "Setup Fee", amount: "$50.00", taxed: "No", default: "No" },
-  { id: 2, name: "Rush Order Fee", amount: "$100.00", taxed: "No", default: "No" },
-  { id: 3, name: "Shipping & Handling", amount: "$25.00", taxed: "No", default: "No" },
+  {
+    id: 2,
+    name: "Rush Order Fee",
+    amount: "$100.00",
+    taxed: "No",
+    default: "No",
+  },
+  {
+    id: 3,
+    name: "Shipping & Handling",
+    amount: "$25.00",
+    taxed: "No",
+    default: "No",
+  },
   { id: 4, name: "Design Fee", amount: "$75.00", taxed: "No", default: "No" },
 ];
 
 const InvoiceFeesSettings = () => {
+  const [showModal, setShowModal] = useState(false);
+
   return (
-    <div className="p-8">
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6 pb-4 border-b border-[#F1F5F9]">
+    <div className="">
+      <div className="mb-6 pb-4 border-b border-border flex flex-col md:flex-row justify-between items-start gap-5">
         <div>
-          <h2 className="text-2xl font-bold text-[#111827] mb-1">
+          <CommonHeader size="2xl" className="font-medium! ">
             Invoice Fees
-          </h2>
-          <p className="text-sm text-[#5C7899]">
-            Create standard fees that can be used across any invoice and set default fees that will appear on every new invoice.
-          </p>
+          </CommonHeader>
+          <CommonHeader size="sm">
+            Create standard fees that can be used across any invoice and set
+            default fees that will appear on every new invoice.
+          </CommonHeader>
         </div>
-        <Button className="h-10 px-4 bg-[#053F7A] hover:bg-[#042f5a] text-white rounded-lg gap-2 font-medium shrink-0">
-          <Plus className="w-4 h-4" />
-          Add New Fee
-        </Button>
+        <CommonButton onClick={() => setShowModal(true)} variant="gradient">
+          <GoPlusCircle /> Add New Fee
+        </CommonButton>
       </div>
 
       <div className="bg-white rounded-xl border border-[#F1F5F9] overflow-hidden mb-6">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="text-xs text-[#5C7899] bg-[#F8FAFC] border-b border-[#F1F5F9]">
+            <thead className="text-xs text-[#314158] bg-[#F8FAFC] border-b border-[#E2E8F0]">
               <tr>
                 <th className="px-6 py-4 font-semibold w-1/3">Name</th>
                 <th className="px-6 py-4 font-semibold">Amount</th>
@@ -40,14 +58,26 @@ const InvoiceFeesSettings = () => {
             </thead>
             <tbody className="divide-y divide-[#F1F5F9]">
               {feesData.map((fee) => (
-                <tr key={fee.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 text-[#111827] font-medium">{fee.name}</td>
-                  <td className="px-6 py-4 text-[#5C7899]">{fee.amount}</td>
-                  <td className="px-6 py-4 text-[#5C7899]">{fee.taxed}</td>
-                  <td className="px-6 py-4 text-[#5C7899]">{fee.default}</td>
+                <tr
+                  key={fee.id}
+                  className="hover:bg-slate-50 transition-colors"
+                >
+                  <td className="px-6 py-4 text-[#111827] font-medium">
+                    {fee.name}
+                  </td>
+                  <td className="px-6 py-4 text-[#314158]">{fee.amount}</td>
+                  <td className="px-6 py-4 text-[#314158]">{fee.taxed}</td>
+                  <td className="px-6 py-4 text-[#314158]">{fee.default}</td>
                   <td className="px-6 py-4 text-right">
-                    <button className="text-[#0077FF] font-semibold text-xs hover:underline mr-3">Edit</button>
-                    <button className="text-[#E11D48] font-semibold text-xs hover:underline">Delete</button>
+                    <button
+                      onClick={() => setShowModal(true)}
+                      className="text-skyBlue font-semibold text-xs hover:underline mr-3 cursor-pointer"
+                    >
+                      Edit
+                    </button>
+                    <button className="text-[#E7000B] font-semibold text-xs hover:underline cursor-pointer">
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -55,12 +85,14 @@ const InvoiceFeesSettings = () => {
           </table>
         </div>
       </div>
-
-      <div className="pt-2">
-        <Button className="h-10 px-6 bg-[#16A34A] hover:bg-[#15803D] text-white rounded-lg">
+      <div className="pt-6 mt-6 border-t border-border">
+        <CommonButton className="bg-[#00A63E]! text-white">
+          <Save size={15} />
           Save changes
-        </Button>
+        </CommonButton>
       </div>
+
+      {showModal && <AddFeeModal setShowModal={setShowModal} />}
     </div>
   );
 };

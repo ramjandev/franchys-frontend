@@ -1,46 +1,55 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import CommonButton from "@/components/shared/CommonButton";
+import CommonHeader from "@/components/shared/CommonHeader";
+import { inputClass } from "@/pages/Login";
+import { Save } from "lucide-react";
 
 const SocialLinksSettings = () => {
   return (
-    <div className="p-8">
-      <div className="mb-6 pb-4 border-b border-[#F1F5F9]">
-        <h2 className="text-2xl font-bold text-[#111827] mb-1">
+    <div className="">
+      <div className="pb-6">
+        <CommonHeader size="2xl" className="font-medium!">
           Social Links
-        </h2>
-        <p className="text-sm text-[#5C7899]">
+        </CommonHeader>
+        <CommonHeader size="sm">
           Connect your social media profiles
-        </p>
+        </CommonHeader>
+      </div>
+      <div className=" space-y-4">
+        <div className="">
+          <label className={inputClass.label}>Facebook</label>
+          <input
+            placeholder="https://facebook.com/yourpage"
+            className={inputClass.input}
+          />
+        </div>
+
+        <div className="">
+          <label className={inputClass.label}>Instagram</label>
+          <input
+            placeholder="https://instagram.com/yourprofile"
+            className={inputClass.input}
+          />
+        </div>
+
+        <div className="">
+          <label className={inputClass.label}>Tiktok</label>
+          <input className={inputClass.input} />
+        </div>
+
+        <div className="">
+          <label className={inputClass.label}>Whatsapp</label>
+          <input
+            placeholder="https://youtube.com/@yourchannel"
+            className={inputClass.input}
+          />
+        </div>
       </div>
 
-      <div className="max-w-3xl space-y-6">
-        <div className="space-y-2">
-          <Label className="text-sm font-semibold text-[#111827]">Facebook</Label>
-          <Input placeholder="https://facebook.com/yourpage" className="h-10 border-[#E6EBF2]" />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-sm font-semibold text-[#111827]">Instagram</Label>
-          <Input placeholder="https://instagram.com/yourprofile" className="h-10 border-[#E6EBF2]" />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-sm font-semibold text-[#111827]">Tiktok</Label>
-          <Input className="h-10 border-[#E6EBF2]" />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-sm font-semibold text-[#111827]">Whatsapp</Label>
-          <Input placeholder="https://youtube.com/@yourchannel" className="h-10 border-[#E6EBF2]" />
-          {/* Note: The mockup has a typo "Whatsapp" but placeholder is youtube.com */}
-        </div>
-
-        <div className="pt-6 mt-4">
-          <Button className="h-10 px-6 bg-[#16A34A] hover:bg-[#15803D] text-white rounded-lg">
-            Save changes
-          </Button>
-        </div>
+      <div className="pt-6 mt-6 border-t border-border">
+        <CommonButton className="bg-[#00A63E]! text-white">
+          <Save size={15} />
+          Save changes
+        </CommonButton>
       </div>
     </div>
   );

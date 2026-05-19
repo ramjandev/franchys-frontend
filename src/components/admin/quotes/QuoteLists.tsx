@@ -3,13 +3,12 @@ import Pagination from "@/components/shared/Pagination";
 import { Plus } from "lucide-react";
 
 export const tableDesign = {
-  table:
-    "w-full border-separate border-spacing-0 border border-[#EEF2FF] rounded-lg overflow-hidden",
-  thead: "bg-[#EEF2FF] text-black",
-  tbody: "text-[#101828]",
-  tr: "border-b last:border-b-0 border-[#EEF2FF] text-[#101828] text-sm",
-  th: " py-4 px-6 text-xs font-normal text-[#4A5565] border-b",
-  td: " py-4 px-6 text-sm text-[#101828] border-b border-border",
+  table: "w-full border border-border rounded-lg overflow-hidden",
+  thead: "text-xs text-[#45556C]! bg-[#F8FAFC] border-b border-border",
+  tbody: "text-[#0F172B] bg-white",
+  tr: "border-b border-border text-[#101828] text-sm",
+  th: "py-4 px-6 text-xs font-semibold text-[#4A5565] border-b",
+  td: "py-4 px-6 text-sm text-[#101828] border-b border-border",
 };
 
 const quotes = [
@@ -91,10 +90,10 @@ const tableHeaders = [
 
 const QuoteLists = () => {
   return (
-    <div className="bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+    <div className="bg-white rounded-xl  overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="text-xs text-[#5C7899] bg-[#F9FAFB] border-b border-border">
+          <thead className={tableDesign.thead}>
             <tr>
               {tableHeaders.map((item, index) => (
                 <th key={index} className={`${item.align} ${tableDesign.th}`}>
@@ -104,7 +103,7 @@ const QuoteLists = () => {
             </tr>
           </thead>
 
-          <tbody>
+          <tbody className={tableDesign.tbody}>
             {quotes.map((quote) => (
               <tr
                 key={quote.id}

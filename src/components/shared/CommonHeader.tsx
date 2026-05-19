@@ -22,7 +22,8 @@ const CommonHeader: React.FC<CommonHeaderProps> = ({
     md: "text-base leading-6 text-gray font-normal ",
     lg: "text-sm sm:text-lg leading-5 sm:leading-7 font-medium text-[#0F172B]",
     xl: "text-xl leading-8 font-bold text-[#0F172B]",
-    "2xl": "text-2xl leading-9 font-bold text-[#0F172B]",
+    "2xl":
+      "text-xl sm:text-2xl leading-7 sm:leading-8 font-bold text-[#0F172B]",
     "3xl":
       " text-xl sm:text-2xl md:text-3xl lg:text-4xl leading-8 md:leading-10 font-bold text-[#0F172B]",
     "4xl": "text-4xl leading-[3rem] font-bold",

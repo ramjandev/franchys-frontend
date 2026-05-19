@@ -1,11 +1,13 @@
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import { ArrowLeft, Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { tableDesign } from "@/components/admin/quotes/QuoteLists";
+import InvoicePreviewModal from "@/components/invoice/InvoicePreviewModal";
+import PaymentModal from "@/components/invoice/PaymentModal";
+import CardContainer from "@/components/shared/CardContainer";
+import CommonHeader from "@/components/shared/CommonHeader";
+import DashboardSearch from "@/components/shared/DashboardSearch";
+import DashboardTopSection from "@/components/shared/DashboardTopSection";
+import Pagination from "@/components/shared/Pagination";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const invoicesData = [
   {
@@ -46,29 +48,53 @@ const invoicesData = [
   },
 ];
 
+const statsCards = [
+  {
+    title: "Outstanding",
+    amount: "$1,960.8",
+    dotColor: "bg-[#90A1B9]",
+    textColor: "text-[#0F172B]",
+    borderColor: "border border-[#E2E8F0]!",
+  },
+  {
+    title: "Overdue",
+    amount: "$756",
+    dotColor: "bg-[#FB2C36]",
+    textColor: "text-[#E7000B]",
+    borderColor: "border border-[#FFC9C9]!",
+  },
+  {
+    title: "Collected",
+    amount: "$8,700",
+    dotColor: "bg-[#00BC7D]",
+    textColor: "text-[#009966]",
+    borderColor: "border border-[#A4F4CF]!",
+  },
+];
+
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "Paid":
       return (
-        <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#D1FAE5] text-[#065F46] text-xs font-semibold">
+        <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#5CB85C] text-white text-xs font-semibold">
           Paid
         </span>
       );
     case "Partial":
       return (
-        <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#FEF3C7] text-[#92400E] text-xs font-semibold">
+        <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#F0AD4E] text-white text-xs font-semibold">
           Partial
         </span>
       );
     case "Overdue":
       return (
-        <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#FEE2E2] text-[#B91C1C] text-xs font-semibold">
+        <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#D9534F] text-white text-xs font-semibold">
           Overdue
         </span>
       );
     case "Unpaid":
       return (
-        <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#F3F4F6] text-[#4B5563] text-xs font-semibold">
+        <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#A0B0C0] text-white text-xs font-semibold">
           Unpaid
         </span>
       );
@@ -76,6 +102,16 @@ const getStatusBadge = (status: string) => {
       return null;
   }
 };
+
+const tableHeaders = [
+  { label: "Invoice", align: "text-left" },
+  { label: "Customer", align: "text-left" },
+  { label: "Amount", align: "text-left" },
+  { label: "Balance", align: "text-left" },
+  { label: "Status", align: "text-center" },
+  { label: "Due", align: "text-left" },
+  { label: "Action", align: "text-center" },
+];
 
 const Invoices = () => {
   const [activeTab, setActiveTab] = useState("All");
@@ -88,134 +124,145 @@ const Invoices = () => {
     { name: "Overdue", count: 1 },
   ];
 
+  const [isVoiceDetailsOpen, setIsVoiceDetailsOpen] = useState(false);
+  const [isInvoiceCreate, setIsInvoiceCreate] = useState(false);
   return (
-    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
-      {/* Header Area */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <Link to="/admin/dashboard" className="mt-1">
-            <ArrowLeft className="w-5 h-5 text-[#5C7899] hover:text-[#111827]" />
-          </Link>
-          <div>
-            <h1 className="text-3xl font-semibold text-[#111827] mb-1">
-              Invoices
-            </h1>
-            <p className="text-sm text-[#5C7899]">
-              Manage billing and collect payments.
-            </p>
-          </div>
-        </div>
-        <div className="w-full md:w-64">
-          <InputGroup className="h-10 border-[#E6EBF2] bg-transparent focus-within:ring-0 focus-within:border-[#0077FF]">
-            <InputGroupAddon>
-              <Search className="w-4 h-4 text-[#A0B0C0]" />
-            </InputGroupAddon>
-            <InputGroupInput
+    <>
+      <div className="flex flex-col gap-6">
+        <div className="flex justify-between">
+          <DashboardTopSection
+            title="Invoices"
+            description="Manage billing and collect payments."
+            backButton
+          />
+          <div className="max-w-[255px]">
+            <DashboardSearch
+              className="bg-transparent! border-[#CAD5E2]! text-[#0A0A0A]/50!"
               placeholder="Search invoices..."
-              className="text-sm placeholder:text-[#A0B0C0] bg-transparent"
             />
-          </InputGroup>
-        </div>
-      </div>
-
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Outstanding */}
-        <div className="bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 rounded-full bg-[#A0B0C0]" />
-            <p className="text-sm text-[#5C7899] font-medium">Outstanding</p>
           </div>
-          <h2 className="text-3xl font-bold text-[#111827]">$1,960.8</h2>
         </div>
 
-        {/* Overdue */}
-        <div className="bg-[#FFF1F2] border border-[#FFE4E6] rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 rounded-full bg-[#E11D48]" />
-            <p className="text-sm text-[#E11D48] font-medium">Overdue</p>
-          </div>
-          <h2 className="text-3xl font-bold text-[#E11D48]">$756</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {statsCards.map((card, index) => (
+            <CardContainer size="lg" key={index} className={card.borderColor}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`w-3 h-3 rounded-full ${card.dotColor}`} />
+                <CommonHeader size="sm" className="text-[#45556C]!">
+                  {card.title}
+                </CommonHeader>
+              </div>
+              <CommonHeader size="3xl" className={card.textColor}>
+                {card.amount}
+              </CommonHeader>
+            </CardContainer>
+          ))}
         </div>
 
-        {/* Collected */}
-        <div className="bg-[#F0FDF4] border border-[#DCFCE7] rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 rounded-full bg-[#16A34A]" />
-            <p className="text-sm text-[#16A34A] font-medium">Collected</p>
-          </div>
-          <h2 className="text-3xl font-bold text-[#16A34A]">$8,700</h2>
+        <div className="flex items-center gap-2 border-b border-[#E6EBF2]">
+          {tabs.map((tab) => (
+            <button
+              key={tab.name}
+              onClick={() => setActiveTab(tab.name)}
+              className={`relative cursor-pointer px-5 py-3 rounded-[14px] text-sm font-medium transition-all duration-200 ${
+                activeTab === tab.name
+                  ? "bg-[#EFF6FF] text-skyBlue"
+                  : "text-[#45556C] hover:text-skyBlue"
+              }`}
+            >
+              <span>{tab.name}</span>
+              <span className="ml-1 opacity-80">{tab.count}</span>
+            </button>
+          ))}
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-6 border-b border-[#E6EBF2]">
-        {tabs.map((tab) => (
-          <button
-            key={tab.name}
-            onClick={() => setActiveTab(tab.name)}
-            className={`pb-3 text-sm font-semibold transition-colors relative ${
-              activeTab === tab.name
-                ? "text-[#0077FF]"
-                : "text-[#5C7899] hover:text-[#111827]"
-            }`}
-          >
-            {tab.name} <span className="ml-1 font-normal opacity-70">{tab.count}</span>
-            {activeTab === tab.name && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0077FF] rounded-t-full" />
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Table Area */}
-      <div className="bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="text-xs text-[#5C7899] bg-white border-b border-[#F1F5F9]">
-              <tr>
-                <th className="px-6 py-4 font-semibold w-32">Invoice</th>
-                <th className="px-6 py-4 font-semibold">Customer</th>
-                <th className="px-6 py-4 font-semibold">Amount</th>
-                <th className="px-6 py-4 font-semibold">Balance</th>
-                <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold">Due</th>
-                <th className="px-6 py-4 font-semibold">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#F1F5F9]">
-              {invoicesData.map((invoice) => (
-                <tr
-                  key={invoice.id}
-                  className="hover:bg-slate-50 transition-colors"
-                >
-                  <td className="px-6 py-4">
-                    <span className="text-[#0077FF] font-medium hover:underline cursor-pointer">
-                      {invoice.id}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-[#111827] font-medium">{invoice.customer}</div>
-                    {invoice.jobId && (
-                      <div className="text-xs text-[#A0B0C0] mt-0.5">{invoice.jobId}</div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-[#111827] font-medium">{invoice.amount}</td>
-                  <td className="px-6 py-4 text-[#111827] font-medium">{invoice.balance}</td>
-                  <td className="px-6 py-4">{getStatusBadge(invoice.status)}</td>
-                  <td className="px-6 py-4 text-[#5C7899]">{invoice.due}</td>
-                  <td className="px-6 py-4">
-                    <button className="text-[#0077FF] font-semibold text-xs hover:underline">
-                      {invoice.status === "Paid" ? "View" : "Pay Now"}
-                    </button>
-                  </td>
+        <div className="bg-white rounded-xl  overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className={tableDesign.table}>
+              <thead className={tableDesign.thead}>
+                <tr>
+                  {tableHeaders.map((item, index) => (
+                    <th
+                      key={index}
+                      className={`${item.align} ${tableDesign.th}`}
+                    >
+                      {item.label}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className={tableDesign.tbody}>
+                {invoicesData.map((invoice) => (
+                  <tr
+                    key={invoice.id}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
+                    <td
+                      onClick={() => setIsVoiceDetailsOpen(true)}
+                      className={tableDesign.td}
+                    >
+                      <span className="text-[#0077FF] font-medium hover:underline cursor-pointer">
+                        {invoice.id}
+                      </span>
+                    </td>
+                    <td className={tableDesign.td}>
+                      <div className="text-[#101828] font-medium">
+                        {invoice.customer}
+                      </div>
+                      {invoice.jobId && (
+                        <div className="text-xs text-[#A0B0C0] mt-0.5">
+                          {invoice.jobId}
+                        </div>
+                      )}
+                    </td>
+                    <td className={`${tableDesign.td} font-semibold`}>
+                      {invoice.amount}
+                    </td>
+                    <td className={`${tableDesign.td} font-semibold`}>
+                      {invoice.balance}
+                    </td>
+                    <td className={`${tableDesign.td} text-center`}>
+                      {getStatusBadge(invoice.status)}
+                    </td>
+                    <td className={tableDesign.td}>{invoice.due}</td>
+                    <td className={`${tableDesign.td} text-center`}>
+                      {invoice.status === "Paid" ? (
+                        <Link
+                          to={`/admin/invoices/${invoice.id}`}
+                          className="text-[#0077FF] font-medium hover:underline cursor-pointer"
+                        >
+                          View
+                        </Link>
+                      ) : (
+                        <span
+                          onClick={() => setIsInvoiceCreate(true)}
+                          className="text-[#0077FF] font-medium hover:underline cursor-pointer"
+                        >
+                          Pay Now
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="py-5">
+            <Pagination
+              currentPage={1}
+              totalPages={5}
+              onPageChange={() => {}}
+            />
+          </div>
         </div>
       </div>
-    </div>
+
+      {isVoiceDetailsOpen && (
+        <InvoicePreviewModal setShowModal={setIsVoiceDetailsOpen} />
+      )}
+      {isInvoiceCreate && <PaymentModal setShowModal={setIsInvoiceCreate} />}
+    </>
   );
 };
 

@@ -30,7 +30,7 @@ const orderDetails = [
 ];
 const QuoteHeader = () => {
   return (
-    <div>
+    <div className="mb-6">
       <div className="flex justify-between items-start pb-4 mb-4 ">
         <div>
           <div className=" w-25 h-22.5 mb-3">

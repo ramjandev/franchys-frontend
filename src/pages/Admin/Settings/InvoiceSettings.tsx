@@ -1,72 +1,87 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import CheckboxField from "@/components/shared/CheckboxField";
+import CommonButton from "@/components/shared/CommonButton";
+import CommonHeader from "@/components/shared/CommonHeader";
+import { inputClass } from "@/pages/Login";
+import { Save } from "lucide-react";
+import { designGrid } from "./ProfileSettings";
 
 const InvoiceSettings = () => {
   return (
-    <div className="p-8">
-      <div className="mb-6 pb-4 border-b border-[#F1F5F9]">
-        <h2 className="text-2xl font-bold text-[#111827] mb-1">
-          Invoice Information
-        </h2>
-        <p className="text-sm text-[#5C7899]">
-          Configure how your invoices and quotes are generated
-        </p>
-      </div>
+    <div className="">
+      <CommonHeader
+        size="2xl"
+        className="font-medium! border-b border-border mb-6 pb-3"
+      >
+        Invoice Information
+      </CommonHeader>
 
-      <div className="max-w-4xl space-y-6">
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Invoice ID</Label>
-          <Input className="h-10 border-[#E6EBF2]" />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Currency</Label>
-          <Input className="h-10 border-[#E6EBF2]" />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Invoice Numbering</Label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="rounded border-[#A0B0C0] text-[#0077FF] focus:ring-[#0077FF]" />
-            <span className="text-sm text-[#111827]">Auto-generate invoice numbers sequentially</span>
+      <div className="space-y-4 sm:space-y-6">
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>
+            Invoice ID
           </label>
+          <input className={inputClass.input} />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Invoice Seed</Label>
-          <Input defaultValue="1" className="h-10 border-[#E6EBF2]" />
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>
+            Currency
+          </label>
+          <input className={inputClass.input} />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-start">
-          <Label className="w-48 text-sm font-semibold text-[#111827] pt-2">Terms and Conditions</Label>
-          <div className="flex-1">
-            <textarea 
-              className="w-full h-32 border border-[#E6EBF2] rounded-md p-3 text-sm outline-none focus:border-[#0077FF]"
-            />
-            <p className="text-xs text-[#A0B0C0] mt-1.5">These terms will appear at the bottom of your invoices</p>
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>
+            Invoice Numbering
+          </label>
+          <CheckboxField description="Auto-generate invoice numbers sequentially" />
+        </div>
+
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>
+            Invoice Seed
+          </label>
+          <input defaultValue="1" className={inputClass.input} />
+        </div>
+
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right pt-2`}>
+            Terms and Conditions
+          </label>
+          <div>
+            <textarea className={`${inputClass.input} h-32 resize-none`} />
+            <p className="text-xs text-[#62748E] mt-1.5">
+              These terms will appear at the bottom of your invoices
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Default Payment Terms</Label>
-          <Input className="h-10 border-[#E6EBF2]" />
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>
+            Default Payment Terms
+          </label>
+          <input className={inputClass.input} />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Default Tax Rate (%)</Label>
-          <Input defaultValue="8.00" className="h-10 border-[#E6EBF2]" />
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>
+            Default Tax Rate (%)
+          </label>
+          <input defaultValue="8.00" className={inputClass.input} />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-center">
-          <Label className="w-48 text-sm font-semibold text-[#111827]">Invoice Language</Label>
-          <Input className="h-10 border-[#E6EBF2]" />
+        <div className={designGrid}>
+          <label className={`${inputClass.label} sm:text-right`}>
+            Invoice Language
+          </label>
+          <input className={inputClass.input} />
         </div>
 
-        <div className="pt-6 border-t border-[#F1F5F9]">
-          <Button className="h-10 px-6 bg-[#16A34A] hover:bg-[#15803D] text-white rounded-lg">
+        <div className="pt-6 mt-6 border-t border-border!">
+          <CommonButton className="bg-[#00A63E]! text-white">
+            <Save size={15} />
             Save changes
-          </Button>
+          </CommonButton>
         </div>
       </div>
     </div>

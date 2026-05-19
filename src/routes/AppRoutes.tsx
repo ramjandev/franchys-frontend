@@ -20,10 +20,12 @@ import ProtectedRoute from "./ProtectedRoute";
 
 // Settings Pages
 import QuotePreview from "@/components/admin/quotes/QuotePreview";
+import InvoiceDetails from "@/pages/Admin/InvoiceDetails";
 import InvoiceFeesSettings from "@/pages/Admin/Settings/InvoiceFeesSettings";
 import InvoiceSettings from "@/pages/Admin/Settings/InvoiceSettings";
 import LineItemsSettings from "@/pages/Admin/Settings/LineItemsSettings";
 import MessagingSettings from "@/pages/Admin/Settings/MessagingSettings";
+import PricingMatrixDetail from "@/pages/Admin/Settings/PricingMatrixDetail";
 import PricingMatrixSettings from "@/pages/Admin/Settings/PricingMatrixSettings";
 import ProfileSettings from "@/pages/Admin/Settings/ProfileSettings";
 import SettingsLayout from "@/pages/Admin/Settings/SettingsLayout";
@@ -63,6 +65,7 @@ const router = createBrowserRouter([
               { path: "quotes/new", element: <CreateQuote /> },
               { path: "quotes/preview", element: <QuotePreview /> },
               { path: "invoices", element: <Invoices /> },
+              { path: "invoices/:id", element: <InvoiceDetails /> },
               { path: "customers", element: <Customers /> },
               { path: "customers/new", element: <AddNewCustomer /> },
               { path: "job-board", element: <JobBoard /> },
@@ -72,7 +75,6 @@ const router = createBrowserRouter([
               { path: "payment", element: <Payment /> },
               { path: "analytics", element: <Analytics /> },
 
-              // Settings Routes
               {
                 path: "settings",
                 element: <SettingsLayout />,
@@ -84,6 +86,7 @@ const router = createBrowserRouter([
                   { path: "line-items", element: <LineItemsSettings /> },
                   { path: "fees", element: <InvoiceFeesSettings /> },
                   { path: "pricing", element: <PricingMatrixSettings /> },
+                  { path: "pricing/:id", element: <PricingMatrixDetail /> },
                   { path: "vendors", element: <VendorsSettings /> },
                   { path: "users", element: <UsersSettings /> },
                   { path: "social", element: <SocialLinksSettings /> },

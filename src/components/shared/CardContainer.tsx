@@ -12,7 +12,7 @@ const sizeClasses: Record<
   sm: { padding: "p-3 sm:p-4", rounded: "rounded-2xl" },
   md: { padding: "p-4 sm:p-5", rounded: "rounded-[14px]" },
   lg: { padding: "p-5 sm:p-6", rounded: "rounded-[14px]" },
-  xl: { padding: "p-6 sm:p-7", rounded: "rounded-[3rem]" },
+  xl: { padding: "p-6 sm:p-7", rounded: "rounded-[14px]" },
   "2xl": { padding: "p-7 sm:p-8", rounded: "rounded-[3.5rem]" },
   "3xl": {
     padding: "p-8 sm:p-9",
