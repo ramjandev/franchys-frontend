@@ -311,6 +311,7 @@ const Preview = forwardRef<PreviewHandle>((_, ref) => {
                         size={{ width: layer.w, height: layer.h }}
                         position={{ x: layer.x, y: layer.y }}
                         bounds="parent"
+                        scale={zoom / 100}
                         enableResizing={
                           isSelected
                             ? {

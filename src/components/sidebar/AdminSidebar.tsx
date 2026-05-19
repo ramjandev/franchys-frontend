@@ -4,7 +4,7 @@ import { BsBookFill } from "react-icons/bs";
 import { CiSliderHorizontal } from "react-icons/ci";
 import { FaFileInvoiceDollar, FaPowerOff } from "react-icons/fa6";
 import { GoHomeFill } from "react-icons/go";
-import { HiPlus } from "react-icons/hi";
+// import { HiPlus } from "react-icons/hi";
 import { LuChartNoAxesCombined } from "react-icons/lu";
 import { PiUsersThreeFill } from "react-icons/pi";
 import { SlHandbag } from "react-icons/sl";

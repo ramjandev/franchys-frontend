@@ -17,6 +17,7 @@ import CardContainer from "../shared/CardContainer";
 import CommonButton from "../shared/CommonButton";
 import CommonHeader from "../shared/CommonHeader";
 import CommonSelect from "../shared/CommonSelect";
+import { toast } from "react-toastify";
 
 // ── Shared input styles (import from your Login page or define here) ──────────
 export const inputClass = {
@@ -105,7 +106,7 @@ const UploadDesign: React.FC = () => {
   const loadFile = (file: File) => {
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      alert("File too large. Max 10MB.");
+      toast.error("File too large. Max 10MB.");
       return;
     }
     const reader = new FileReader();

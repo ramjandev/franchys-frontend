@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Image as ImageIcon, Type, ZoomIn, ZoomOut, Save } from "lucide-react";
+import { ArrowLeft, Type, ZoomIn, ZoomOut, Save } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const garmentOptions = [

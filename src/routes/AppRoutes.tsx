@@ -8,7 +8,7 @@ import Dashboard from "@/pages/Admin/Dashboard";
 import Invoices from "@/pages/Admin/Invoices";
 import JobBoard from "@/pages/Admin/JobBoard";
 import Messages from "@/pages/Admin/Messages";
-import Mockups from "@/pages/Admin/Mockups";
+// import Mockups from "@/pages/Admin/Mockups";
 import Payment from "@/pages/Admin/Payment";
 import Products from "@/pages/Admin/Products";
 import Quotes from "@/pages/Admin/Quotes";
@@ -33,6 +33,7 @@ import ShopSettings from "@/pages/Admin/Settings/ShopSettings";
 import SocialLinksSettings from "@/pages/Admin/Settings/SocialLinksSettings";
 import UsersSettings from "@/pages/Admin/Settings/UsersSettings";
 import VendorsSettings from "@/pages/Admin/Settings/VendorsSettings";
+import MockupBuilderPage from "@/pages/Admin/MockupBuilder/MockupBuilderPage";
 
 const router = createBrowserRouter([
   {
@@ -69,7 +70,8 @@ const router = createBrowserRouter([
               { path: "customers", element: <Customers /> },
               { path: "customers/new", element: <AddNewCustomer /> },
               { path: "job-board", element: <JobBoard /> },
-              { path: "mockups", element: <Mockups /> },
+              { path: "mockups", element: <MockupBuilderPage /> },
+              // { path: "mockups", element: <Mockups /> },
               { path: "products", element: <Products /> },
               { path: "messages", element: <Messages /> },
               { path: "payment", element: <Payment /> },
