@@ -8,7 +8,7 @@ import Dashboard from "@/pages/Admin/Dashboard";
 import Invoices from "@/pages/Admin/Invoices";
 import JobBoard from "@/pages/Admin/JobBoard";
 import Messages from "@/pages/Admin/Messages";
-import Mockups from "@/pages/Admin/Mockups";
+// import Mockups from "@/pages/Admin/Mockups";
 import Payment from "@/pages/Admin/Payment";
 import Products from "@/pages/Admin/Products";
 import Quotes from "@/pages/Admin/Quotes";
