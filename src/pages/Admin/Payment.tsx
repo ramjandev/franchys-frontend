@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DollarSign, CheckCircle, Clock, XCircle, Download, Filter } from "lucide-react";
 import CardContainer from "@/components/shared/CardContainer";
-import { transactionsData, getStatusBadge } from "./PaymentData";
+import { transactionsData, getStatusBadge } from "../../components/PaymentStatus";
 
 const metrics = [
   { label: "Total Revenue", val: "$8,100.00", bg: "bg-[#FFFDF5] border-[#FEF3C7]", iconBg: "bg-[#FDE68A]/60", iconColor: "text-[#B45309]", Icon: DollarSign },
