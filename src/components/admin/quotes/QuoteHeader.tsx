@@ -67,7 +67,7 @@ const QuoteHeader = () => {
         </div>
       </div>
 
-      <div className="flex justify-between">
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
           <div className="text-xs text-[#62748E] font-medium mb-1">
             QUOTE FOR:
@@ -87,7 +87,7 @@ const QuoteHeader = () => {
             (555) 123-4587
           </CommonHeader>
         </div>
-        <div className="w-60 space-y-3">
+        <div className="w-full  sm:w-60 space-y-3">
           {orderDetails.map((detail, i) => (
             <div className="w-full flex justify-between gap-3">
               <CommonHeader size="xs" className="">

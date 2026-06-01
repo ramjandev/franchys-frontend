@@ -8,8 +8,8 @@ import LineItems from "./LineItems";
 import SummaryCard from "./SummaryCard";
 const QuoteDetails = () => {
   return (
-    <div className=" flex items-start  gap-6">
-      <div className="space-y-6">
+    <div className=" grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="space-y-6 xl:col-span-2">
         <CardContainer size="lg" className="">
           <div className="flex items-center justify-between mb-6">
             <CommonHeader size="lg">Customer Details</CommonHeader>
@@ -136,7 +136,9 @@ const QuoteDetails = () => {
           />
         </CardContainer>
       </div>
-      <SummaryCard />
+      <div className=" ">
+        <SummaryCard />
+      </div>
     </div>
   );
 };

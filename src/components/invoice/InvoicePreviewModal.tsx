@@ -1,5 +1,6 @@
 import ModalAction from "../settings/ModalAction";
 import ModalContainer from "../settings/ModalContainer";
+import CommonHeader from "../shared/CommonHeader";
 
 interface InvoicePreviewModalProps {
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -31,95 +32,127 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
   const total = subtotal + invoice.tax;
 
   return (
-    <ModalContainer close={() => setShowModal(false)} title="Invoice Preview">
+    <ModalContainer
+      close={() => setShowModal(false)}
+      title="Invoice Preview"
+      size="max-w-xl"
+    >
       <div className="p-6">
-        {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-4xl font-bold text-[#1E3A5F] tracking-wide mb-1">
+            <CommonHeader size="3xl" className="font-medium!">
               INVOICE
-            </h1>
-            <p className="text-[#62748E] text-sm">{invoice.id}</p>
+            </CommonHeader>
+
+            <CommonHeader className="text-[#45556C]!">
+              Due: {invoice.id}
+            </CommonHeader>
           </div>
           <div className="text-right">
-            <span className="inline-block border border-[#00C48C] text-[#00C48C] text-sm font-semibold px-4 py-1 rounded-md mb-2">
+            <span className="inline-block bg-[#D0FAE5] text-[#007A55] text-sm font-semibold px-4 py-1 rounded-md mb-2">
               {invoice.status}
             </span>
-            <p className="text-white text-sm">Due: {invoice.dueDate}</p>
+            <CommonHeader size="sm" className="text-[#45556C]!">
+              Due: {invoice.dueDate}
+            </CommonHeader>
           </div>
         </div>
 
-        {/* From / Bill To */}
         <div className="grid grid-cols-2 gap-6 mb-8">
-          <div>
-            <p className="text-xs text-[#62748E] font-semibold tracking-widest mb-2">
+          <div className="space-y-1">
+            <CommonHeader size="xs" className="text-[#45556C]!">
               FROM
-            </p>
-            <p className="text-[#4A90D9] font-medium">{invoice.from.company}</p>
-            <p className="text-white text-sm mt-1">{invoice.from.address}</p>
+            </CommonHeader>
+
+            <CommonHeader className="text-[#45556C]!">
+              {invoice.from.company}
+            </CommonHeader>
+            <CommonHeader size="sm" className="text-[#45556C]!">
+              {invoice.from.address}
+            </CommonHeader>
           </div>
-          <div>
-            <p className="text-xs text-[#62748E] font-semibold tracking-widest mb-2">
+          <div className="space-y-1">
+            <CommonHeader size="xs" className="text-[#45556C]!">
               BILL TO
-            </p>
-            <p className="text-[#4A90D9] font-medium">
+            </CommonHeader>
+            <CommonHeader className="text-[#45556C]!">
               {invoice.billTo.company}
-            </p>
-            <p className="text-white text-sm mt-1">{invoice.billTo.email}</p>
+            </CommonHeader>
+
+            <CommonHeader size="sm" className="text-[#45556C]!">
+              {invoice.billTo.email}
+            </CommonHeader>
           </div>
         </div>
 
-        {/* Line Items Table */}
         <div className="mb-6">
-          <div className="grid grid-cols-[1fr_80px_120px_120px] gap-2 pb-2 border-b border-[#1E3A5F]">
-            <span className="text-[#4A90D9] font-bold text-sm">
+          <div className="grid grid-cols-4 sm:grid-cols-[1fr_80px_120px_120px] gap-2 pb-2 border-b border-[#F1F5F9]">
+            <CommonHeader size="sm" className="text-[#0F172B]! font-bold!">
               Description
-            </span>
-            <span className="text-[#4A90D9] font-bold text-sm text-center">
+            </CommonHeader>
+            <CommonHeader size="sm" className="text-[#0F172B]! font-bold!">
               Qty
-            </span>
-            <span className="text-[#4A90D9] font-bold text-sm text-right">
+            </CommonHeader>
+            <CommonHeader size="sm" className="text-[#0F172B]! font-bold!">
               Price
-            </span>
-            <span className="text-[#4A90D9] font-bold text-sm text-right">
+            </CommonHeader>
+            <CommonHeader
+              size="sm"
+              className="text-[#0F172B]! font-bold! justify-end!"
+            >
               Total
-            </span>
+            </CommonHeader>
           </div>
 
           {invoice.items.map((item, i) => (
             <div
               key={i}
-              className="grid grid-cols-[1fr_80px_120px_120px] gap-2 py-4 border-b border-[#1E3A5F]"
+              className="grid grid-cols-4 sm:grid-cols-[1fr_80px_120px_120px] gap-2 py-4 border-b border-[#E2E8F0]"
             >
-              <span className="text-white text-sm">{item.description}</span>
-              <span className="text-white text-sm text-center">{item.qty}</span>
-              <span className="text-white text-sm text-right">
+              <CommonHeader className="text-[#45556C]! ">
+                {item.description}
+              </CommonHeader>
+              <CommonHeader className="text-[#45556C]! ">
+                {item.qty}
+              </CommonHeader>
+              <CommonHeader className="text-[#45556C]! ">
                 {fmt(item.price)}
-              </span>
-              <span className="text-[#4A90D9] text-sm text-right">
+              </CommonHeader>
+              <CommonHeader className="text-[#45556C]! justify-end!">
                 {fmt(item.qty * item.price)}
-              </span>
+              </CommonHeader>
             </div>
           ))}
         </div>
 
-        {/* Totals */}
         <div className="ml-auto w-64 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-[#62748E]">Subtotal</span>
-            <span className="text-[#4A90D9]">{fmt(subtotal)}</span>
+          <div className="flex justify-between">
+            <CommonHeader size="sm" className="">
+              Subtotal
+            </CommonHeader>
+            <CommonHeader size="sm" className="">
+              {fmt(subtotal)}
+            </CommonHeader>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-[#62748E]">Tax</span>
-            <span className="text-[#4A90D9]">{fmt(invoice.tax)}</span>
+          <div className="flex justify-between">
+            <CommonHeader size="sm" className="">
+              Tax
+            </CommonHeader>
+            <CommonHeader size="sm" className="">
+              {fmt(invoice.tax)}
+            </CommonHeader>
           </div>
-          <div className="border-t border-[#1E3A5F] pt-2 flex justify-between">
-            <span className="text-[#4A90D9] font-semibold">Total</span>
-            <span className="text-[#4A90D9] font-semibold">{fmt(total)}</span>
+          <div className="border-t border-[#E2E8F0] pt-2 flex justify-between">
+            <CommonHeader size="lg">Total</CommonHeader>
+            <CommonHeader size="lg">{fmt(total)}</CommonHeader>
           </div>
-          <div className="border-t border-[#1E3A5F] pt-2 flex justify-between">
-            <span className="text-[#00C48C] font-semibold">Paid</span>
-            <span className="text-[#00C48C] font-semibold">{fmt(total)}</span>
+          <div className="border-t border-[#A4F4CF] pt-2 flex justify-between">
+            <CommonHeader size="sm" className="text-[#007A55]! ">
+              Paid
+            </CommonHeader>
+            <CommonHeader size="sm" className="text-[#007A55]! ">
+              {fmt(total)}
+            </CommonHeader>
           </div>
         </div>
       </div>

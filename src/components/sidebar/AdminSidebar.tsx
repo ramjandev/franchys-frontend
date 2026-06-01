@@ -22,7 +22,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ onItemClick }) => {
     {
       title: "GENERAL",
       items: [
-        { path: "dashboard", label: "Dashboard", icon1: GoHomeFill, icon2: CiSliderHorizontal },
+        {
+          path: "dashboard",
+          label: "Dashboard",
+          icon1: GoHomeFill,
+          icon2: CiSliderHorizontal,
+        },
         { path: "quotes", label: "Quotes", icon1: BsBookFill },
         { path: "invoices", label: "Invoices", icon1: FaFileInvoiceDollar },
         { path: "customers", label: "Customers", icon1: PiUsersThreeFill },
@@ -63,7 +68,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ onItemClick }) => {
               {group.title}
             </h3>
             <div className="space-y-2">
-              {group.items.map((item, i) => {
+              {group.items.map((item, _i) => {
                 const isActive = pathname.includes(item.path);
                 const Icon1 = item.icon1;
                 const Icon2 = item.icon2;

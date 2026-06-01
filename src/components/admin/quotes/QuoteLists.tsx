@@ -3,11 +3,17 @@ import Pagination from "@/components/shared/Pagination";
 import { Plus } from "lucide-react";
 
 export const tableDesign = {
-  table: "w-full border border-border rounded-lg overflow-hidden",
-  thead: "text-xs text-[#45556C]! bg-[#F8FAFC] border-b border-border",
+  table:
+    "w-full border-collapse border border-border rounded-lg overflow-hidden",
+
+  thead: "text-xs text-[#45556C]! bg-[#F8FAFC]",
+
   tbody: "text-[#0F172B] bg-white",
-  tr: "border-b border-border text-[#101828] text-sm",
-  th: "py-4 px-6 text-xs font-semibold text-[#4A5565] border-b",
+
+  tr: "text-[#101828] text-sm hover:bg-slate-50 transition-colors",
+
+  th: "py-4 px-6 text-xs font-semibold text-[#4A5565] border-b border-border",
+
   td: "py-4 px-6 text-sm text-[#101828] border-b border-border",
 };
 
@@ -105,10 +111,7 @@ const QuoteLists = () => {
 
           <tbody className={tableDesign.tbody}>
             {quotes.map((quote) => (
-              <tr
-                key={quote.id}
-                className="hover:bg-slate-50 transition-colors"
-              >
+              <tr key={quote.id} className={tableDesign.tr}>
                 <td className={tableDesign.td}>
                   <span className="">{quote.id}</span>
                 </td>

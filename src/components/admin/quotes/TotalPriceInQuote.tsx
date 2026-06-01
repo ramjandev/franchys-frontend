@@ -39,7 +39,7 @@ const TotalPriceInQuote = () => {
       </div>
       <div className="flex justify-between items-center bg-[#FFF7ED] border border-[#FED7AA] rounded-lg px-3 py-2 my-3">
         <div className="flex items-center gap-2">
-          <CreditCard className="w-4 h-4 text-orange-600" />
+          <CreditCard className="w-4 h-4 text-orange-600 hidden sm:block" />
           <div>
             <CommonHeader size="xs" className="text-[#9A3412]! font-semibold!">
               Credit Card Fee (3.5%)

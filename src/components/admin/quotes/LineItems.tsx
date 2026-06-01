@@ -22,8 +22,7 @@ const defaultRow = {
 
 type Row = typeof defaultRow;
 
-const inputCls =
-  "w-full border border-[#CAD5E2] rounded-[7px] px-2.5 py-[7px] text-[13px] text-[#1e293b] bg-white outline-none focus:border-blue-500 transition-colors";
+
 
 const calcTotal = (row: Row) => {
   const items = Number(row.items) || 0;
@@ -75,25 +74,28 @@ const LineItems = () => {
       </div>
 
       <div className="p-6 rounded-[10px] bg-[#F8FAFC] border border-[#CAD5E2]">
-        <div className="flex items-center gap-4 mb-5">
+        <div className="flex flex-col md:flex-row  gap-4 mb-5">
           <input
             type="text"
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
-            className={`${inputClass.input} w-48!`}
+            className={`${inputClass.input} w-50!`}
           />
 
-          <label className={inputClass.label}> Imprint Type:</label>
-          <CommonSelect
-            value={imprint}
-            item={[
-              { label: "Embroidery", value: "embroidery" },
-              { label: "Screen Print", value: "screen" },
-              { label: "DTG", value: "dtg" },
-            ]}
-            placeholder="Select imprint"
-            onValueChange={(value) => setImprint(value)}
-          />
+          <div className="flex flex-col md:flex-row md:items-center  md:gap-2.5 ">
+            <label className={inputClass.label}> Imprint Type:</label>
+            <CommonSelect
+              value={imprint}
+              item={[
+                { label: "Embroidery", value: "embroidery" },
+                { label: "Screen Print", value: "screen" },
+                { label: "DTG", value: "dtg" },
+              ]}
+              placeholder="Select imprint"
+              onValueChange={(value) => setImprint(value)}
+              w={200}
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-2.5 mb-5 flex-wrap">
@@ -143,7 +145,7 @@ const LineItems = () => {
               className="grid gap-1.5 pb-2 border-b border-[#CAD5E2] mb-2"
               style={{
                 gridTemplateColumns:
-                  "130px 75px 65px 1fr 55px 55px 55px 65px 85px 105px 50px 65px",
+                  "120px 50px 65px 1fr 60px 60px 60px 65px 85px 50px 50px 65px",
               }}
             >
               {tableHeaders.map((h) => (
@@ -160,7 +162,7 @@ const LineItems = () => {
                 className="grid gap-1.5 mb-2 items-center"
                 style={{
                   gridTemplateColumns:
-                    "120px 75px 65px 1fr 55px 55px 55px 65px 85px 105px 50px 65px",
+                    "120px 50px 65px 1fr 60px 60px 60px 65px 85px 50px 50px 65px",
                 }}
               >
                 <CommonSelect
@@ -170,8 +172,8 @@ const LineItems = () => {
                   ]}
                   value={row.category}
                   onValueChange={(e) => updateRow(idx, "category", e)}
-                  placeholder="Select category"
-                  className="w-ful"
+                  placeholder="Select"
+                  className="w-full! sm:w-auto!"
                 />
 
                 <input

@@ -1,3 +1,4 @@
+import CommonSelect from "@/components/shared/CommonSelect";
 import type { LucideIcon } from "lucide-react";
 import type { IconType } from "react-icons/lib";
 
@@ -9,10 +10,16 @@ interface Tab {
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
+
 const QuoteTabs: React.FC<Tab> = ({ tabs, activeTab, setActiveTab }) => {
+  const tabOptions = tabs.map((tab) => ({
+    label: tab.name,
+    value: tab.name,
+  }));
+
   return (
     <div>
-      <div className="flex bg-white rounded-xl  overflow-hidden border-b border-border">
+      <div className="hidden md:flex bg-white rounded-xl overflow-hidden border-b border-border">
         {tabs.map((tab) => (
           <button
             key={tab.name}
@@ -27,6 +34,16 @@ const QuoteTabs: React.FC<Tab> = ({ tabs, activeTab, setActiveTab }) => {
             {tab.name}
           </button>
         ))}
+      </div>
+
+      <div className="flex md:hidden">
+        <CommonSelect
+          value={activeTab}
+          item={tabOptions}
+          onValueChange={setActiveTab}
+          placeholder="Select a tab"
+          className="w-full! "
+        />
       </div>
     </div>
   );

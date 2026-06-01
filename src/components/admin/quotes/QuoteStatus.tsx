@@ -4,7 +4,7 @@ import CommonHeader from "@/components/shared/CommonHeader";
 import { CreditCard, Download, Pencil, Send } from "lucide-react";
 const QuoteStatus = () => {
   return (
-    <div className="w-72.5 flex flex-col gap-2.5">
+    <div className="w-full flex flex-col gap-2.5">
       <CardContainer>
         <CommonHeader className="font-bold! text-[#0F172B]!">
           Status

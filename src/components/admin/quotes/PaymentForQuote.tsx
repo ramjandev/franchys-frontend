@@ -157,7 +157,7 @@ const PaymentForQuote = () => {
 
               {/* Content */}
               <div className={`flex-1 pb-5 ${isLast ? "" : ""}`}>
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row items-start justify-between gap-2 sm:gap-4">
                   <div>
                     <CommonHeader
                       size="sm"

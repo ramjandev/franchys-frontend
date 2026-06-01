@@ -102,7 +102,9 @@ const QuoteLineItems = () => {
                   LINE ITEM
                 </CommonHeader>
               </div>
-              <div className={`${c.category} flex gap-10 px-6 py-2`}>
+              <div
+                className={`${c.category} flex flex-col md:flex-row gap-3 md:gap-10 px-6 py-2`}
+              >
                 <div>
                   <CommonHeader className="text-[#62748E]!">
                     Category

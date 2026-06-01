@@ -38,7 +38,7 @@ const DashboardTopSection: React.FC<ManagementHeaderProps> = ({
   const navigate = useNavigate();
   return (
     <div
-      className={`flex flex-col xl:flex-row items-start xl:items-end justify-between gap-6 pb-6   ${className} `}
+      className={`flex flex-col xl:flex-row items-start xl:items-end justify-between gap-6 pb-0 sm:pb-6   ${className} `}
     >
       <div className="space-y-1 flex gap-3 ">
         {backButton && (

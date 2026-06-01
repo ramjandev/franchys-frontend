@@ -2,6 +2,8 @@ import { inputClass } from "@/pages/Login";
 import { useState } from "react";
 import ModalAction from "../settings/ModalAction";
 import ModalContainer from "../settings/ModalContainer";
+import CommonHeader from "../shared/CommonHeader";
+import CommonSelect from "../shared/CommonSelect";
 
 interface PaymentModalProps {
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -10,13 +12,11 @@ interface PaymentModalProps {
 }
 
 const paymentMethods = [
-  { label: "Cash", value: "cash" },
-  { label: "Credit Card", value: "credit_card" },
-  { label: "Bank Transfer", value: "bank_transfer" },
+  { label: "Credit Card (Stripe)", value: "credit_card_stripe" },
+  { label: "ACH Transfer", value: "ach_transfer" },
   { label: "Check", value: "check" },
-  { label: "PayPal", value: "paypal" },
+  { label: "Cash", value: "cash" },
 ];
-
 const PaymentModal: React.FC<PaymentModalProps> = ({
   setShowModal,
   invoiceId = "INV-3002",
@@ -30,17 +30,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   return (
     <ModalContainer close={() => setShowModal(false)} title="Process Payment">
       <div className="p-6 space-y-6">
-        {/* Invoice / Balance row */}
         <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs text-[#62748E] mb-1">Invoice</p>
-            <p className="text-sm font-medium text-[#62748E]">{invoiceId}</p>
+          <div className=" space-y-1">
+            <CommonHeader size="sm" className="text-[#45556C]!">
+              Invoice
+            </CommonHeader>
+            <CommonHeader className="text-[#45556C]!">{invoiceId}</CommonHeader>
           </div>
-          <div className="text-right">
-            <p className="text-xs text-[#62748E] mb-1">Balance</p>
-            <p className="text-lg font-semibold text-[#E7000B]">
+          <div className=" space-y-1">
+            <CommonHeader size="sm" className="text-[#45556C]!">
+              Balance
+            </CommonHeader>
+            <CommonHeader size="xl" className="text-[#E7000B]!">
               ${balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-            </p>
+            </CommonHeader>
           </div>
         </div>
 
@@ -61,21 +64,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           </div>
         </div>
 
-        {/* Method */}
         <div className="space-y-2">
           <label className={inputClass.label}>Method</label>
-          <select
+
+          <CommonSelect
             value={method}
-            onChange={(e) => setMethod(e.target.value)}
-            className={`${inputClass.input} cursor-pointer`}
-          >
-            <option value="" disabled />
-            {paymentMethods.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+            onValueChange={(e) => setMethod(e)}
+            item={paymentMethods}
+            placeholder="Select a payment method"
+            className="w-full! "
+          />
         </div>
       </div>
 

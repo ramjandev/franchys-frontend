@@ -21,6 +21,7 @@ import ProtectedRoute from "./ProtectedRoute";
 // Settings Pages
 import QuotePreview from "@/components/admin/quotes/QuotePreview";
 import InvoiceDetails from "@/pages/Admin/InvoiceDetails";
+import MockupBuilderPage from "@/pages/Admin/MockupBuilder/MockupBuilderPage";
 import InvoiceFeesSettings from "@/pages/Admin/Settings/InvoiceFeesSettings";
 import InvoiceSettings from "@/pages/Admin/Settings/InvoiceSettings";
 import LineItemsSettings from "@/pages/Admin/Settings/LineItemsSettings";
@@ -33,7 +34,6 @@ import ShopSettings from "@/pages/Admin/Settings/ShopSettings";
 import SocialLinksSettings from "@/pages/Admin/Settings/SocialLinksSettings";
 import UsersSettings from "@/pages/Admin/Settings/UsersSettings";
 import VendorsSettings from "@/pages/Admin/Settings/VendorsSettings";
-import MockupBuilderPage from "@/pages/Admin/MockupBuilder/MockupBuilderPage";
 
 const router = createBrowserRouter([
   {
@@ -71,7 +71,6 @@ const router = createBrowserRouter([
               { path: "customers/new", element: <AddNewCustomer /> },
               { path: "job-board", element: <JobBoard /> },
               { path: "mockups", element: <MockupBuilderPage /> },
-              // { path: "mockups", element: <Mockups /> },
               { path: "products", element: <Products /> },
               { path: "messages", element: <Messages /> },
               { path: "payment", element: <Payment /> },

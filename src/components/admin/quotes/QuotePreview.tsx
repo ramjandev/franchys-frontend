@@ -15,7 +15,7 @@ const QuotePreview = () => {
   const [isAdminView, setIsAdminView] = useState(false);
   return (
     <div className="">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between mb-6">
         <p
           onClick={() => navigate(-1)}
           className="mt-3 cursor-pointer text-skyBlue  flex items-center gap-1.5"
@@ -23,28 +23,38 @@ const QuotePreview = () => {
           <ArrowLeft className="w-5 h-5 " />
           Back to Quotes
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <CommonButton className="bg-[#FF8B5A]! text-white!">
             <FiFileText className="w-3.5 h-3.5" />
             Production Sheet
           </CommonButton>
-          <CommonButton onClick={() => setIsAdminView(false)} className="">
+          <CommonButton
+            onClick={() => setIsAdminView(true)}
+            className={`${isAdminView ? "bg-[#FF8B5A]! text-white!" : ""}`}
+          >
             <BiEdit className="w-3.5 h-3.5" />
             Admin View
           </CommonButton>
-          <CommonButton onClick={() => setIsAdminView(true)} className="">
+          <CommonButton
+            onClick={() => setIsAdminView(false)}
+            className={`${!isAdminView ? "bg-[#FF8B5A]! text-white!" : ""}`}
+          >
             <MdOutlineRemoveRedEye className="w-3.5 h-3.5" />
             Public Invoice View
           </CommonButton>
         </div>
       </div>
 
-      <div className="flex gap-3 items-start">
+      <div className="flex flex-col md:flex-row gap-3 items-start">
         <CardContainer size="lg" className="flex-1 w-full">
           <QuoteHeader />
           <QuoteLineItems />
         </CardContainer>
-        {!isAdminView && <QuoteStatus />}
+        {!isAdminView && (
+          <div className=" w-full md:w-72.5 ">
+            <QuoteStatus />
+          </div>
+        )}
       </div>
     </div>
   );
