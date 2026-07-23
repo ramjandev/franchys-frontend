@@ -2,10 +2,16 @@ import CardContainer from "@/components/shared/CardContainer";
 import CommonButton from "@/components/shared/CommonButton";
 import CommonHeader from "@/components/shared/CommonHeader";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useLoginMutation } from "@/store/Auth/authApi";
+import { setUser } from "@/store/Auth/authSlice";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { PiSignInBold } from "react-icons/pi";
-import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { z } from "zod";
 import logo from "../assets/images/logo.png";
 
 export const inputClass = {
@@ -15,8 +21,57 @@ export const inputClass = {
     "w-full border border-border bg-white rounded-md p-3 outline-none text-text text-base placeholder:text-[#90A1B9]",
   error: "text-red-500 text-sm mt-1",
 };
+
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters"),
+  rememberMe: z.boolean().optional(),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [login, { isLoading }] = useLoginMutation();
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+  });
+
+  const rememberMe = watch("rememberMe");
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const onSubmit = async (data: LoginFormValues) => {
+    try {
+      const res = await login({
+        email: data.email,
+        password: data.password,
+      }).unwrap();
+
+      dispatch(setUser(res.data.accessToken));
+      navigate("/admin");
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center   p-4 bg-[linear-gradient(135deg,_#EFF6FF_0%,_#FAF5FF_50%,_#FDF2F8_100%)]">
@@ -32,17 +87,21 @@ const Login = () => {
         </div>
 
         <CardContainer className="" size="3xl">
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div>
               <label className={inputClass.label}>Email Address</label>
               <div className="flex items-center pl-3 gap-2 border border-border bg-white rounded-md  outline-none text-text text-base w-full">
                 <Mail className="text-xl text-[#90A1B9]" />
                 <input
+                  {...register("email")}
                   className="py-3.5 w-full outline-none text-text text-base placeholder:text-[#90A1B9]"
                   type="email"
                   placeholder="you@company.com"
                 />
               </div>
+              {errors.email && (
+                <p className={inputClass.error}>{errors.email.message}</p>
+              )}
             </div>
             <div>
               <label className={inputClass.label}>Password</label>
@@ -51,6 +110,7 @@ const Login = () => {
                 <Lock className="text-xl text-[#90A1B9]" />
 
                 <input
+                  {...register("password")}
                   className="py-3.5 w-full outline-none text-text text-base placeholder:text-[#90A1B9]"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
@@ -68,12 +128,19 @@ const Login = () => {
                   )}
                 </button>
               </div>
+              {errors.password && (
+                <p className={inputClass.error}>{errors.password.message}</p>
+              )}
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between ">
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="remember"
-                  className="border-[#E6EBF2] rounded-[4px]"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) =>
+                    setValue("rememberMe", checked as boolean)
+                  }
+                  className="border-[#E6EBF2] rounded-lg"
                 />
                 <label
                   htmlFor="remember"
@@ -91,7 +158,12 @@ const Login = () => {
                 Forgot password?
               </Link>
             </div>
-            <CommonButton variant="gradient" className="w-full">
+            <CommonButton
+              type="submit"
+              className="w-full!"
+              isLoading={isLoading}
+              loadingText="Logging..."
+            >
               <PiSignInBold className="text-xl" />
               Sign In
             </CommonButton>

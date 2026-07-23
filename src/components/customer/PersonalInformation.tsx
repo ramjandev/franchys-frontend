@@ -1,18 +1,39 @@
 import { inputClass } from "@/pages/Login";
 import { User } from "lucide-react";
-import { useState } from "react";
+import {
+  Control,
+  Controller,
+  FieldErrors,
+  UseFormRegister,
+} from "react-hook-form";
 import CommonButton from "../shared/CommonButton";
 import CommonSelect from "../shared/CommonSelect";
 import SecondaryContact from "./SecondaryContact";
+import { CustomerFormValues } from "./schema/customerSchema";
 
 interface PersonalInformationProps {
   customerType: "business" | "personal";
+  register: UseFormRegister<CustomerFormValues>;
+  control: Control<CustomerFormValues>;
+  errors: FieldErrors<CustomerFormValues>;
+  showSecondary: boolean;
+  setShowSecondary: (value: boolean) => void;
 }
+
+const languageOptions = [
+  { label: "English", value: "English" },
+  { label: "Spanish", value: "Spanish" },
+  { label: "French", value: "French" },
+];
+
 const PersonalInformation: React.FC<PersonalInformationProps> = ({
   customerType,
+  register,
+  control,
+  errors,
+  showSecondary,
+  setShowSecondary,
 }) => {
-  const [showSecondary, setShowSecondary] = useState(false);
-
   return (
     <div className="bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-6">
       <div className="flex items-center gap-3 mb-6">
@@ -32,13 +53,27 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
           <label className={inputClass.label}>
             First Name <span className="text-red-500">*</span>
           </label>
-          <input placeholder="John" className={inputClass.input} />
+          <input
+            placeholder="John"
+            className={inputClass.input}
+            {...register("firstName")}
+          />
+          {errors.firstName && (
+            <p className="text-xs text-red-500">{errors.firstName.message}</p>
+          )}
         </div>
         <div className="space-y-2">
           <label className={inputClass.label}>
             Last Name <span className="text-red-500">*</span>
           </label>
-          <input placeholder="Smith" className={inputClass.input} />
+          <input
+            placeholder="Smith"
+            className={inputClass.input}
+            {...register("lastName")}
+          />
+          {errors.lastName && (
+            <p className="text-xs text-red-500">{errors.lastName.message}</p>
+          )}
         </div>
         <div className="space-y-2 md:col-span-2">
           <label className={inputClass.label}>
@@ -47,13 +82,24 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
           <input
             placeholder="john.smith@example.com"
             className={inputClass.input}
+            {...register("email")}
           />
+          {errors.email && (
+            <p className="text-xs text-red-500">{errors.email.message}</p>
+          )}
         </div>
         <div className="space-y-2">
           <label className={inputClass.label}>
             Phone Number <span className="text-red-500">*</span>
           </label>
-          <input placeholder="(555) 123-4567" className={inputClass.input} />
+          <input
+            placeholder="(555) 123-4567"
+            className={inputClass.input}
+            {...register("phone")}
+          />
+          {errors.phone && (
+            <p className="text-xs text-red-500">{errors.phone.message}</p>
+          )}
         </div>
         {customerType === "business" && (
           <div className="space-y-2">
@@ -61,37 +107,52 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
             <input
               placeholder="https://example.com"
               className={inputClass.input}
+              {...register("website")}
             />
+            {errors.website && (
+              <p className="text-xs text-red-500">{errors.website.message}</p>
+            )}
           </div>
         )}
         <div className="space-y-2 md:col-span-2">
           <label className={inputClass.label}>
             Language Preference <span className="text-red-500">*</span>
           </label>
-          <CommonSelect
-            item={[
-              { label: "English", value: "en" },
-              { label: "Spanish", value: "es" },
-              { label: "French", value: "fr" },
-            ]}
-            value="en"
-            onValueChange={() => {}}
-            placeholder="English"
-            className="w-full!"
+          <Controller
+            name="language"
+            control={control}
+            render={({ field }) => (
+              <CommonSelect
+                item={languageOptions}
+                value={field.value}
+                onValueChange={field.onChange}
+                placeholder="English"
+                className="w-full!"
+              />
+            )}
           />
+          {errors.language && (
+            <p className="text-xs text-red-500">{errors.language.message}</p>
+          )}
         </div>
       </div>
 
       {!showSecondary && customerType === "business" && (
         <CommonButton
-          className="bg-[#EFF6FF]! border-[#3B82F6]! text-[#3B82F6]! w-full"
+          type="button"
+          variant="ghost"
+          className=" w-full"
           onClick={() => setShowSecondary(true)}
         >
           + Add Secondary Contact
         </CommonButton>
       )}
       {showSecondary && customerType === "business" && (
-        <SecondaryContact onRemove={() => setShowSecondary(false)} />
+        <SecondaryContact
+          register={register}
+          errors={errors}
+          onRemove={() => setShowSecondary(false)}
+        />
       )}
     </div>
   );

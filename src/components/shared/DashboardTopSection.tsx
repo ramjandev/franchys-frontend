@@ -1,10 +1,9 @@
 import type { RootState } from "@/store/store";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { FiUserPlus } from "react-icons/fi";
-import { GoPlusCircle } from "react-icons/go";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import ButtonWithIcon from "./ButtonWithIcon";
+import CommonButton from "./CommonButton";
 import CommonHeader from "./CommonHeader";
 
 interface ManagementHeaderProps {
@@ -61,33 +60,28 @@ const DashboardTopSection: React.FC<ManagementHeaderProps> = ({
 
       <div className="flex flex-col sm:flex-row gap-4.5 items-center w-full sm:w-auto">
         {buttonThree && (
-          <ButtonWithIcon
-            icon={privacy ? EyeOff : Eye}
-            className="w-full! sm:w-auto! flex justify-center  shrink-0 bg-white! text-[#155DFC]!"
+          <CommonButton
+            variant="secondary"
             onClick={actionThree}
+            size="lg"
+            className="text-blue"
           >
-            <p>{buttonThree}</p>
-          </ButtonWithIcon>
+            {privacy ? <EyeOff /> : <Eye />}
+            {buttonThree}
+          </CommonButton>
         )}
 
         {buttonTwo && (
-          <ButtonWithIcon
-            icon={FiUserPlus}
-            className="w-full! sm:w-auto! flex justify-center  shrink-0 bg-white! text-[#314158]!"
-            onClick={actionTwo}
-          >
-            <p>{buttonTwo}</p>
-          </ButtonWithIcon>
+          <CommonButton variant="secondary" onClick={actionTwo} size="lg">
+            <FiUserPlus />
+            {buttonTwo}
+          </CommonButton>
         )}
 
         {buttonOne && (
-          <ButtonWithIcon
-            icon={GoPlusCircle}
-            className="w-full! sm:w-auto! flex justify-center  shrink-0 bg-[linear-gradient(173deg,_#0D538F_10.35%,_#0E273C_118.73%)] "
-            onClick={actionOne}
-          >
-            <p>{buttonOne}</p>
-          </ButtonWithIcon>
+          <CommonButton showDefaultIcon onClick={actionOne} size="lg">
+            {buttonOne}
+          </CommonButton>
         )}
       </div>
     </div>

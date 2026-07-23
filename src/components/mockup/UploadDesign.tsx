@@ -7,17 +7,17 @@ import {
   setProductColor,
   setSelectedLayer,
   updateLayer,
-} from "@/store/designSlice";
+} from "@/store/mockUp/designSlice";
 import type { RootState } from "@/store/store";
 import { Plus, Upload } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { LiaRedoAltSolid } from "react-icons/lia";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import CardContainer from "../shared/CardContainer";
 import CommonButton from "../shared/CommonButton";
 import CommonHeader from "../shared/CommonHeader";
 import CommonSelect from "../shared/CommonSelect";
-import { toast } from "react-toastify";
 
 // ── Shared input styles (import from your Login page or define here) ──────────
 export const inputClass = {

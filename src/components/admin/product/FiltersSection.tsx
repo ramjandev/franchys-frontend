@@ -1,27 +1,10 @@
 import CardContainer from "@/components/shared/CardContainer";
 import CommonSelect from "@/components/shared/CommonSelect";
 import { inputClass } from "@/pages/Login";
-
-const CategoryOptions = [
-  { label: "All", value: "All" },
-  { label: "T-Shirts", value: "T-Shirts" },
-  { label: "Polos", value: "Polos" },
-  { label: "Hoodies", value: "Hoodies" },
-  { label: "Headwear", value: "Headwear" },
-  { label: "Bags", value: "Bags" },
-  { label: "Jackets", value: "Jackets" },
-  { label: "Athletic", value: "Athletic" },
-];
-const BrandOptions = [
-  { label: "All", value: "All" },
-  { label: "Gildan", value: "Gildan" },
-  { label: "Next Level", value: "Next Level" },
-  { label: "Flexfit", value: "Flexfit" },
-  { label: "Port Authority", value: "Port Authority" },
-  { label: "Liberty Bags", value: "Liberty Bags" },
-  { label: "Bella+Canvas", value: "Bella+Canvas" },
-  { label: "Carhartt", value: "Carhartt" },
-];
+import {
+  useGetBrandsQuery,
+  useGetCategoriesQuery,
+} from "@/store/settings/brandCategory/brandCategoryApi";
 
 const ColorOptions = [
   { label: "All", value: "All" },
@@ -56,6 +39,25 @@ const FiltersSection: React.FC<FiltersSectionProps> = ({
   filters,
   setFilter,
 }) => {
+  const { data: categoryData } = useGetCategoriesQuery({});
+  const { data: brandData } = useGetBrandsQuery({});
+
+  const CategoryOptions = [
+    { label: "All", value: "All" },
+    ...(categoryData?.data ?? []).map((c) => ({
+      label: c.name,
+      value: c.name,
+    })),
+  ];
+
+  const BrandOptions = [
+    { label: "All", value: "All" },
+    ...(brandData?.data ?? []).map((b) => ({
+      label: b.name,
+      value: b.name,
+    })),
+  ];
+
   return (
     <CardContainer size="sm">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

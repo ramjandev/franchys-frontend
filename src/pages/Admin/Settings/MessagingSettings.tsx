@@ -51,9 +51,7 @@ const MessagingSettings = () => {
             rows={6}
           />
 
-          <CommonButton variant="gradient" className="mt-5">
-            Update Signature
-          </CommonButton>
+          <CommonButton className="mt-5">Update Signature</CommonButton>
         </CardContainer>
 
         <CardContainer>
@@ -66,9 +64,7 @@ const MessagingSettings = () => {
             </CommonHeader>
           </div>
 
-          <CommonButton variant="gradient" className="mt-5">
-            Email Templates
-          </CommonButton>
+          <CommonButton className="mt-5">Email Templates</CommonButton>
         </CardContainer>
 
         <CardContainer className="">
@@ -88,8 +84,8 @@ const MessagingSettings = () => {
         </CardContainer>
 
         <div className="pt-6 mt-6 border-t border-border">
-          <CommonButton className="bg-[#00A63E]! text-white">
-            <Save size={15} />
+          <CommonButton variant="primaryGreen">
+            <Save />
             Save changes
           </CommonButton>
         </div>

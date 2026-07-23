@@ -1,4 +1,9 @@
+import CommonSelect, { SelectOption } from "@/components/shared/CommonSelect";
 import { inputClass } from "@/pages/Login";
+import {
+  useCreatePriceMatrixMutation,
+  useUpdatePriceMatrixMutation,
+} from "@/store/settings/matdsf/priceMatrixAPI";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { GoPlusCircle } from "react-icons/go";
@@ -12,22 +17,58 @@ interface PricingTier {
   markup: string;
 }
 
+type PriceType = "percentage" | "fixed";
+
+const priceTypeOptions: readonly SelectOption<PriceType>[] = [
+  { label: "Percentage", value: "percentage" },
+  { label: "Fixed", value: "fixed" },
+];
+
 interface PriceMatrixModalProps {
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
+  editMatrixId?: string;
+  initialName?: string;
+  initialPriceType?: PriceType;
+  initialTiers?: PricingTier[];
 }
 
 const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
   setShowModal,
+  editMatrixId,
+  initialName = "",
+  initialPriceType,
+  initialTiers,
 }) => {
-  const [tiers, setTiers] = useState<PricingTier[]>([
-    { id: 1, quantity: "12", basePrice: "25", markup: "50" },
-  ]);
+  const [name, setName] = useState(initialName);
+  const [priceType, setPriceType] = useState<PriceType | undefined>(
+    initialPriceType,
+  );
+  const [tiers, setTiers] = useState<PricingTier[]>(
+    initialTiers ?? [{ id: 1, quantity: "12", basePrice: "25", markup: "50" }],
+  );
+  const [error, setError] = useState("");
+
+  const [createPriceMatrix, { isLoading: isCreating }] =
+    useCreatePriceMatrixMutation();
+  const [updatePriceMatrix, { isLoading: isUpdating }] =
+    useUpdatePriceMatrixMutation();
+
+  const isSubmitting = isCreating || isUpdating;
+  const isEditMode = Boolean(editMatrixId);
 
   const addRow = () => {
-    setTiers((prev) => [
-      ...prev,
-      { id: Date.now(), quantity: "", basePrice: "", markup: "" },
-    ]);
+    setTiers((prev) => {
+      const last = prev[prev.length - 1];
+      return [
+        ...prev,
+        {
+          id: Date.now(),
+          quantity: last?.quantity ?? "",
+          basePrice: last?.basePrice ?? "",
+          markup: last?.markup ?? "",
+        },
+      ];
+    });
   };
 
   const removeRow = (id: number) => {
@@ -44,6 +85,61 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
     );
   };
 
+  const handleSubmit = async () => {
+    setError("");
+
+    if (!name.trim()) {
+      setError("Matrix name is required.");
+      return;
+    }
+
+    if (!priceType) {
+      setError("Please select a product type.");
+      return;
+    }
+
+    if (tiers.length === 0) {
+      setError("Add at least one pricing tier.");
+      return;
+    }
+
+    const priceTiers = [];
+    for (const t of tiers) {
+      const quantity = Number(t.quantity);
+      const basePrice = Number(t.basePrice);
+      const markup = Number(t.markup);
+
+      if (
+        !t.quantity ||
+        !t.basePrice ||
+        !t.markup ||
+        Number.isNaN(quantity) ||
+        Number.isNaN(basePrice) ||
+        Number.isNaN(markup)
+      ) {
+        setError("Please fill in valid values for every tier.");
+        return;
+      }
+
+      priceTiers.push({ quantity, basePrice, markup });
+    }
+
+    try {
+      if (isEditMode && editMatrixId) {
+        await updatePriceMatrix({
+          id: editMatrixId,
+          data: { name, priceType, priceTiers },
+        }).unwrap();
+      } else {
+        await createPriceMatrix({ name, priceType, priceTiers }).unwrap();
+      }
+      setShowModal(false);
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Please try again.");
+    }
+  };
+
   return (
     <ModalContainer
       close={() => setShowModal(false)}
@@ -55,13 +151,22 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
           <input
             type="text"
             placeholder="e.g., Hoodie Pricing"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             className={inputClass.input}
           />
         </div>
 
         <div>
           <label className={inputClass.label}>Product Type</label>
-          <input type="text" className={inputClass.input} />
+          <CommonSelect<PriceType>
+            value={priceType}
+            item={priceTypeOptions}
+            onValueChange={(val) => setPriceType(val)}
+            placeholder="Select product type"
+            w={undefined as unknown as number} // let it fill the field width via className
+            className="w-full"
+          />
         </div>
 
         <hr className="border-border" />
@@ -134,8 +239,16 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
             Add Row
           </button>
         </div>
+
+        {error && <p className="text-xs text-[#E7000B]">{error}</p>}
       </div>
-      <ModalAction close={() => setShowModal(false)} create="Create Matrix" />
+      <ModalAction
+        close={() => setShowModal(false)}
+        create={isEditMode ? "Save Changes" : "Create Matrix"}
+        isSubmitting={isSubmitting}
+        loadingText={isEditMode ? "Saving..." : "Creating..."}
+        onSubmit={handleSubmit}
+      />
     </ModalContainer>
   );
 };

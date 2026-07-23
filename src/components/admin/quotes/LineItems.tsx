@@ -22,8 +22,6 @@ const defaultRow = {
 
 type Row = typeof defaultRow;
 
-
-
 const calcTotal = (row: Row) => {
   const items = Number(row.items) || 0;
   const price = Number(row.price) || 0;
@@ -68,8 +66,8 @@ const LineItems = () => {
       <div className="flex items-center justify-between mb-6">
         <CommonHeader size="lg">Line Items</CommonHeader>
 
-        <CommonButton variant="blue">
-          <Plus className="w-4 h-4 text-white" /> Add Group
+        <CommonButton variant="primaryBlue">
+          <Plus /> Add Group
         </CommonButton>
       </div>
 
@@ -102,7 +100,7 @@ const LineItems = () => {
           <label className={inputClass.label}>Manage Columns:</label>
           {!showColumnInput ? (
             <CommonButton
-              variant="blue"
+              variant="primaryBlue"
               onClick={() => setShowColumnInput(true)}
               className="bg-[#F1F5F9]! text-[#155DFC]!"
             >
@@ -119,7 +117,7 @@ const LineItems = () => {
               />
 
               <CommonButton
-                variant="blue"
+                variant="primaryBlue"
                 onClick={() => {
                   setShowColumnInput(false);
                   setColumnName("");
@@ -248,16 +246,15 @@ const LineItems = () => {
           <div className="flex gap-2.5">
             <CommonButton
               onClick={() => setRows((prev) => [...prev, { ...defaultRow }])}
-              className="bg-black! text-white!"
             >
               <Plus size={13} /> Line Item
             </CommonButton>
             <CommonButton onClick={() => setRows((prev) => prev.slice(0, -1))}>
-              <Zap size={13} className="text-[#314158]" /> Imprint
+              <Zap /> Imprint
             </CommonButton>
           </div>
           <CommonButton className="">
-            <Image size={13} /> Mockup Creator
+            <Image /> Mockup Creator
           </CommonButton>
         </div>
       </div>

@@ -94,8 +94,8 @@ const MessagesForQuote = () => {
         <span className="font-bold text-[#314158]">Your email signature</span>
         will be automatically added to the end of this message.
       </div>
-      <CommonButton variant="gradient">
-        <Send className="w-4 h-4" /> Send Message
+      <CommonButton>
+        <Send /> Send Message
       </CommonButton>
     </CardContainer>
   );

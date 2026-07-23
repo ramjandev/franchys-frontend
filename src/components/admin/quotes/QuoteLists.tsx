@@ -1,5 +1,6 @@
 import DeleteAlert from "@/components/shared/DeleteButton";
 import Pagination from "@/components/shared/Pagination";
+import StatusBadge from "@/components/shared/StatusBadge";
 import { Plus } from "lucide-react";
 
 export const tableDesign = {
@@ -23,7 +24,7 @@ const quotes = [
     customer: "Riverside Church",
     items: "1 product",
     total: "$1,200.00",
-    status: "Approved",
+    status: "approved",
     statusColor: "bg-[#5CB85C]",
     date: "9/1/2025",
   },
@@ -32,7 +33,7 @@ const quotes = [
     customer: "Metro Fire Department",
     items: "1 product",
     total: "$3,920.00",
-    status: "Sent",
+    status: "sent",
     statusColor: "bg-[#5BC0DE]",
     date: "9/1/2025",
   },
@@ -41,7 +42,7 @@ const quotes = [
     customer: "Lincoln High School",
     items: "1 product",
     total: "$1,782.00",
-    status: "Draft",
+    status: "draft",
     statusColor: "bg-[#A0B0C0]",
     date: "9/1/2025",
   },
@@ -50,7 +51,7 @@ const quotes = [
     customer: "Craft Brewery Co",
     items: "1 product",
     total: "$604.80",
-    status: "Approved",
+    status: "approved",
     statusColor: "bg-[#5CB85C]",
     date: "9/1/2025",
   },
@@ -59,7 +60,7 @@ const quotes = [
     customer: "Summit CrossFit",
     items: "1 product",
     total: "$2,816.00",
-    status: "Sent",
+    status: "sent",
     statusColor: "bg-[#5BC0DE]",
     date: "9/1/2025",
   },
@@ -68,7 +69,7 @@ const quotes = [
     customer: "Bay Area Tech Summit",
     items: "1 product",
     total: "$8,100.00",
-    status: "Approved",
+    status: "approved",
     statusColor: "bg-[#5CB85C]",
     date: "9/1/2025",
   },
@@ -77,7 +78,7 @@ const quotes = [
     customer: "Golden State Realty",
     items: "1 product",
     total: "$756.00",
-    status: "Approved",
+    status: "approved",
     statusColor: "bg-[#5CB85C]",
     date: "9/1/2025",
   },
@@ -127,11 +128,7 @@ const QuoteLists = () => {
                 </td>
 
                 <td className={` ${tableDesign.td} text-center`}>
-                  <span
-                    className={`inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded text-white text-xs font-semibold ${quote.statusColor}`}
-                  >
-                    {quote.status}
-                  </span>
+                  <StatusBadge status={quote.status} />
                 </td>
 
                 <td className={tableDesign.td}>{quote.date}</td>

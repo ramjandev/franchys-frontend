@@ -1,4 +1,4 @@
-import { setTemplate } from "@/store/designSlice";
+import { setTemplate } from "@/store/mockUp/designSlice";
 import type { RootState } from "@/store/store";
 import { useDispatch, useSelector } from "react-redux";
 import CardContainer from "../shared/CardContainer";

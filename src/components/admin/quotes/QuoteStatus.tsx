@@ -32,14 +32,14 @@ const QuoteStatus = () => {
         <CommonHeader className="font-bold! text-[#0F172B]!">
           Actions
         </CommonHeader>
-        <CommonButton className="bg-skyBlue! text-white! w-full!">
-          <Send className="w-3 h-3" /> Send to Customer
+        <CommonButton variant="primaryBlue" className="w-full!">
+          <Send /> Send to Customer
         </CommonButton>
-        <CommonButton className="bg-[#F1F5F9]  w-full!">
-          <Pencil className="w-3 h-3" /> Edit Quote
+        <CommonButton variant="ghost" className="  w-full!">
+          <Pencil /> Edit Quote
         </CommonButton>
-        <CommonButton className="bg-[#F1F5F9]  w-full!">
-          <Download className="w-3 h-3" /> Download PDF
+        <CommonButton variant="ghost" className=" w-full!">
+          <Download /> Download PDF
         </CommonButton>
       </CardContainer>
 

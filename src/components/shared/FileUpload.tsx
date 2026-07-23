@@ -9,7 +9,9 @@ interface FileUploadProps {
   fileType: FileType;
   label?: string;
   description?: string;
-  onChange: (file: File | null) => void;
+  multiple?: boolean;
+  onChange?: (file: File | null) => void;
+  onFilesChange?: (files: File[]) => void;
 }
 
 const configMap: Record<
@@ -39,14 +41,20 @@ const FileUpload: React.FC<FileUploadProps> = ({
   fileType,
   label,
   description,
+  multiple = false,
   onChange,
+  onFilesChange,
 }) => {
   const config = configMap[fileType];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] ?? null;
+    const files = e.target.files;
 
-    onChange(file);
+    if (multiple) {
+      onFilesChange?.(files ? Array.from(files) : []);
+    } else {
+      onChange?.(files?.[0] ?? null);
+    }
 
     e.target.value = "";
   };
@@ -61,7 +69,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
             {config.icon}
           </div>
 
-          <p className="text-sm font-medium text-gray-700">{config.title}</p>
+          <p className="text-sm font-medium text-gray-700">
+            {multiple ? "Click to upload images" : config.title}
+          </p>
 
           <p className="mt-1 text-xs text-gray-500">
             {description || config.desc}
@@ -71,6 +81,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         <input
           type="file"
           accept={config.accept}
+          multiple={multiple}
           onChange={handleChange}
           className="hidden"
         />

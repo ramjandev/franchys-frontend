@@ -3,7 +3,7 @@ import {
   setPosition,
   setSelectedLayer,
   updateLayer,
-} from "@/store/designSlice";
+} from "@/store/mockUp/designSlice";
 import type { RootState } from "@/store/store";
 import html2canvas from "html2canvas";
 import {

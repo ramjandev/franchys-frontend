@@ -14,8 +14,8 @@ const QuoteDetails = () => {
           <div className="flex items-center justify-between mb-6">
             <CommonHeader size="lg">Customer Details</CommonHeader>
 
-            <CommonButton variant="blue">
-              <Plus className="w-4 h-4 text-white" /> Add Customer
+            <CommonButton variant="primaryBlue">
+              <Plus /> Add Customer
             </CommonButton>
           </div>
 

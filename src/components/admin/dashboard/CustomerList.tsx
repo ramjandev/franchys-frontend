@@ -1,4 +1,5 @@
 import Pagination from "@/components/shared/Pagination";
+import StatusBadge from "@/components/shared/StatusBadge";
 import { tableDesign } from "../quotes/QuoteLists";
 
 const customerData = [
@@ -19,7 +20,7 @@ const customerData = [
     dueDate: "Apr 26, 2026",
     total: "$50.00",
     user: "Mike's Cool Shirts",
-    status: "Completed",
+    status: "completed",
     statusColor: "bg-[#5CB85C]",
   },
   {
@@ -29,7 +30,7 @@ const customerData = [
     dueDate: "Apr 30, 2026",
     total: "$25.00",
     user: "Mike's Cool Shirts",
-    status: "Pending",
+    status: "pending",
     statusColor: "bg-[#428BCA]",
   },
   {
@@ -39,7 +40,7 @@ const customerData = [
     dueDate: "May 2, 2026",
     total: "$250.00",
     user: "Mike's Cool Shirts",
-    status: "In Progress",
+    status: "in progress",
     statusColor: "bg-[#5BC0DE]",
   },
   {
@@ -49,7 +50,7 @@ const customerData = [
     dueDate: "Apr 25, 2026",
     total: "$750.00",
     user: "Mike's Cool Shirts",
-    status: "Completed",
+    status: "completed",
     statusColor: "bg-[#5CB85C]",
   },
 ];
@@ -100,11 +101,12 @@ const CustomerList = () => {
                 <td className={tableDesign.td}>{item.user}</td>
 
                 <td className={tableDesign.td}>
-                  <span
+                  <StatusBadge status={item.status} />
+                  {/* <span
                     className={`inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded text-white text-xs font-semibold ${item.statusColor}`}
                   >
                     {item.status}
-                  </span>
+                  </span> */}
                 </td>
               </tr>
             ))}

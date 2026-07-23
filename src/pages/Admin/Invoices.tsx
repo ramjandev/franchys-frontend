@@ -15,7 +15,7 @@ const invoicesData = [
     jobId: "J-2003",
     amount: "$8100.00",
     balance: "$0.00",
-    status: "Paid",
+    status: "paid",
     due: "9/25/2025",
   },
   {
@@ -24,7 +24,7 @@ const invoicesData = [
     jobId: "",
     amount: "$1200.00",
     balance: "$600.00",
-    status: "Partial",
+    status: "partial",
     due: "10/10/2025",
   },
   {
@@ -33,7 +33,7 @@ const invoicesData = [
     jobId: "J-2020",
     amount: "$756.00",
     balance: "$756.00",
-    status: "Overdue",
+    status: "overdue",
     due: "9/1/2025",
   },
   {
@@ -42,7 +42,7 @@ const invoicesData = [
     jobId: "J-2002",
     amount: "$604.80",
     balance: "$604.80",
-    status: "Unpaid",
+    status: "unpaid",
     due: "10/18/2025",
   },
 ];

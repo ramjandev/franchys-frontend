@@ -157,7 +157,13 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
         </div>
       </div>
 
-      <ModalAction close={() => setShowModal(false)} create="Download PDF" />
+      <ModalAction
+        close={() => setShowModal(false)}
+        create="Download PDF"
+        isSubmitting={false}
+        loadingText="Downloading..."
+        onSubmit={() => {}}
+      />
     </ModalContainer>
   );
 };

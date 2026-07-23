@@ -52,13 +52,13 @@ const SummaryCard = () => {
       <div className="space-y-3">
         <CommonButton
           onClick={() => navigate("../quotes/preview")}
-          variant="blue"
-          className="w-full"
+          variant="primaryBlue"
+          className="w-full!"
         >
-          <Send className="w-4 h-4" /> Save & Send Quote
+          <Send /> Save & Send Quote
         </CommonButton>
-        <CommonButton className="w-full">
-          <Save className="w-4 h-4" /> Save as Draft
+        <CommonButton className="w-full!" variant="secondary">
+          <Save /> Save as Draft
         </CommonButton>
       </div>
     </CardContainer>

@@ -2,10 +2,9 @@ import { Building2, User } from "lucide-react";
 
 interface CustomerTabProps {
   customerType: "business" | "personal";
-  setCustomerType: React.Dispatch<
-    React.SetStateAction<"business" | "personal">
-  >;
+  setCustomerType: (type: "business" | "personal") => void;
 }
+
 const CustomerTab: React.FC<CustomerTabProps> = ({
   customerType,
   setCustomerType,

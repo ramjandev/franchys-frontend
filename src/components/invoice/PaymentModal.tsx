@@ -80,6 +80,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       <ModalAction
         close={() => setShowModal(false)}
         create={`Process $${processAmount.toLocaleString("en-US", { minimumFractionDigits: 0 })}`}
+        onSubmit={() => setShowModal(false)}
       />
     </ModalContainer>
   );

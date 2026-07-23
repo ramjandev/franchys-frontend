@@ -24,22 +24,27 @@ const QuotePreview = () => {
           Back to Quotes
         </p>
         <div className="flex flex-wrap items-center gap-2">
-          <CommonButton className="bg-[#FF8B5A]! text-white!">
-            <FiFileText className="w-3.5 h-3.5" />
+          <CommonButton
+            variant="secondary"
+            className="bg-[#FF8B5A]! text-white!"
+          >
+            <FiFileText />
             Production Sheet
           </CommonButton>
           <CommonButton
+            variant="secondary"
             onClick={() => setIsAdminView(true)}
             className={`${isAdminView ? "bg-[#FF8B5A]! text-white!" : ""}`}
           >
-            <BiEdit className="w-3.5 h-3.5" />
+            <BiEdit />
             Admin View
           </CommonButton>
           <CommonButton
+            variant="secondary"
             onClick={() => setIsAdminView(false)}
             className={`${!isAdminView ? "bg-[#FF8B5A]! text-white!" : ""}`}
           >
-            <MdOutlineRemoveRedEye className="w-3.5 h-3.5" />
+            <MdOutlineRemoveRedEye />
             Public Invoice View
           </CommonButton>
         </div>

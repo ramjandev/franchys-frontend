@@ -1,17 +1,34 @@
 import { FiSave } from "react-icons/fi";
 import CommonButton from "../shared/CommonButton";
 
-const ActionsCard = () => {
+interface ActionsCardProps {
+  onCancel: () => void;
+  isLoading?: boolean;
+}
+
+const ActionsCard: React.FC<ActionsCardProps> = ({ onCancel, isLoading }) => {
   return (
     <div className="bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-6">
       <div className="pb-6">
         <h2 className="text-sm font-bold text-[#111827] mb-4">Actions</h2>
         <div className="space-y-3">
-          <CommonButton className="bg-skyBlue! text-white! w-full!">
-            <FiSave className="w-4 h-4" />
+          <CommonButton
+            type="submit"
+            variant="primaryBlue"
+            className=" text-white! w-full!"
+            isLoading={isLoading}
+            loadingText="Saving..."
+          >
+            <FiSave />
             Save Customer
           </CommonButton>
-          <CommonButton className="bg-[#F1F5F9]! text-[#314158]! w-full!">
+          <CommonButton
+            type="button"
+            variant="ghost"
+            className=" w-full!"
+            onClick={onCancel}
+            disabled={isLoading}
+          >
             Cancel
           </CommonButton>
         </div>

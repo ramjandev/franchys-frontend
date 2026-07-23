@@ -19,6 +19,9 @@ import { createBrowserRouter } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 
 // Settings Pages
+import AllCampaigns from "@/components/admin/message/AllCampaigns";
+import CampaignDetail from "@/components/admin/message/CampaignDetail";
+import CampaignForm from "@/components/admin/message/CampaignForm";
 import QuotePreview from "@/components/admin/quotes/QuotePreview";
 import InvoiceDetails from "@/pages/Admin/InvoiceDetails";
 import MockupBuilderPage from "@/pages/Admin/MockupBuilder/MockupBuilderPage";
@@ -34,12 +37,16 @@ import ShopSettings from "@/pages/Admin/Settings/ShopSettings";
 import SocialLinksSettings from "@/pages/Admin/Settings/SocialLinksSettings";
 import UsersSettings from "@/pages/Admin/Settings/UsersSettings";
 import VendorsSettings from "@/pages/Admin/Settings/VendorsSettings";
+import CategoryBrandManager from "@/pages/CategoryBrandManager";
+import ChangePassword from "@/pages/ChangePassword";
+import ResetPassword from "@/pages/ResetPassword";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     children: [
+      //public routes
       {
         index: true,
         element: <Login />,
@@ -49,10 +56,16 @@ const router = createBrowserRouter([
         element: <ForgotPassword />,
       },
       {
+        path: "reset-password",
+        element: <ResetPassword />,
+      },
+
+      {
         path: "verify-code",
         element: <VerifyCode />,
       },
 
+      //protected routes
       {
         path: "admin",
         element: <ProtectedRoute />,
@@ -71,11 +84,15 @@ const router = createBrowserRouter([
               { path: "customers/new", element: <AddNewCustomer /> },
               { path: "job-board", element: <JobBoard /> },
               { path: "mockups", element: <MockupBuilderPage /> },
+              { path: "category-brand", element: <CategoryBrandManager /> },
               { path: "products", element: <Products /> },
               { path: "messages", element: <Messages /> },
+              { path: "campaign-create", element: <CampaignForm /> },
+              { path: "campaigns", element: <AllCampaigns /> },
+              { path: "campaigns/:id", element: <CampaignDetail /> },
               { path: "payment", element: <Payment /> },
               { path: "analytics", element: <Analytics /> },
-
+              { path: "change-password", element: <ChangePassword /> },
               {
                 path: "settings",
                 element: <SettingsLayout />,

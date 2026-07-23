@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Settings } from "lucide-react";
+import { Lock, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Header = () => {
@@ -40,8 +40,15 @@ const Header = () => {
 
             <DropdownMenuContent
               align="end"
-              className="w-40 rounded-xl border border-[#E6EBF2] shadow-lg"
+              className="w-50 rounded-xl border border-[#E6EBF2] shadow-lg"
             >
+              <DropdownMenuItem
+                onClick={() => navigate("/admin/change-password")}
+                className="cursor-pointer flex items-center gap-2"
+              >
+                <Lock className="w-4 h-4" />
+                Change Password
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => navigate("/admin/settings")}
                 className="cursor-pointer flex items-center gap-2"

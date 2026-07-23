@@ -4,14 +4,16 @@ import type { RootState } from "@/store/store";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
-const weeks = [
-  { label: "Apr 1 – Apr 7", value: 0 },
-  { label: "Apr 8 – Apr 14", value: 0 },
-  { label: "Apr 15 – Apr 21", value: 1039.15 },
-  { label: "Apr 22 – Apr 28", value: 37087.99 },
-];
+interface RevenueTrend {
+  month: string;
+  revenue: number;
+}
 
-const total = 490827.06;
+interface RevenueBarProps {
+  total: number;
+  trends: RevenueTrend[];
+  isLoading?: boolean;
+}
 
 function formatCurrency(val = 0) {
   return val === 0
@@ -23,11 +25,12 @@ function formatCurrency(val = 0) {
         });
 }
 
-const RevenueBar = () => {
+const RevenueBar = ({ total, trends, isLoading }: RevenueBarProps) => {
   const [animatedWidth, setAnimatedWidth] = useState(0);
 
-  const currentRevenue = weeks.reduce((acc, curr) => acc + curr.value, 0);
-  const progressPercentage = Math.min((currentRevenue / total) * 100, 100);
+  const currentRevenue = trends.reduce((acc, curr) => acc + curr.revenue, 0);
+  const progressPercentage =
+    total > 0 ? Math.min((currentRevenue / total) * 100, 100) : 0;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -43,6 +46,21 @@ const RevenueBar = () => {
     ? "blur-md opacity-70 select-none pointer-events-none transition-all duration-300"
     : "transition-all duration-300";
 
+  if (isLoading) {
+    return (
+      <CardContainer size="lg">
+        <div className="animate-pulse flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-10">
+          <div className="h-8 w-40 rounded bg-[#E5E7EB]" />
+          <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:flex gap-4 lg:gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-10 w-20 rounded bg-[#E5E7EB]" />
+            ))}
+          </div>
+        </div>
+      </CardContainer>
+    );
+  }
+
   return (
     <CardContainer size="lg">
       <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-10">
@@ -56,19 +74,19 @@ const RevenueBar = () => {
           </CommonHeader>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:flex  gap-4 lg:gap-6 flex-1">
-          {weeks.map((week, i) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex flex-wrap gap-4 lg:gap-6 flex-1">
+          {trends.map((trend, i) => (
             <div
-              key={i}
+              key={`${trend.month}-${i}`}
               className="cursor-default flex flex-col justify-center items-center"
             >
               <CommonHeader
                 size="sm"
                 className={`${privacyDesign} font-semibold! text-[#101828]!`}
               >
-                {formatCurrency(week.value)}
+                {formatCurrency(trend.revenue)}
               </CommonHeader>
-              <CommonHeader size="xs">{week.label}</CommonHeader>
+              <CommonHeader size="xs">{trend.month}</CommonHeader>
             </div>
           ))}
         </div>

@@ -2,37 +2,7 @@ import type { InvoiceType } from "@/pages/Admin/Invoices";
 import { Link } from "react-router-dom";
 import { tableDesign } from "../admin/quotes/QuoteLists";
 import Pagination from "../shared/Pagination";
-
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case "Paid":
-      return (
-        <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#5CB85C] text-white text-xs font-semibold">
-          Paid
-        </span>
-      );
-    case "Partial":
-      return (
-        <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#F0AD4E] text-white text-xs font-semibold">
-          Partial
-        </span>
-      );
-    case "Overdue":
-      return (
-        <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#D9534F] text-white text-xs font-semibold">
-          Overdue
-        </span>
-      );
-    case "Unpaid":
-      return (
-        <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#A0B0C0] text-white text-xs font-semibold">
-          Unpaid
-        </span>
-      );
-    default:
-      return null;
-  }
-};
+import StatusBadge from "../shared/StatusBadge";
 
 const tableHeaders = [
   { label: "Invoice", align: "text-left" },
@@ -95,7 +65,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                   {invoice.balance}
                 </td>
                 <td className={`${tableDesign.td} text-center`}>
-                  {getStatusBadge(invoice.status)}
+                  <StatusBadge status={invoice.status} />
                 </td>
                 <td className={tableDesign.td}>{invoice.due}</td>
                 <td className={`${tableDesign.td} text-center`}>

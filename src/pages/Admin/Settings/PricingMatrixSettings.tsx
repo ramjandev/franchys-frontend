@@ -2,19 +2,36 @@ import PriceMatrixModal from "@/components/settings/PriceMatrixModal";
 import CardContainer from "@/components/shared/CardContainer";
 import CommonButton from "@/components/shared/CommonButton";
 import CommonHeader from "@/components/shared/CommonHeader";
+import IconActionButton from "@/components/shared/IconActionButton";
+import DashboardCardSkeleton from "@/components/shared/loading/DashboardCardSkeleton";
+import { loadingArray } from "@/lib/utils";
+import {
+  useDeletePriceMatrixMutation,
+  useGetPriceMatrixQuery,
+} from "@/store/settings/matdsf/priceMatrixAPI";
 import { useState } from "react";
 import { GoPlusCircle } from "react-icons/go";
 import { Link } from "react-router-dom";
 
-const matricesData = [
-  { id: 1, name: "T-Shirt Pricing", type: "Apparel" },
-  { id: 2, name: "Embroidery Pricing", type: "Decoration" },
-  { id: 3, name: "Screen Printing", type: "Decoration" },
-  { id: 4, name: "Banners & Signs", type: "Signage" },
-];
-
 const PricingMatrixSettings = () => {
   const [showModal, setShowModal] = useState(false);
+
+  const { data, isLoading } = useGetPriceMatrixQuery();
+  const [deletePriceMatrix, { isLoading: isDeleting, originalArgs }] =
+    useDeletePriceMatrixMutation();
+
+  const matricesData = data?.data ?? [];
+
+  const handleDelete = async (e: React.MouseEvent, priceMatrixId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      await deletePriceMatrix(priceMatrixId).unwrap();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="">
@@ -28,20 +45,46 @@ const PricingMatrixSettings = () => {
             quantity-based pricing.
           </CommonHeader>
         </div>
-        <CommonButton onClick={() => setShowModal(true)} variant="gradient">
+        <CommonButton onClick={() => setShowModal(true)}>
           <GoPlusCircle size={15} className="shrink-0" /> Create New Matrix
         </CommonButton>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {matricesData.map((matrix) => (
-          <Link key={matrix.id} to={`/admin/settings/pricing/${matrix.id}`}>
-            <CardContainer key={matrix.id} size="sm" className="">
-              <CommonHeader size="lg"> {matrix.name}</CommonHeader>
-              <CommonHeader size="sm">{matrix.type}</CommonHeader>
-            </CardContainer>
-          </Link>
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {loadingArray(8).map((_, index) => (
+            <DashboardCardSkeleton key={index} />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {matricesData.map((matrix) => (
+            <Link
+              key={matrix.priceMatrixId}
+              to={`/admin/settings/pricing/${matrix.priceMatrixId}`}
+            >
+              <CardContainer size="sm" className="relative group">
+                <IconActionButton
+                  title="Delete matrix"
+                  variant="delete"
+                  className="absolute top-3 right-3"
+                  isLoading={
+                    isDeleting && originalArgs === matrix.priceMatrixId
+                  }
+                  onClick={(e) =>
+                    handleDelete(
+                      e as unknown as React.MouseEvent,
+                      matrix.priceMatrixId,
+                    )
+                  }
+                />
+                <CommonHeader size="lg"> {matrix.name}</CommonHeader>
+                <CommonHeader size="sm">{matrix.priceType}</CommonHeader>
+              </CardContainer>
+            </Link>
+          ))}
+        </div>
+      )}
+
       {showModal && <PriceMatrixModal setShowModal={setShowModal} />}
     </div>
   );

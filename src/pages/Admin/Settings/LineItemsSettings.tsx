@@ -144,8 +144,8 @@ const LineItemsSettings = () => {
       </div>
 
       <div className="pt-6 mt-6 border-t border-border">
-        <CommonButton className="bg-[#00A63E]! text-white">
-          <Save size={15} />
+        <CommonButton variant="primaryGreen">
+          <Save />
           Save changes
         </CommonButton>
       </div>
