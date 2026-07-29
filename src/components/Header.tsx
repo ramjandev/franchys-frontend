@@ -18,7 +18,7 @@ const Header = () => {
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 w-full">
           <div className="relative w-full max-w-3xl">
-            <DashboardSearch />
+            <DashboardSearch value="" onChange={() => {}} />
           </div>
         </div>
 

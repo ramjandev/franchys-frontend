@@ -1,13 +1,16 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { UserData } from "./types/authTypes";
 
 type Tstate = {
   accessToken: string | null;
   restToken: string | null;
+  user: UserData | null;
 };
 
 const initialState: Tstate = {
   accessToken: null,
   restToken: null,
+  user: null,
 };
 
 const authSlice = createSlice({
@@ -33,14 +36,29 @@ const authSlice = createSlice({
       state.restToken = null;
     },
 
+    addCurrentUser: (state, action: PayloadAction<UserData>) => {
+      state.user = action.payload;
+    },
+    removeCurrentUser: (state) => {
+      state.user = null;
+    },
+
     logout: (state) => {
       state.accessToken = null;
+      state.restToken = null;
+      state.user = null;
     },
   },
 });
 
-export const { setUser, addResetToken, clearResetToken, logout } =
-  authSlice.actions;
+export const {
+  setUser,
+  addResetToken,
+  clearResetToken,
+  addCurrentUser,
+  removeCurrentUser,
+  logout,
+} = authSlice.actions;
 
 const authReducer = authSlice.reducer;
 export default authReducer;

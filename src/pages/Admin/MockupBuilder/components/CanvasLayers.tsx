@@ -1,6 +1,6 @@
+import { MockupLayer } from "@/store/mockUp/designSlice";
 import React, { useState } from "react";
 import { Rnd } from "react-rnd";
-import { type MockupLayer } from "../context/MockupContext";
 import { CurvedText } from "./CurvedText";
 
 interface CanvasLayersProps {
@@ -50,7 +50,9 @@ export const CanvasLayers: React.FC<CanvasLayersProps> = ({
                   }
                 : false
             }
-            disableDragging={!isSelected || isEraserMode || layer.type === "path"}
+            disableDragging={
+              !isSelected || isEraserMode || layer.type === "path"
+            }
             onDragStop={(_e, d) => {
               updateLayer(layer.id, { x: d.x, y: d.y });
             }}
@@ -65,7 +67,7 @@ export const CanvasLayers: React.FC<CanvasLayersProps> = ({
                 y: pos.y,
                 fontSize: layer.fontSize
                   ? Math.max(8, Math.round(layer.fontSize * ratio))
-                  : undefined
+                  : undefined,
               });
             }}
             onClick={(e: React.MouseEvent) => {
@@ -77,10 +79,15 @@ export const CanvasLayers: React.FC<CanvasLayersProps> = ({
               }
             }}
             style={{
-              outline: isSelected && !isEraserMode ? "2px solid #3B82F6" : "none",
-              cursor: isEraserMode ? "crosshair" : isSelected ? "move" : "pointer",
+              outline:
+                isSelected && !isEraserMode ? "2px solid #3B82F6" : "none",
+              cursor: isEraserMode
+                ? "crosshair"
+                : isSelected
+                  ? "move"
+                  : "pointer",
               transform: `rotate(${layer.rotation}deg)`,
-              display: layer.visible ? "block" : "none"
+              display: layer.visible ? "block" : "none",
             }}
           >
             {layer.type === "image" && layer.src && (
@@ -99,9 +106,13 @@ export const CanvasLayers: React.FC<CanvasLayersProps> = ({
                 {isEditingTextId === layer.id ? (
                   <input
                     value={layer.text || ""}
-                    onChange={(e) => updateLayer(layer.id, { text: e.target.value })}
+                    onChange={(e) =>
+                      updateLayer(layer.id, { text: e.target.value })
+                    }
                     onBlur={() => setIsEditingTextId(null)}
-                    onKeyDown={(e) => e.key === "Enter" && setIsEditingTextId(null)}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && setIsEditingTextId(null)
+                    }
                     autoFocus
                     className="w-full text-center border-0 border-b border-[#3B82F6] focus:outline-none focus:ring-0 bg-white"
                     style={{
@@ -132,11 +143,12 @@ export const CanvasLayers: React.FC<CanvasLayersProps> = ({
                 style={{
                   backgroundColor: layer.color ?? "#4A90E2",
                   borderRadius: layer.shapeType === "circle" ? "50%" : "4px",
-                  clipPath: layer.shapeType === "triangle"
-                    ? "polygon(50% 0%, 0% 100%, 100% 100%)"
-                    : layer.shapeType === "star"
-                    ? "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"
-                    : "none"
+                  clipPath:
+                    layer.shapeType === "triangle"
+                      ? "polygon(50% 0%, 0% 100%, 100% 100%)"
+                      : layer.shapeType === "star"
+                        ? "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"
+                        : "none",
                 }}
               />
             )}

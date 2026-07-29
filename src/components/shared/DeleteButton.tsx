@@ -21,7 +21,7 @@ const DeleteAlert: React.FC<DeleteAlertProps> = ({ action }) => {
     <div>
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <button className="flex items-center justify-center text-[#E7000B] hover:bg-red-50 rounded-lg p-1.5 cursor-pointer w-full transition-colors">
+          <button className="flex items-center justify-center text-[#E7000B] hover:bg-red-50 rounded-lg p-1.5 cursor-pointer  transition-colors">
             <Trash2 className="w-4 h-4" />
           </button>
         </AlertDialogTrigger>

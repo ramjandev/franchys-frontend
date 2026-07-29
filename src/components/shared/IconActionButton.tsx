@@ -1,13 +1,14 @@
 import { Loader2, Trash2, X } from "lucide-react";
 import type { FC } from "react";
 import { HiOutlinePencil } from "react-icons/hi2";
+import { MdOutlineRemoveRedEye } from "react-icons/md";
 
 interface IconActionButtonProps {
   title: string;
   onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   className?: string;
   isLoading?: boolean;
-  variant?: "edit" | "delete" | "remove";
+  variant?: "edit" | "delete" | "remove" | "view";
 }
 
 const variantClasses: Record<
@@ -16,6 +17,7 @@ const variantClasses: Record<
 > = {
   edit: "text-[#62748E] hover:bg-[#F1F5F9] hover:text-[#155DFC]",
   delete: "text-[#E7000B] hover:bg-red-50 hover:text-[#E7000B]",
+  view: "text-[#62748E] hover:bg-[#F1F5F9] hover:text-[#155DFC]",
   remove: "text-[#E7000B] hover:bg-red-50",
 };
 
@@ -38,6 +40,8 @@ const IconActionButton: FC<IconActionButtonProps> = ({
         return <Trash2 size={15} />;
       case "remove":
         return <X size={15} />;
+      case "view":
+        return <MdOutlineRemoveRedEye size={15} />;
       default:
         return null;
     }

@@ -1,122 +1,120 @@
+import LoadingStatus from "@/components/shared/loading/LoadingStatus";
 import Pagination from "@/components/shared/Pagination";
 import StatusBadge from "@/components/shared/StatusBadge";
+import { useGetAllCustomersQuery } from "@/store/Customer/customerAPI";
+import { useState } from "react";
 import { tableDesign } from "../quotes/QuoteLists";
 
-const customerData = [
-  {
-    id: 1,
-    customer: "Acme Corp",
-    product: "Business Cards",
-    dueDate: "Apr 28, 2026",
-    total: "$1250.00",
-    user: "Mike's Cool Shirts",
-    status: "In Progress",
-    statusColor: "bg-[#5BC0DE]",
-  },
-  {
-    id: 2,
-    customer: "TechStart Inc",
-    product: "T-Shirts",
-    dueDate: "Apr 26, 2026",
-    total: "$50.00",
-    user: "Mike's Cool Shirts",
-    status: "completed",
-    statusColor: "bg-[#5CB85C]",
-  },
-  {
-    id: 3,
-    customer: "Creative Agency",
-    product: "Posters",
-    dueDate: "Apr 30, 2026",
-    total: "$25.00",
-    user: "Mike's Cool Shirts",
-    status: "pending",
-    statusColor: "bg-[#428BCA]",
-  },
-  {
-    id: 4,
-    customer: "Local Bakery",
-    product: "Packaging",
-    dueDate: "May 2, 2026",
-    total: "$250.00",
-    user: "Mike's Cool Shirts",
-    status: "in progress",
-    statusColor: "bg-[#5BC0DE]",
-  },
-  {
-    id: 5,
-    customer: "Fashion Brand",
-    product: "Labels",
-    dueDate: "Apr 25, 2026",
-    total: "$750.00",
-    user: "Mike's Cool Shirts",
-    status: "completed",
-    statusColor: "bg-[#5CB85C]",
-  },
-];
 const tableHeaders = [
   { label: "#", align: "text-center " },
   { label: "Customer/Contact", align: "text-left " },
-  { label: "Estimated Due Date", align: "text-left " },
-  { label: "Total", align: "text-left" },
-  { label: "User", align: "text-left " },
+  { label: "Company", align: "text-left " },
+  { label: "Orders", align: "text-left" },
+  { label: "Type", align: "text-left " },
   { label: "Status", align: "text-left " },
 ];
+
 const CustomerList = () => {
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useGetAllCustomersQuery({ page, limit: 10 });
+  const customersData = data?.data ?? [];
+  const totalPages = data?.meta.totalPages ?? 1;
+
   return (
-    <div className="bg-white rounded-xl  overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-[#5C7899] bg-[#F9FAFB] border-b border-border">
-            <tr>
-              {tableHeaders.map((item, index) => (
-                <th key={index} className={` ${item.align} ${tableDesign.th}`}>
-                  {item.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
+    <div>
+      <LoadingStatus
+        isLoading={isLoading}
+        items={customersData}
+        itemName="customers"
+      />
 
-          <tbody className="">
-            {customerData.map((item) => (
-              <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                <td className={tableDesign.td}>{item.id}</td>
+      {!isLoading && customersData.length > 0 && (
+        <div className="bg-white rounded-xl  overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="text-xs text-[#5C7899] bg-[#F9FAFB] border-b border-border">
+                <tr>
+                  {tableHeaders.map((item, index) => (
+                    <th
+                      key={index}
+                      className={` ${item.align} ${tableDesign.th}`}
+                    >
+                      {item.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
 
-                <td className={tableDesign.td}>
-                  <div className="font-semibold text-[#0077FF]">
-                    {item.customer}
-                  </div>
-
-                  <div className="text-[#6A7282] text-xs mt-0.5">
-                    {item.product}
-                  </div>
-                </td>
-
-                <td className={tableDesign.td}>{item.dueDate}</td>
-
-                <td className={` font-semibold ${tableDesign.td}`}>
-                  {item.total}
-                </td>
-
-                <td className={tableDesign.td}>{item.user}</td>
-
-                <td className={tableDesign.td}>
-                  <StatusBadge status={item.status} />
-                  {/* <span
-                    className={`inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded text-white text-xs font-semibold ${item.statusColor}`}
+              <tbody className="">
+                {isLoading && (
+                  <tr>
+                    <td
+                      colSpan={tableHeaders.length}
+                      className={`${tableDesign.td} text-center text-[#5C7899]`}
+                    >
+                      Loading...
+                    </td>
+                  </tr>
+                )}
+                {!isLoading && customersData.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={tableHeaders.length}
+                      className={`${tableDesign.td} text-center text-[#5C7899]`}
+                    >
+                      No customers found.
+                    </td>
+                  </tr>
+                )}
+                {customersData.map((item, index) => (
+                  <tr
+                    key={item.id}
+                    className="hover:bg-slate-50 transition-colors"
                   >
-                    {item.status}
-                  </span> */}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    <td className={`${tableDesign.td} text-center`}>
+                      {(page - 1) * 10 + index + 1}
+                    </td>
 
-      <div className="py-5">
-        <Pagination currentPage={1} totalPages={5} onPageChange={() => {}} />
-      </div>
+                    <td className={tableDesign.td}>
+                      <div className="font-semibold text-[#0077FF]">
+                        {item.firstName} {item.lastName}
+                      </div>
+
+                      <div className="text-[#6A7282] text-xs mt-0.5">
+                        {item.email}
+                      </div>
+                    </td>
+
+                    <td className={tableDesign.td}>
+                      {item.companyName || "—"}
+                    </td>
+
+                    <td className={` font-semibold ${tableDesign.td}`}>
+                      {item.orders}
+                    </td>
+
+                    <td className={tableDesign.td}>{item.customerType}</td>
+
+                    <td className={tableDesign.td}>
+                      <StatusBadge
+                        status={item.isDeleted ? "deleted" : "active"}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="py-5">
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

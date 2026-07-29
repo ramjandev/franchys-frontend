@@ -1,9 +1,179 @@
 import CheckboxField from "@/components/shared/CheckboxField";
 import CommonButton from "@/components/shared/CommonButton";
 import CommonHeader from "@/components/shared/CommonHeader";
+import {
+  useGetLineItemCustomizationQuery,
+  useUpdateLineItemCustomizationMutation,
+} from "@/store/settings/customLineItems/lineItemCustomizationAPI";
+import { UpdateLineItemCustomizationPayload } from "@/store/settings/customLineItems/types/lineItemCustomizationTypes";
+
 import { Save } from "lucide-react";
+import { useEffect, useState } from "react";
+
+const defaultPayload: UpdateLineItemCustomizationPayload = {
+  showQuantity: false,
+  showItemNumber: false,
+  showCategory: false,
+  showDescription: false,
+  showColor: false,
+  showMarkup: false,
+  showPrice: false,
+
+  sizeAdultXS: false,
+  sizeAdultS: false,
+  sizeAdultM: false,
+  sizeAdultL: false,
+  sizeAdultXL: false,
+  sizeAdult2XL: false,
+  sizeAdult3XL: false,
+  sizeAdult4XL: false,
+
+  sizeYouthXS: false,
+  sizeYouthS: false,
+  sizeYouthM: false,
+  sizeYouthL: false,
+  sizeYouthXL: false,
+
+  sizeToddler2T: false,
+  sizeToddler3T: false,
+  sizeToddler4T: false,
+  sizeToddler5T: false,
+  sizeToddler6T: false,
+
+  sizeBabyNewborn: false,
+  sizeBaby3Months: false,
+  sizeBaby6Months: false,
+  sizeBaby9Months: false,
+  sizeBaby12Months: false,
+  sizeBaby18Months: false,
+  sizeBaby24Months: false,
+};
+
+const columnConfig: {
+  key: keyof UpdateLineItemCustomizationPayload;
+  label: string;
+  desc: string;
+}[] = [
+  {
+    key: "showQuantity",
+    label: "Quantity",
+    desc: "Number of items to be produced",
+  },
+  { key: "showItemNumber", label: "Item #", desc: "Product or item number" },
+  {
+    key: "showCategory",
+    label: "Category dropdown",
+    desc: "Organize items by category",
+  },
+  {
+    key: "showDescription",
+    label: "Description",
+    desc: "Detailed product description",
+  },
+  { key: "showColor", label: "Color", desc: "Product color option" },
+  {
+    key: "showMarkup",
+    label: "Markup %",
+    desc: "Markup percentage for pricing",
+  },
+  { key: "showPrice", label: "Price", desc: "Unit price per item" },
+];
+
+const adultSizeConfig: {
+  key: keyof UpdateLineItemCustomizationPayload;
+  label: string;
+}[] = [
+  { key: "sizeAdultXS", label: "XS" },
+  { key: "sizeAdultS", label: "S" },
+  { key: "sizeAdultM", label: "M" },
+  { key: "sizeAdultL", label: "L" },
+  { key: "sizeAdultXL", label: "XL" },
+  { key: "sizeAdult2XL", label: "2XL" },
+  { key: "sizeAdult3XL", label: "3XL" },
+  { key: "sizeAdult4XL", label: "4XL" },
+];
+
+const youthSizeConfig: {
+  key: keyof UpdateLineItemCustomizationPayload;
+  label: string;
+}[] = [
+  { key: "sizeYouthXS", label: "Youth XS" },
+  { key: "sizeYouthS", label: "Youth S" },
+  { key: "sizeYouthM", label: "Youth M" },
+  { key: "sizeYouthL", label: "Youth L" },
+  { key: "sizeYouthXL", label: "Youth XL" },
+];
+
+const toddlerSizeConfig: {
+  key: keyof UpdateLineItemCustomizationPayload;
+  label: string;
+}[] = [
+  { key: "sizeToddler2T", label: "2T" },
+  { key: "sizeToddler3T", label: "3T" },
+  { key: "sizeToddler4T", label: "4T" },
+  { key: "sizeToddler5T", label: "5T" },
+  { key: "sizeToddler6T", label: "6T" },
+];
+
+const babySizeConfig: {
+  key: keyof UpdateLineItemCustomizationPayload;
+  label: string;
+}[] = [
+  { key: "sizeBabyNewborn", label: "Newborn" },
+  { key: "sizeBaby3Months", label: "3 Months" },
+  { key: "sizeBaby6Months", label: "6 Months" },
+  { key: "sizeBaby9Months", label: "9 Months" },
+  { key: "sizeBaby12Months", label: "12 Months" },
+  { key: "sizeBaby18Months", label: "18 Months" },
+  { key: "sizeBaby24Months", label: "24 Months" },
+];
 
 const LineItemsSettings = () => {
+  const { data } = useGetLineItemCustomizationQuery();
+  const [updateLineItemCustomization, { isLoading: isSaving }] =
+    useUpdateLineItemCustomizationMutation();
+
+  const [values, setValues] =
+    useState<UpdateLineItemCustomizationPayload>(defaultPayload);
+
+  useEffect(() => {
+    if (data?.data) {
+      const { columns, sizingOptions } = data.data;
+
+      const flattenSizes = (sizes: { key: string; selected: boolean }[]) =>
+        Object.fromEntries(sizes.map((s) => [s.key, s.selected]));
+
+      setValues({
+        showQuantity: columns.quantity,
+        showItemNumber: columns.itemNumber,
+        showCategory: columns.category,
+        showDescription: columns.description,
+        showColor: columns.color,
+        showMarkup: columns.markup,
+        showPrice: columns.price,
+        ...flattenSizes(sizingOptions.adultSizes),
+        ...flattenSizes(sizingOptions.youthSizes),
+        ...flattenSizes(sizingOptions.toddlerSizes),
+        ...flattenSizes(sizingOptions.babyInfantSizes),
+      } as UpdateLineItemCustomizationPayload);
+    }
+  }, [data]);
+
+  const handleToggle = (
+    key: keyof UpdateLineItemCustomizationPayload,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setValues((prev) => ({ ...prev, [key]: e.target.checked }));
+  };
+
+  const handleSave = async () => {
+    try {
+      await updateLineItemCustomization(values).unwrap();
+    } catch (err) {
+      console.error("Failed to update line item customization", err);
+    }
+  };
+
   return (
     <div className="">
       <div className="mb-6 pb-4 border-b border-border">
@@ -22,55 +192,13 @@ const LineItemsSettings = () => {
           <CommonHeader size="lg"> Default Line Item Columns</CommonHeader>
 
           <div className="space-y-4">
-            {[
-              {
-                id: "qty",
-                label: "Quantity",
-                desc: "Number of items to be produced",
-                checked: true,
-              },
-              {
-                id: "item",
-                label: "Item #",
-                desc: "Product or item number",
-                checked: false,
-              },
-              {
-                id: "cat",
-                label: "Category dropdown",
-                desc: "Organize items by category",
-                checked: false,
-              },
-              {
-                id: "desc",
-                label: "Description",
-                desc: "Detailed product description",
-                checked: true,
-              },
-              {
-                id: "color",
-                label: "Color",
-                desc: "Product color option",
-                checked: false,
-              },
-              {
-                id: "markup",
-                label: "Markup %",
-                desc: "Markup percentage for pricing",
-                checked: false,
-              },
-              {
-                id: "price",
-                label: "Price",
-                desc: "Unit price per item",
-                checked: true,
-              },
-            ].map((col) => (
-              <CheckboxField
-                key={col.id}
-                label={col.label}
-                description={col.desc}
-              />
+            {columnConfig.map((col) => (
+              <div key={col.key}>
+                <div className="text-sm font-semibold text-[#0F172B] transition-colors">
+                  {col.label}
+                </div>
+                <div className="text-xs text-[#62748E] mt-0.5">{col.desc}</div>
+              </div>
             ))}
           </div>
         </div>
@@ -89,11 +217,14 @@ const LineItemsSettings = () => {
                 Adult Sizes
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL"].map(
-                  (size, idx) => (
-                    <CheckboxField key={idx} label={size} />
-                  ),
-                )}
+                {adultSizeConfig.map((size) => (
+                  <CheckboxField
+                    key={size.key}
+                    label={size.label}
+                    checked={values[size.key]}
+                    onChange={(e) => handleToggle(size.key, e)}
+                  />
+                ))}
               </div>
             </div>
 
@@ -102,11 +233,14 @@ const LineItemsSettings = () => {
                 Youth Sizes
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {["Youth XS", "Youth S", "Youth M", "Youth L", "Youth XL"].map(
-                  (size, idx) => (
-                    <CheckboxField key={idx} label={size} />
-                  ),
-                )}
+                {youthSizeConfig.map((size) => (
+                  <CheckboxField
+                    key={size.key}
+                    label={size.label}
+                    checked={values[size.key]}
+                    onChange={(e) => handleToggle(size.key, e)}
+                  />
+                ))}
               </div>
             </div>
 
@@ -115,8 +249,13 @@ const LineItemsSettings = () => {
                 Toddler Sizes
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {["2T", "3T", "4T", "5T", "6T"].map((size) => (
-                  <CheckboxField key={size} label={size} />
+                {toddlerSizeConfig.map((size) => (
+                  <CheckboxField
+                    key={size.key}
+                    label={size.label}
+                    checked={values[size.key]}
+                    onChange={(e) => handleToggle(size.key, e)}
+                  />
                 ))}
               </div>
             </div>
@@ -126,16 +265,13 @@ const LineItemsSettings = () => {
                 Baby / Infant Sizes
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  "Newborn",
-                  "3 Months",
-                  "6 Months",
-                  "9 Months",
-                  "12 Months",
-                  "18 Months",
-                  "24 Months",
-                ].map((size) => (
-                  <CheckboxField key={size} label={size} />
+                {babySizeConfig.map((size) => (
+                  <CheckboxField
+                    key={size.key}
+                    label={size.label}
+                    checked={values[size.key]}
+                    onChange={(e) => handleToggle(size.key, e)}
+                  />
                 ))}
               </div>
             </div>
@@ -144,7 +280,12 @@ const LineItemsSettings = () => {
       </div>
 
       <div className="pt-6 mt-6 border-t border-border">
-        <CommonButton variant="primaryGreen">
+        <CommonButton
+          variant="primaryGreen"
+          onClick={handleSave}
+          isLoading={isSaving}
+          loadingText="Saving..."
+        >
           <Save />
           Save changes
         </CommonButton>

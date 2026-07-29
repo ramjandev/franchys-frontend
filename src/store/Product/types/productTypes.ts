@@ -1,11 +1,13 @@
 // ---- Color ----
 
-import { ApiResponse } from "@/store/Auth/types/authTypes";
+import {
+  ApiResponse,
+  PaginatedApiResponse,
+} from "@/store/Auth/types/authTypes";
 import {
   Brand,
   Category,
-} from "@/store/settings/brandCategory/types/brandCategoryTypes";
-import { PaginatedApiResponse } from "@/store/settings/users/types/userAdminTypes";
+} from "@/store/brandCategory/types/brandCategoryTypes";
 
 export interface ProductColor {
   id: string;
@@ -67,6 +69,29 @@ export interface GetProductsParams {
   search?: string;
   page?: number;
   limit?: number;
+  categoryId?: string;
+  brandId?: string;
+  color?: string;
+  size?: string;
+}
+
+export interface ProductAutocompleteItem {
+  label: string;
+  productId: string;
+  productName: string;
+  itemNo: string;
+  style: string;
+  price: string;
+  unitPrice: string;
+  brandId: string;
+  brandName: string;
+  categoryId: string;
+  categoryName: string;
+  colorId: string | null;
+  color: string | null;
+  colorCode: string | null;
+  availableSizes: string[];
+  images: string[];
 }
 
 // ---- Response envelopes ----
@@ -79,3 +104,6 @@ export type UpdateProductResponse = ApiResponse<Product>;
 export type GetProductColorsResponse = ApiResponse<ProductColor[]>;
 export type CreateProductColorsResponse = ApiResponse<ProductColor[]>;
 export type UpdateProductColorResponse = ApiResponse<ProductColor>;
+export type ProductAutocompleteResponse = ApiResponse<
+  ProductAutocompleteItem[]
+>;

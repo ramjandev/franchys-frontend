@@ -6,6 +6,7 @@ import {
   GetProductColorsResponse,
   GetProductsParams,
   GetProductsResponse,
+  ProductAutocompleteResponse,
   UpdateColorPayload,
   UpdateProductColorResponse,
   UpdateProductResponse,
@@ -24,6 +25,17 @@ export const productAPI = baseAPI.injectEndpoints({
     getProducts: build.query<GetProductsResponse, GetProductsParams>({
       query: (params) => ({
         url: `/product`,
+        method: "GET",
+        params,
+      }),
+      providesTags: ["Product"],
+    }),
+    getProductsForAutoComplete: build.query<
+      ProductAutocompleteResponse,
+      { search?: string }
+    >({
+      query: (params) => ({
+        url: `/product/autocomplete`,
         method: "GET",
         params,
       }),
@@ -55,7 +67,6 @@ export const productAPI = baseAPI.injectEndpoints({
       invalidatesTags: ["Product"],
     }),
 
-    // ---- Colors ----
     createProductColors: build.mutation<
       CreateProductColorsResponse,
       { productId: string; data: CreateColorPayload[] }
@@ -102,6 +113,7 @@ export const {
   // ---- Product ----
   useCreateProductMutation,
   useGetProductsQuery,
+  useGetProductsForAutoCompleteQuery,
   useGetProductByIdQuery,
   useUpdateProductMutation,
   useDeleteProductMutation,

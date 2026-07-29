@@ -1,55 +1,18 @@
 import CommonHeader from "@/components/shared/CommonHeader";
+import { Quote } from "@/store/quote/types/quoteTypes";
 import { Image, Plus, Zap } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import ImagesDialog from "./ImagesDialog";
 import TotalPriceInQuote from "./TotalPriceInQuote";
 
-const lineItems = [
-  {
-    id: 1,
-    color: "blue",
-    category: "Apparel/Accessories",
-    itemNo: "8000",
-    colorName: "Black",
-    totalItems: 15,
-    productName: "Gildan - Unisex DryBlend® T-Shirt - 8000",
-    sizes: { XS: null, S: null, M: 5, L: 5, XL: 5, "2XL": null },
-    imprint: { type: "DTF - Full (11×11) - 11×11", location: "Front Center" },
-    mockupCaption: "Gildan 8000 – Black – DTF Print Front Center",
-    calc: "15 × $20.00",
-    total: "$300.00",
-  },
-  {
-    id: 2,
-    color: "purple",
-    category: "Apparel/Accessories",
-    itemNo: "18500",
-    colorName: "Navy",
-    totalItems: 10,
-    productName: "Gildan - Heavy Blend™ Hooded Sweatshirt",
-    sizes: { XS: null, S: null, M: 3, L: 4, XL: 3, "2XL": null },
-    imprint: { type: "Embroidery - Left Chest", location: "Left Chest" },
-    mockupCaption: "Gildan 18500 – Navy – Embroidery Left Chest",
-    calc: "10 × $35.00",
-    total: "$350.00",
-  },
-  {
-    id: 3,
-    color: "amber",
-    category: "Design Services",
-    itemNo: "SETUP",
-    colorName: null,
-    totalItems: 1,
-    productName: "Design & Setup Fee",
-    description: "Logo digitization, artwork setup, and design coordination",
-    sizes: null,
-    imprint: null,
-    mockupCaption: null,
-    calc: "1 × $75.00",
-    total: "$75.00",
-  },
-];
+interface QuoteLineItemsProps {
+  quote?: Quote;
+  isAdmin?: boolean;
+}
 
-const colorMap = {
-  blue: {
+const colorThemes = [
+  {
     card: "border-[1.62px] border-skyBlue border-l-[5px] ",
     badge: "bg-skyBlue",
     category: "bg-[#F0F7FF]",
@@ -58,7 +21,7 @@ const colorMap = {
     imprintLabel: "text-indigo-700",
     sizeVal: "text-blue-600 border-blue-300",
   },
-  purple: {
+  {
     card: "border-[#7C3AED] border-[1.62px]  border-l-[5px]  ",
     badge: "bg-[#7C3AED]",
     category: "bg-[#F0F7FF]",
@@ -67,7 +30,7 @@ const colorMap = {
     imprintLabel: "text-[#7C3AED]",
     sizeVal: "text-[#7C3AED] border-purple-300",
   },
-  amber: {
+  {
     card: "border-[#D97706] border-[1.62px]  border-l-[5px]  ",
     badge: "bg-[#D97706]",
     category: "bg-[#F0F7FF]",
@@ -76,16 +39,31 @@ const colorMap = {
     imprintLabel: "",
     sizeVal: "text-amber-700 border-[#D97706]",
   },
-};
-const QuoteLineItems = () => {
+];
+
+const formatMoney = (n: number | string) => `$${Number(n).toFixed(2)}`;
+
+const QuoteLineItems: React.FC<QuoteLineItemsProps> = ({ quote, isAdmin }) => {
+  const lineItems = (quote?.groups ?? []).flatMap((group) =>
+    group.lineItems.map((li) => ({ ...li, groupName: group.name })),
+  );
+
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const navigate = useNavigate();
   return (
     <div className=" border-t border-border w-full  ">
       <CommonHeader size="lg" className="my-6">
         Items
       </CommonHeader>
+
       <div className="space-y-7">
-        {lineItems.map((item) => {
-          const c = colorMap[item.color as keyof typeof colorMap];
+        {lineItems.map((item, index) => {
+          const c = colorThemes[index % colorThemes.length];
+          const sizeEntries = Object.entries(item.sizeBreakdown ?? {});
+          const mockupCaption = [item.itemNumber, item.color, item.imprintType]
+            .filter(Boolean)
+            .join(" – ");
+
           return (
             <div
               key={item.id}
@@ -95,7 +73,7 @@ const QuoteLineItems = () => {
                 <span
                   className={`w-4 h-4 rounded-full ${c.badge} text-white flex items-center justify-center text-[10px] font-bold`}
                 >
-                  {item.id}
+                  {index + 1}
                 </span>
 
                 <CommonHeader size="lg" className="text-[#64748B]">
@@ -118,16 +96,16 @@ const QuoteLineItems = () => {
                     Item #
                   </CommonHeader>
                   <CommonHeader className="text-[#0F172B]! font-semibold!">
-                    {item.itemNo}
+                    {item.itemNumber || "-"}
                   </CommonHeader>
                 </div>
-                {item.colorName && (
+                {item.color && (
                   <div>
                     <CommonHeader className="text-[#62748E]!">
                       Color
                     </CommonHeader>
                     <CommonHeader className="text-[#0F172B]! font-semibold!">
-                      {item.colorName}
+                      {item.color}
                     </CommonHeader>
                   </div>
                 )}
@@ -137,7 +115,7 @@ const QuoteLineItems = () => {
                       Total Items
                     </CommonHeader>
                     <CommonHeader className={` ${c.totalVal} font-semibold! `}>
-                      {item.totalItems}
+                      {item.itemsCount}
                     </CommonHeader>
                   </div>
                 </div>
@@ -145,41 +123,35 @@ const QuoteLineItems = () => {
 
               <div className="px-6 space-y-4.5 pb-4">
                 <div className="pt-4.5 ">
-                  <CommonHeader size="xl">{item.productName}</CommonHeader>
-
-                  {item.description && (
-                    <div className="text-xs text-[#64748B]  ">
-                      {item.description}
-                    </div>
-                  )}
+                  <CommonHeader size="xl">{item.description}</CommonHeader>
                 </div>
-                {item.sizes && (
+                {sizeEntries.length > 0 && (
                   <>
                     <div className="text-[10px] font-semibold text-[#64748B] tracking-wider mb-1 ">
                       SIZES
                     </div>
                     <div className="flex gap-1 mb-1 ">
-                      {Object.keys(item.sizes).map((s) => (
+                      {sizeEntries.map(([size]) => (
                         <span
-                          key={s}
+                          key={size}
                           className="text-xs font-semibold text-gray-700 border border-gray-300 rounded px-1.5 py-0.5 bg-white"
                         >
-                          {s}
+                          {size}
                         </span>
                       ))}
                     </div>
                     <div className="flex gap-1 mb-4 ">
-                      {Object.values(item.sizes).map((v, i) =>
-                        v ? (
+                      {sizeEntries.map(([size, qty]) =>
+                        qty ? (
                           <span
-                            key={i}
+                            key={size}
                             className={`text-xs font-bold border rounded px-1.5 py-0.5 bg-white text-center min-w-[24px] ${c.sizeVal}`}
                           >
-                            {v}
+                            {qty}
                           </span>
                         ) : (
                           <span
-                            key={i}
+                            key={size}
                             className="text-gray-400 text-xs px-1.5 py-0.5"
                           >
                             —
@@ -190,7 +162,7 @@ const QuoteLineItems = () => {
                   </>
                 )}
                 <div className="">
-                  {item.imprint && (
+                  {item.imprintType && (
                     <div className={`rounded-lg border p-2 mb-2 ${c.imprint}`}>
                       <div
                         className={`flex items-center gap-1 text-[10px] font-bold tracking-wider mb-1  ${c.imprintLabel}`}
@@ -198,53 +170,67 @@ const QuoteLineItems = () => {
                         <Zap className="w-3 h-3" /> IMPRINTS
                       </div>
                       <div className="text-xs text-gray-700">
-                        • {item.imprint.type}{" "}
-                        <span className="text-gray-400">
-                          ({item.imprint.location})
-                        </span>
+                        • {item.imprintType}
                       </div>
                     </div>
                   )}
                 </div>
                 <div className="">
-                  {item.mockupCaption && (
+                  {item.mockups && item.mockups.length > 0 && (
                     <>
                       <div className="flex items-center gap-1 text-[10px]  font-semibold text-[#64748B] tracking-wider mb-1.5">
                         <Image className="w-3 h-3" /> MOCKUP PREVIEW
                       </div>
+
                       <div className="flex gap-1.5 mb-1">
-                        {["Front", "Back"].map((label) => (
+                        {item.mockups.map((url, i) => (
                           <div
-                            key={label}
-                            className="w-12 h-12 rounded-md border border-gray-200 bg-slate-100 flex items-center justify-center text-[9px] text-gray-400"
+                            key={url}
+                            onClick={() => setPreviewImage(url)}
+                            className="w-12 h-12 rounded-md border border-gray-200 bg-slate-100 overflow-hidden cursor-pointer transition hover:scale-105"
                           >
-                            {label}
+                            <img
+                              src={url}
+                              alt={`Mockup ${i + 1}`}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
                         ))}
-                        <div className="w-12 h-12 rounded-md border border-dashed border-gray-300 flex items-center justify-center">
-                          <Plus className="w-3.5 h-3.5 text-gray-400" />
-                        </div>
+
+                        {isAdmin && (
+                          <div
+                            onClick={() => navigate("/admin/mockups")}
+                            className="w-12 h-12 rounded-md border border-dashed border-gray-300 flex items-center justify-center cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5 text-gray-400" />
+                          </div>
+                        )}
                       </div>
                       <div className="text-[10px] text-gray-400 mb-2">
-                        {item.mockupCaption}
+                        {mockupCaption}
                       </div>
                     </>
                   )}
                 </div>
               </div>
               <div className="flex justify-between items-center pt-4 border-t border-black/5 mt-1 px-6">
-                <span className="text-xs text-[#64748B]">{item.calc}</span>
+                <span className="text-xs text-[#64748B]">
+                  {item.itemsCount} × {formatMoney(item.unitPrice)}
+                </span>
                 <span className="text-sm font-black text-gray-900">
-                  {item.total}
+                  {formatMoney(item.total)}
                 </span>
               </div>
             </div>
           );
         })}
       </div>
-
+      <ImagesDialog
+        previewImage={previewImage}
+        setPreviewImage={setPreviewImage}
+      />
       <div className="mt-8 pt-8 border-t border-border w-full  flex justify-end ">
-        <TotalPriceInQuote />
+        <TotalPriceInQuote quote={quote} />
       </div>
     </div>
   );

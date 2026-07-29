@@ -3,10 +3,10 @@ import { inputClass } from "@/pages/Login";
 import {
   useCreateCategoryMutation,
   useUpdateCategoryMutation,
-} from "@/store/settings/brandCategory/brandCategoryApi";
+} from "@/store/brandCategory/brandCategoryApi";
 
 import ModalAction from "@/components/settings/ModalAction";
-import { Category } from "@/store/settings/brandCategory/types/brandCategoryTypes";
+import { Category } from "@/store/brandCategory/types/brandCategoryTypes";
 import { useState } from "react";
 import { z } from "zod";
 

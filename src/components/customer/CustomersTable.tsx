@@ -1,8 +1,16 @@
 import Pagination from "@/components/shared/Pagination";
-import { useGetAllCustomersQuery } from "@/store/Customer/customerAPI";
+import {
+  useDeleteCustomerMutation,
+  useGetAllCustomersQuery,
+} from "@/store/Customer/customerAPI";
 import { Mail, Phone } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardSearch from "../shared/DashboardSearch";
+import DeleteAlert from "../shared/DeleteButton";
+import IconActionButton from "../shared/IconActionButton";
 import LoadingStatus from "../shared/loading/LoadingStatus";
+import { useDebounce } from "../shared/useDebounce";
 
 export const tableDesign = {
   table:
@@ -18,17 +26,44 @@ const tableHeaders = [
   { label: "Company / Contact", align: "text-left" },
   { label: "Contact Info", align: "text-left" },
   { label: "Orders", align: "text-center" },
-  { label: "Total Spent", align: "text-right" },
+  { label: "Total Spent", align: "text-center" },
+  { label: "Action", align: "text-center" },
 ];
 const avatar =
   "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&q=80";
 
 const CustomersTable = () => {
-  const { data, isLoading } = useGetAllCustomersQuery();
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const searchDebounced = useDebounce(search, 500);
+  const { data, isLoading } = useGetAllCustomersQuery({
+    page,
+    limit: 10,
+    search: searchDebounced,
+  });
   const customersData = data?.data ?? [];
+
+  const [deleteCustomer] = useDeleteCustomerMutation();
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteCustomer(id).unwrap();
+    } catch (err) {
+      console.error("Failed to delete customer", err);
+    }
+  };
+
+  const navigate = useNavigate();
   return (
     <>
-      <DashboardSearch placeholder="Search customers..." />
+      <DashboardSearch
+        className="bg-transparent! border-[#CAD5E2]! text-[#0A0A0A]/50!"
+        placeholder="Search customers..."
+        value={search}
+        onChange={(value) => {
+          setSearch(value);
+          setPage(1);
+        }}
+      />
 
       <LoadingStatus
         isLoading={isLoading}
@@ -59,13 +94,13 @@ const CustomersTable = () => {
                     <td className={tableDesign.td}>
                       <div className="flex items-center gap-3">
                         <img
-                          src={avatar}
+                          src={customer.profileImage || avatar}
                           alt="sdfasd"
                           className="w-10 h-10 rounded-full object-cover border border-[#F1F5F9]"
                         />
                         <div>
                           <div className="font-semibold text-[#0077FF] hover:underline cursor-pointer">
-                            {customer.companyName}
+                            {customer.firstName} {customer.lastName}
                           </div>
                           <div className="text-[#5C7899] text-xs mt-0.5">
                             {customer.companyName}
@@ -88,13 +123,25 @@ const CustomersTable = () => {
                     </td>
 
                     <td className={`${tableDesign.td} text-center font-medium`}>
-                      {customer.secondaryEmail}
+                      {customer.orders}
                     </td>
 
                     <td
-                      className={`${tableDesign.td} text-right font-semibold`}
+                      className={`${tableDesign.td} text-center font-semibold`}
                     >
-                      {customer.postalCode}
+                      ${customer.totalSpent}
+                    </td>
+                    <td className={tableDesign.td}>
+                      <div className="flex items-center gap-2 justify-center">
+                        <IconActionButton
+                          variant="view"
+                          title="View"
+                          onClick={() =>
+                            navigate(`../customers/edit/${customer.id}`)
+                          }
+                        />
+                        <DeleteAlert action={() => handleDelete(customer.id)} />
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -104,9 +151,9 @@ const CustomersTable = () => {
 
           <div className="py-5">
             <Pagination
-              currentPage={1}
-              totalPages={5}
-              onPageChange={() => {}}
+              currentPage={page}
+              totalPages={data?.meta.totalPages ?? 1}
+              onPageChange={setPage}
             />
           </div>
         </div>

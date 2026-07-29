@@ -1,35 +1,40 @@
+import { useGetInvoiceByIdQuery } from "@/store/invoice/invoiceAPI";
 import ModalAction from "../settings/ModalAction";
 import ModalContainer from "../settings/ModalContainer";
 import CommonHeader from "../shared/CommonHeader";
+import VideoSkeleton from "../shared/loading/VideoSkeleton";
 
 interface InvoicePreviewModalProps {
+  invoiceId: string;
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
-
-const invoice = {
-  id: "INV-3001",
-  status: "Paid",
-  dueDate: "9/25/2025",
-  from: {
-    company: "PrintFlow Inc.",
-    address: "123 Production Way, Austin TX 78701",
-  },
-  billTo: {
-    company: "Bay Area Tech Summit",
-    email: "chris@techsummit.io",
-  },
-  items: [{ description: "Custom Print Order", qty: 1, price: 7290.0 }],
-  tax: 810.0,
-};
 
 const fmt = (n: number) =>
   `$${n.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
 
 const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
+  invoiceId,
   setShowModal,
 }) => {
-  const subtotal = invoice.items.reduce((sum, i) => sum + i.qty * i.price, 0);
-  const total = subtotal + invoice.tax;
+  const { data, isLoading } = useGetInvoiceByIdQuery(invoiceId);
+  const invoice = data?.data;
+
+  if (isLoading || !invoice) {
+    return (
+      <ModalContainer
+        close={() => setShowModal(false)}
+        title="Invoice Preview"
+        size="max-w-xl"
+      >
+        <VideoSkeleton />
+      </ModalContainer>
+    );
+  }
+
+  const subtotal = Number(invoice.subtotal);
+  const tax = Number(invoice.taxAmount);
+  const total = Number(invoice.total);
+  const isPaid = invoice.status === "PAID";
 
   return (
     <ModalContainer
@@ -45,15 +50,24 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
             </CommonHeader>
 
             <CommonHeader className="text-[#45556C]!">
-              Due: {invoice.id}
+              {invoice.invoiceNumber}
             </CommonHeader>
           </div>
           <div className="text-right">
-            <span className="inline-block bg-[#D0FAE5] text-[#007A55] text-sm font-semibold px-4 py-1 rounded-md mb-2">
+            <span
+              className={`inline-block text-sm font-semibold px-4 py-1 rounded-md mb-2 ${
+                isPaid
+                  ? "bg-[#D0FAE5] text-[#007A55]"
+                  : "bg-[#F1F5F9] text-[#45556C]"
+              }`}
+            >
               {invoice.status}
             </span>
             <CommonHeader size="sm" className="text-[#45556C]!">
-              Due: {invoice.dueDate}
+              Due:{" "}
+              {invoice.dueDate
+                ? new Date(invoice.dueDate).toLocaleDateString()
+                : "—"}
             </CommonHeader>
           </div>
         </div>
@@ -65,10 +79,7 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
             </CommonHeader>
 
             <CommonHeader className="text-[#45556C]!">
-              {invoice.from.company}
-            </CommonHeader>
-            <CommonHeader size="sm" className="text-[#45556C]!">
-              {invoice.from.address}
+              Your Company
             </CommonHeader>
           </div>
           <div className="space-y-1">
@@ -76,11 +87,12 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
               BILL TO
             </CommonHeader>
             <CommonHeader className="text-[#45556C]!">
-              {invoice.billTo.company}
+              {invoice.customer.companyName ||
+                `${invoice.customer.firstName} ${invoice.customer.lastName}`}
             </CommonHeader>
 
             <CommonHeader size="sm" className="text-[#45556C]!">
-              {invoice.billTo.email}
+              {invoice.customer.email}
             </CommonHeader>
           </div>
         </div>
@@ -104,22 +116,22 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
             </CommonHeader>
           </div>
 
-          {invoice.items.map((item, i) => (
+          {invoice.lineItems.map((item) => (
             <div
-              key={i}
+              key={item.id}
               className="grid grid-cols-4 sm:grid-cols-[1fr_80px_120px_120px] gap-2 py-4 border-b border-[#E2E8F0]"
             >
               <CommonHeader className="text-[#45556C]! ">
                 {item.description}
               </CommonHeader>
               <CommonHeader className="text-[#45556C]! ">
-                {item.qty}
+                {item.quantity}
               </CommonHeader>
               <CommonHeader className="text-[#45556C]! ">
-                {fmt(item.price)}
+                {fmt(Number(item.unitPrice))}
               </CommonHeader>
               <CommonHeader className="text-[#45556C]! justify-end!">
-                {fmt(item.qty * item.price)}
+                {fmt(Number(item.total))}
               </CommonHeader>
             </div>
           ))}
@@ -139,21 +151,23 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
               Tax
             </CommonHeader>
             <CommonHeader size="sm" className="">
-              {fmt(invoice.tax)}
+              {fmt(tax)}
             </CommonHeader>
           </div>
           <div className="border-t border-[#E2E8F0] pt-2 flex justify-between">
             <CommonHeader size="lg">Total</CommonHeader>
             <CommonHeader size="lg">{fmt(total)}</CommonHeader>
           </div>
-          <div className="border-t border-[#A4F4CF] pt-2 flex justify-between">
-            <CommonHeader size="sm" className="text-[#007A55]! ">
-              Paid
-            </CommonHeader>
-            <CommonHeader size="sm" className="text-[#007A55]! ">
-              {fmt(total)}
-            </CommonHeader>
-          </div>
+          {isPaid && (
+            <div className="border-t border-[#A4F4CF] pt-2 flex justify-between">
+              <CommonHeader size="sm" className="text-[#007A55]! ">
+                Paid
+              </CommonHeader>
+              <CommonHeader size="sm" className="text-[#007A55]! ">
+                {fmt(Number(invoice.amountPaid))}
+              </CommonHeader>
+            </div>
+          )}
         </div>
       </div>
 
@@ -162,7 +176,11 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
         create="Download PDF"
         isSubmitting={false}
         loadingText="Downloading..."
-        onSubmit={() => {}}
+        onSubmit={() => {
+          if (invoice.invoicePdfUrl) {
+            window.open(invoice.invoicePdfUrl, "_blank");
+          }
+        }}
       />
     </ModalContainer>
   );

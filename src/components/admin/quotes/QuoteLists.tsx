@@ -1,88 +1,21 @@
+import CommonButton from "@/components/shared/CommonButton";
 import DeleteAlert from "@/components/shared/DeleteButton";
+import IconActionButton from "@/components/shared/IconActionButton";
 import Pagination from "@/components/shared/Pagination";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { Plus } from "lucide-react";
+import { useDeleteQuoteMutation } from "@/store/quote/quoteAPI";
+import { Quote } from "@/store/quote/types/quoteTypes";
+import { useNavigate } from "react-router-dom";
 
 export const tableDesign = {
   table:
     "w-full border-collapse border border-border rounded-lg overflow-hidden",
-
   thead: "text-xs text-[#45556C]! bg-[#F8FAFC]",
-
   tbody: "text-[#0F172B] bg-white",
-
   tr: "text-[#101828] text-sm hover:bg-slate-50 transition-colors",
-
   th: "py-4 px-6 text-xs font-semibold text-[#4A5565] border-b border-border",
-
   td: "py-4 px-6 text-sm text-[#101828] border-b border-border",
 };
-
-const quotes = [
-  {
-    id: "Q-1001",
-    customer: "Riverside Church",
-    items: "1 product",
-    total: "$1,200.00",
-    status: "approved",
-    statusColor: "bg-[#5CB85C]",
-    date: "9/1/2025",
-  },
-  {
-    id: "Q-1002",
-    customer: "Metro Fire Department",
-    items: "1 product",
-    total: "$3,920.00",
-    status: "sent",
-    statusColor: "bg-[#5BC0DE]",
-    date: "9/1/2025",
-  },
-  {
-    id: "Q-1003",
-    customer: "Lincoln High School",
-    items: "1 product",
-    total: "$1,782.00",
-    status: "draft",
-    statusColor: "bg-[#A0B0C0]",
-    date: "9/1/2025",
-  },
-  {
-    id: "Q-1004",
-    customer: "Craft Brewery Co",
-    items: "1 product",
-    total: "$604.80",
-    status: "approved",
-    statusColor: "bg-[#5CB85C]",
-    date: "9/1/2025",
-  },
-  {
-    id: "Q-1005",
-    customer: "Summit CrossFit",
-    items: "1 product",
-    total: "$2,816.00",
-    status: "sent",
-    statusColor: "bg-[#5BC0DE]",
-    date: "9/1/2025",
-  },
-  {
-    id: "Q-1006",
-    customer: "Bay Area Tech Summit",
-    items: "1 product",
-    total: "$8,100.00",
-    status: "approved",
-    statusColor: "bg-[#5CB85C]",
-    date: "9/1/2025",
-  },
-  {
-    id: "Q-1007",
-    customer: "Golden State Realty",
-    items: "1 product",
-    total: "$756.00",
-    status: "approved",
-    statusColor: "bg-[#5CB85C]",
-    date: "9/1/2025",
-  },
-];
 
 const tableHeaders = [
   { label: "Quote", align: "text-left" },
@@ -95,7 +28,38 @@ const tableHeaders = [
   { label: "Action", align: "text-center" },
 ];
 
-const QuoteLists = () => {
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString(undefined, {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+  });
+
+interface QuoteListsProps {
+  quotes: Quote[];
+  page: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
+
+const QuoteLists: React.FC<QuoteListsProps> = ({
+  quotes,
+  page,
+  totalPages,
+  onPageChange,
+}) => {
+  const [deleteQuote] = useDeleteQuoteMutation();
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteQuote(id).unwrap();
+    } catch (err) {
+      console.error("Failed to delete quote", err);
+    }
+  };
+
+  const navigate = useNavigate();
+
   return (
     <div className="bg-white rounded-xl  overflow-hidden">
       <div className="overflow-x-auto">
@@ -111,47 +75,67 @@ const QuoteLists = () => {
           </thead>
 
           <tbody className={tableDesign.tbody}>
-            {quotes.map((quote) => (
-              <tr key={quote.id} className={tableDesign.tr}>
-                <td className={tableDesign.td}>
-                  <span className="">{quote.id}</span>
-                </td>
+            {quotes.map((quote) => {
+              const itemsCount = quote.lineItems?.length ?? 0;
+              return (
+                <tr key={quote.id} className={tableDesign.tr}>
+                  <td className={tableDesign.td}>
+                    <span className="">{quote.quoteNumber}</span>
+                  </td>
 
-                <td className={` ${tableDesign.td} text-left! `}>
-                  {quote.customer}
-                </td>
+                  <td className={` ${tableDesign.td} text-left! `}>
+                    {quote.customer
+                      ? `${quote.customer.firstName} ${quote.customer.lastName}`
+                      : "—"}
+                  </td>
 
-                <td className={tableDesign.td}>{quote.items}</td>
+                  <td className={tableDesign.td}>
+                    {itemsCount} {itemsCount === 1 ? "product" : "products"}
+                  </td>
 
-                <td className={`font-semibold ${tableDesign.td}`}>
-                  {quote.total}
-                </td>
+                  <td className={`font-semibold ${tableDesign.td}`}>
+                    ${quote.total}
+                  </td>
 
-                <td className={` ${tableDesign.td} text-center`}>
-                  <StatusBadge status={quote.status} />
-                </td>
+                  <td className={` ${tableDesign.td} text-center`}>
+                    <StatusBadge status={quote.status.toLowerCase()} />
+                  </td>
 
-                <td className={tableDesign.td}>{quote.date}</td>
+                  <td className={tableDesign.td}>
+                    {formatDate(quote.createdAt)}
+                  </td>
 
-                <td className={` ${tableDesign.td} text-center `}>
-                  <div className="flex items-center justify-center">
-                    <button className="text-blue font-semibold text-xs hover:underline flex items-center justify-center gap-1 ">
-                      <Plus className="w-3 h-3" /> Create
-                    </button>
-                  </div>
-                </td>
+                  <td className={` ${tableDesign.td} text-center `}>
+                    <CommonButton to="../mockups" size="xs">
+                      Create Mockup
+                    </CommonButton>
+                  </td>
 
-                <td className={tableDesign.td}>
-                  <DeleteAlert action={() => {}} />
-                </td>
-              </tr>
-            ))}
+                  <td className={tableDesign.td}>
+                    <div className="flex items-center gap-2 justify-center">
+                      <IconActionButton
+                        variant="view"
+                        title="View"
+                        onClick={() =>
+                          navigate(`../quotes/preview/${quote.id}`)
+                        }
+                      />
+                      <DeleteAlert action={() => handleDelete(quote.id)} />
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
       <div className="py-5">
-        <Pagination currentPage={1} totalPages={5} onPageChange={() => {}} />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
       </div>
     </div>
   );

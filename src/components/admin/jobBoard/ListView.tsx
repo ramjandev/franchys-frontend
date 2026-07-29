@@ -1,26 +1,52 @@
 import CommonHeader from "@/components/shared/CommonHeader";
+import DeleteAlert from "@/components/shared/DeleteButton";
+import {
+  useDeleteJobMutation,
+  useUpdateJobStatusMutation,
+} from "@/store/jobs/jobAPI";
+
+import Pagination from "@/components/shared/Pagination";
+import { formatDate } from "@/lib/utils";
+import { Job, JobStatus } from "@/store/jobs/types/jobTypes";
+import { z } from "zod";
 import { tableDesign } from "../quotes/QuoteLists";
-import ActionMenu from "./ActionMenu";
-import { type ListRow } from "./Data";
 import StatusPill from "./StatusPill";
 import WorkflowStages from "./WorkflowStages";
 
+export const statusChangeSchema = z.object({
+  status: z.enum([
+    "QUOTE",
+    "APPROVED",
+    "ART",
+    "NEED_TO_ORDER",
+    "ORDER_ARRIVED",
+    "PRODUCTION",
+    "PAYMENT",
+    "SHIP",
+    "COMPLETED",
+  ]),
+  note: z.string().trim(),
+});
+
+export type StatusChangeValues = z.infer<typeof statusChangeSchema>;
 interface ListViewProps {
-  rows: ListRow[];
-  onStatusChange: (rowIdx: number, key: string) => void;
-  onDelete: (rowIdx: number) => void;
-  onDuplicate: (rowIdx: number) => void;
+  jobs: Job[];
+  page: number;
+  setPage: (page: number) => void;
+  totalPages: number;
+  isLoading: boolean;
 }
+
 const ListView: React.FC<ListViewProps> = ({
-  rows,
-  onStatusChange,
-  onDelete,
-  onDuplicate,
+  jobs,
+  page,
+  setPage,
+  totalPages,
 }) => {
-  const total = rows.reduce(
-    (sum, r) => sum + parseFloat(r.amount.replace(/[$,]/g, "")),
-    0,
-  );
+  const [updateJobStatus] = useUpdateJobStatusMutation();
+  const [deleteJob] = useDeleteJobMutation();
+
+  const total = jobs.reduce((sum, j) => sum + (parseFloat(j.amount) || 0), 0);
 
   const tableHeaders = [
     { label: "Job Number", align: "text-left" },
@@ -32,6 +58,37 @@ const ListView: React.FC<ListViewProps> = ({
     { label: "Amount", align: "text-left" },
     { label: "Action", align: "text-center" },
   ];
+
+  const handleStatusChange = async (jobId: string, newStatus: string) => {
+    const result = statusChangeSchema.safeParse({
+      status: newStatus, // already uppercase from the caller
+      note: "changed status",
+    });
+
+    if (!result.success) {
+      console.error("Invalid status", result.error);
+      return;
+    }
+
+    try {
+      await updateJobStatus({
+        id: jobId,
+        data: {
+          status: result.data.status as JobStatus,
+          note: result.data.note,
+        },
+      }).unwrap();
+    } catch (err) {
+      console.error("Failed to update job status", err);
+    }
+  };
+  const handleDelete = async (jobId: string) => {
+    try {
+      await deleteJob(jobId).unwrap();
+    } catch (err) {
+      console.error("Failed to delete job", err);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -50,35 +107,38 @@ const ListView: React.FC<ListViewProps> = ({
               </tr>
             </thead>
             <tbody className={tableDesign.tbody}>
-              {rows.map((row, i) => (
-                <tr key={`${row.jobId}-${i}`} className={tableDesign.tr}>
+              {jobs.map((job) => (
+                <tr key={job.id} className={tableDesign.tr}>
                   <td className={`${tableDesign.td} font-semibold`}>
-                    {row.jobId}
+                    {job.jobId}
                   </td>
                   <td className={`${tableDesign.td} font-medium`}>
-                    {row.customer}
+                    {job.clientName}
                   </td>
-                  <td className={`${tableDesign.td} text-xs`}>{row.title}</td>
+                  <td className={`${tableDesign.td} text-xs`}>
+                    {job.description}
+                  </td>
                   <td className={tableDesign.td}>
                     <StatusPill
-                      statusKey={row.status}
-                      onChange={(key) => onStatusChange(i, key)}
+                      statusKey={job.status.toLowerCase()}
+                      onChange={(key) =>
+                        handleStatusChange(job.id, key.toUpperCase())
+                      }
                     />
                   </td>
                   <td className={tableDesign.td}>
                     <div className=" text-[#5C7899] bg-[#F1F5F9] whitespace-nowrap  px-2 py-1.5 rounded-md max-w-[175px]">
-                      {row.productionStage}
+                      {job.status}
                     </div>
                   </td>
-                  <td className={tableDesign.td}>{row.due ?? "—"}</td>
+                  <td className={tableDesign.td}>{formatDate(job.dueDate)}</td>
                   <td className={`${tableDesign.td} font-semibold`}>
-                    {row.amount}
+                    ${job.amount}
                   </td>
                   <td className={`${tableDesign.td} text-center`}>
-                    <ActionMenu
-                      onDuplicate={() => onDuplicate(i)}
-                      onDelete={() => onDelete(i)}
-                    />
+                    <div className="flex justify-center">
+                      <DeleteAlert action={() => handleDelete(job.id)} />
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -89,10 +149,19 @@ const ListView: React.FC<ListViewProps> = ({
       <div className="flex  justify-between items-center gap-4">
         <CommonHeader size="xs" className="text-[#5C7899]">
           Total Jobs:
-          <span className="font-bold text-[#294566] ml-1">{rows.length}</span>
+          <span className="font-bold text-[#294566] ml-1">{jobs.length}</span>
         </CommonHeader>
+        <div>
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
+          )}
+        </div>
         <CommonHeader size="xs" className="text-[#5C7899]">
-          Total:{" "}
+          Total:
           <span className="font-bold text-[#294566]  ml-1">
             ${total.toFixed(2)}
           </span>

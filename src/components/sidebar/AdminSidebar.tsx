@@ -21,7 +21,6 @@ interface AdminSidebarProps {
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ onItemClick }) => {
   const { pathname } = useLocation();
-
   const dispatch = useDispatch();
   const handleLogout = () => {
     dispatch(logout());

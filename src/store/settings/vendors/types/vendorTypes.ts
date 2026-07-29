@@ -1,5 +1,10 @@
 // ---- Core entity ----
 
+import {
+  ApiResponse,
+  PaginatedApiResponse,
+} from "@/store/Auth/types/authTypes";
+
 export type VendorStatus = "ACTIVE" | "INACTIVE" | "PENDING";
 
 export interface Vendor {
@@ -51,30 +56,6 @@ export interface GetVendorsParams {
   search?: string;
   page?: number;
   limit?: number;
-}
-
-// ---- Response envelopes ----
-
-export interface PaginationMeta {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface ApiResponse<T> {
-  statusCode: number;
-  success: boolean;
-  message: string;
-  data: T;
-}
-
-export interface PaginatedApiResponse<T> {
-  statusCode: number;
-  success: boolean;
-  message: string;
-  data: T;
-  meta: PaginationMeta;
 }
 
 export type GetVendorsResponse = PaginatedApiResponse<Vendor[]>;

@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import ButtonWithLoading from "./ButtonWithLoading";
 
 const BASE_STYLE =
-  "inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer w-full sm:w-auto";
+  "inline-flex items-center justify-center gap-1.5 font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer w-full sm:w-auto";
 
 const SHAPE_STYLE = {
   pill: "rounded-full",
@@ -13,6 +13,7 @@ const SHAPE_STYLE = {
 } as const;
 
 const SIZE_STYLE = {
+  xs: "px-3 py-1.5 text-xs [&_svg]:size-3",
   sm: "px-4 py-2 text-sm [&_svg]:size-4",
   md: "px-5 py-2.5 text-base [&_svg]:size-5",
   lg: "px-6 py-3.5 text-lg [&_svg]:size-5",

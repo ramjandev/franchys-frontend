@@ -24,12 +24,21 @@ const persistConfig = {
   storage,
 };
 
-const persistedReducer = persistReducer(persistConfig, authReducer);
+const designPersistConfig = {
+  key: "design",
+  storage,
+  whitelist: ["savedImages"],
+};
 
+const persistedReducer = persistReducer(persistConfig, authReducer);
+const persistedDesignReducer = persistReducer(
+  designPersistConfig,
+  designReducer,
+);
 export const store = configureStore({
   reducer: {
     [baseAPI.reducerPath]: baseAPI.reducer,
-    design: designReducer,
+    design: persistedDesignReducer,
     auth: persistedReducer,
   },
   middleware: (getDefaultMiddleware) =>

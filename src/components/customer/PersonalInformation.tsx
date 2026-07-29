@@ -6,6 +6,7 @@ import {
   FieldErrors,
   UseFormRegister,
 } from "react-hook-form";
+import AvatarUpload from "../settings/AvatarUpload";
 import CommonButton from "../shared/CommonButton";
 import CommonSelect from "../shared/CommonSelect";
 import SecondaryContact from "./SecondaryContact";
@@ -48,6 +49,28 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
         </div>
       </div>
 
+      <div>
+        <div className="flex justify-center mb-6">
+          <Controller
+            name="profileImage"
+            control={control}
+            render={({ field }) => (
+              <AvatarUpload
+                value={field.value}
+                label="Profile Image"
+                onChange={(dataUrl: string | null) =>
+                  field.onChange(dataUrl ?? "")
+                }
+              />
+            )}
+          />
+        </div>
+        {errors.profileImage && (
+          <p className="text-xs text-red-500 text-center -mt-4 mb-4">
+            {errors.profileImage.message as string}
+          </p>
+        )}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="space-y-2">
           <label className={inputClass.label}>

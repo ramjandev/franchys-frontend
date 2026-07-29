@@ -13,7 +13,7 @@ import { Product } from "@/store/Product/types/productTypes";
 import {
   useGetBrandsQuery,
   useGetCategoriesQuery,
-} from "@/store/settings/brandCategory/brandCategoryApi";
+} from "@/store/brandCategory/brandCategoryApi";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";

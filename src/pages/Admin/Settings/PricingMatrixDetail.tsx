@@ -7,7 +7,7 @@ import {
   useGetPriceMatrixByIdQuery,
   useUpdatePriceMatrixMutation,
   useUpdatePriceTierMutation,
-} from "@/store/settings/matdsf/priceMatrixAPI";
+} from "@/store/settings/PriceMatrices/priceMatrixAPI";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Plus, Save, X } from "lucide-react";
 import { useEffect } from "react";
@@ -90,9 +90,9 @@ const PricingMatrixDetail = () => {
   const addRow = () => {
     append({
       priceTierId: "",
-      quantity: "",
-      basePrice: "",
-      markup: "",
+      quantity: "115",
+      basePrice: "15",
+      markup: "10",
     });
   };
 
@@ -110,10 +110,6 @@ const PricingMatrixDetail = () => {
     }
   };
 
-  // Fires on blur for any tier input.
-  // Creates the tier on first valid save, updates it on every save after
-  // that — one network call per field edit, not per keystroke, and never
-  // with placeholder zero values.
   const handleTierBlur = async (index: number) => {
     if (!id) return;
 
@@ -122,7 +118,6 @@ const PricingMatrixDetail = () => {
     const basePrice = Number(tier.basePrice);
     const markup = Number(tier.markup);
 
-    // don't hit the network with incomplete/invalid rows
     if (
       !tier.quantity ||
       !tier.basePrice ||

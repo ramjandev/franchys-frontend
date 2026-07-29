@@ -1,17 +1,34 @@
-import { TransactionsType } from "@/pages/Admin/Payment";
+import { PaymentHistoryItem } from "@/pages/Admin/Payment";
 import { Download, Filter } from "lucide-react";
 import CommonButton from "../shared/CommonButton";
 import StatusBadge from "../shared/StatusBadge";
 import CommonTabs from "./CommonTabs";
+
 interface TransactionHistoryProps {
-  filteredTx: TransactionsType;
+  filteredTx: PaymentHistoryItem[];
   setStatusFilter: (f: string) => void;
   statusFilter: string;
+  isLoading?: boolean;
 }
+
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount);
+
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
 const TransactionHistory: React.FC<TransactionHistoryProps> = ({
   filteredTx,
   statusFilter,
   setStatusFilter,
+  isLoading,
 }) => {
   return (
     <div className="flex flex-col gap-5">
@@ -27,9 +44,9 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
           <CommonTabs
             tabs={[
               { label: "All", value: "All" },
-              { label: "Completed", value: "completed" },
-              { label: "Pending", value: "pending" },
-              { label: "Failed", value: "failed" },
+              { label: "Completed", value: "Completed" },
+              { label: "Pending", value: "Pending" },
+              { label: "Failed", value: "Failed" },
             ]}
             activeTab={statusFilter}
             onChange={setStatusFilter}
@@ -62,34 +79,54 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#F1F5F9]">
-            {filteredTx.map((tx) => (
-              <tr
-                key={tx.id}
-                className="hover:bg-slate-50/50 transition-colors"
-              >
-                <td className="px-4 py-3 text-[#6B7280] font-normal">
-                  {tx.id}
-                </td>
-                <td className="px-4 py-3 text-[#4A90E2] font-normal hover:underline cursor-pointer">
-                  {tx.invoice}
-                </td>
-                <td className="px-4 py-3 text-[#111827] font-normal">
-                  {tx.customer}
-                </td>
-                <td className="px-4 py-3 font-semibold text-[#111827]">
-                  {tx.amount}
-                </td>
-                <td className="px-4 py-3 text-[#6B7280] font-normal">
-                  {tx.date}
-                </td>
-                <td className="px-4 py-3 text-[#6B7280] font-normal">
-                  {tx.method}
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={tx.status} />
+            {isLoading ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="px-4 py-8 text-center text-[#6B7280]"
+                >
+                  Loading transactions…
                 </td>
               </tr>
-            ))}
+            ) : filteredTx.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="px-4 py-8 text-center text-[#6B7280]"
+                >
+                  No transactions found.
+                </td>
+              </tr>
+            ) : (
+              filteredTx.map((tx) => (
+                <tr
+                  key={tx.id}
+                  className="hover:bg-slate-50/50 transition-colors"
+                >
+                  <td className="px-4 py-3 text-[#6B7280] font-normal">
+                    {tx.paymentId}
+                  </td>
+                  <td className="px-4 py-3 text-[#4A90E2] font-normal hover:underline cursor-pointer">
+                    {tx.invoiceNumber}
+                  </td>
+                  <td className="px-4 py-3 text-[#111827] font-normal">
+                    {tx.customerName}
+                  </td>
+                  <td className="px-4 py-3 font-semibold text-[#111827]">
+                    {formatCurrency(tx.amount)}
+                  </td>
+                  <td className="px-4 py-3 text-[#6B7280] font-normal">
+                    {formatDate(tx.date)}
+                  </td>
+                  <td className="px-4 py-3 text-[#6B7280] font-normal">
+                    {tx.method ?? "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={tx.status.toLocaleLowerCase()} />
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

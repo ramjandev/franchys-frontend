@@ -1,5 +1,9 @@
-import type { TabOption } from "@/pages/Admin/Invoices";
 import CommonSelect from "../shared/CommonSelect";
+
+interface TabOption {
+  name: string;
+  count: number;
+}
 
 interface Tab {
   tabs: TabOption[];

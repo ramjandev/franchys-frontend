@@ -4,7 +4,7 @@ import { inputClass } from "@/pages/Login";
 import {
   useGetBrandsQuery,
   useGetCategoriesQuery,
-} from "@/store/settings/brandCategory/brandCategoryApi";
+} from "@/store/brandCategory/brandCategoryApi";
 
 const ColorOptions = [
   { label: "All", value: "All" },

@@ -1,26 +1,46 @@
 import CommonHeader from "@/components/shared/CommonHeader";
 import CustomSwitch from "@/components/shared/CustomSwitch";
+import { Quote } from "@/store/quote/types/quoteTypes";
 import { CreditCard } from "lucide-react";
 import { useState } from "react";
-const pricingDetails = [
-  {
-    label: "Subtotal:",
-    value: "$725.00",
-    color: "",
-  },
-  {
-    label: "Discount (3.45%):",
-    value: "-$25.00",
-    color: "",
-  },
-  {
-    label: "Tax (8%):",
-    value: "$56.00",
-    color: "",
-  },
-];
-const TotalPriceInQuote = () => {
+
+interface TotalPriceInQuoteProps {
+  quote?: Quote;
+}
+
+const formatMoney = (n: number) => `$${n.toFixed(2)}`;
+
+// Not returned by the API — kept in sync with the "Credit Card Fee (3.5%)"
+// label below, which was already hardcoded in the design.
+const CREDIT_CARD_FEE_RATE = 0.035;
+
+const TotalPriceInQuote: React.FC<TotalPriceInQuoteProps> = ({ quote }) => {
   const [enabled, setEnabled] = useState(true);
+
+  const subtotal = Number(quote?.subtotal ?? 0);
+  const discountPct = Number(quote?.discount ?? 0);
+  const taxRate = Number(quote?.taxRate ?? 0);
+  const taxAmount = Number(quote?.taxAmount ?? 0);
+  const baseTotal = Number(quote?.total ?? 0);
+
+  const discountAmount = subtotal * (discountPct / 100);
+  const creditCardFee = baseTotal * CREDIT_CARD_FEE_RATE;
+  const grandTotal = enabled ? baseTotal + creditCardFee : baseTotal;
+
+  const pricingDetails = [
+    {
+      label: "Subtotal:",
+      value: formatMoney(subtotal),
+    },
+    {
+      label: `Discount (${discountPct}%):`,
+      value: `-${formatMoney(discountAmount)}`,
+    },
+    {
+      label: `Tax (${taxRate}%):`,
+      value: formatMoney(taxAmount),
+    },
+  ];
 
   return (
     <div className=" space-y-3">
@@ -52,7 +72,7 @@ const TotalPriceInQuote = () => {
         </div>
         <div className="flex items-center gap-2">
           <CommonHeader size="xs" className="text-[#EA580C]! font-semibold!">
-            +$26.46
+            +{formatMoney(creditCardFee)}
           </CommonHeader>
 
           <CustomSwitch checked={enabled} onChange={setEnabled} />
@@ -64,7 +84,7 @@ const TotalPriceInQuote = () => {
           Total Amount:
         </CommonHeader>
         <CommonHeader size="2xl" className=" font-bold! text-skyBlue!">
-          $782.46
+          {formatMoney(grandTotal)}
         </CommonHeader>
       </div>
     </div>

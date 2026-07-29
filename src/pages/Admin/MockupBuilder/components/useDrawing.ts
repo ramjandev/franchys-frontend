@@ -1,5 +1,5 @@
+import { MockupLayer } from "@/store/mockUp/designSlice";
 import React, { useState } from "react";
-import { type MockupLayer } from "../context/MockupContext";
 
 interface UseDrawingProps {
   activeTool: string;
@@ -8,7 +8,9 @@ interface UseDrawingProps {
   canvasW: number;
   canvasH: number;
   activeColor: string;
-  setLayersByView: React.Dispatch<React.SetStateAction<Record<string, MockupLayer[]>>>;
+  setLayersByView: React.Dispatch<
+    React.SetStateAction<Record<string, MockupLayer[]>>
+  >;
 }
 
 export const useDrawing = ({
@@ -18,10 +20,12 @@ export const useDrawing = ({
   canvasW,
   canvasH,
   activeColor,
-  setLayersByView
+  setLayersByView,
 }: UseDrawingProps) => {
   const [isDrawing, setIsDrawing] = useState(false);
-  const [drawingPoints, setDrawingPoints] = useState<{ x: number; y: number }[]>([]);
+  const [drawingPoints, setDrawingPoints] = useState<
+    { x: number; y: number }[]
+  >([]);
   const [drawingLayerId, setDrawingLayerId] = useState<string | null>(null);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -43,12 +47,12 @@ export const useDrawing = ({
       h: canvasH,
       rotation: 0,
       scale: 1,
-      visible: true
+      visible: true,
     };
 
     setLayersByView((prev) => ({
       ...prev,
-      [activeView]: [...(prev[activeView] || []), newLayer]
+      [activeView]: [...(prev[activeView] || []), newLayer],
     }));
     setDrawingLayerId(id);
     setDrawingPoints([{ x, y }]);
@@ -68,8 +72,8 @@ export const useDrawing = ({
     setLayersByView((prev) => ({
       ...prev,
       [activeView]: (prev[activeView] || []).map((l) =>
-        l.id === drawingLayerId ? { ...l, points: updatedPoints } : l
-      )
+        l.id === drawingLayerId ? { ...l, points: updatedPoints } : l,
+      ),
     }));
   };
 
@@ -84,7 +88,7 @@ export const useDrawing = ({
   return {
     handlePointerDown,
     handlePointerMove,
-    handlePointerUp
+    handlePointerUp,
   };
 };
 

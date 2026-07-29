@@ -6,89 +6,106 @@ import CardContainer from "@/components/shared/CardContainer";
 import CommonHeader from "@/components/shared/CommonHeader";
 import DashboardSearch from "@/components/shared/DashboardSearch";
 import DashboardTopSection from "@/components/shared/DashboardTopSection";
-import { useState } from "react";
+import LoadingStatus from "@/components/shared/loading/LoadingStatus";
+import { useDebounce } from "@/components/shared/useDebounce";
+import {
+  useGetInvoicesQuery,
+  useGetInvoiceSummaryQuery,
+} from "@/store/invoice/invoiceAPI";
+import { InvoiceStatus } from "@/store/invoice/types/invoiceTypes";
+import { useMemo, useState } from "react";
 
-const invoicesData = [
-  {
-    id: "INV-3001",
-    customer: "Bay Area Tech Summit",
-    jobId: "J-2003",
-    amount: "$8100.00",
-    balance: "$0.00",
-    status: "paid",
-    due: "9/25/2025",
-  },
-  {
-    id: "INV-3002",
-    customer: "Riverside Church",
-    jobId: "",
-    amount: "$1200.00",
-    balance: "$600.00",
-    status: "partial",
-    due: "10/10/2025",
-  },
-  {
-    id: "INV-3003",
-    customer: "Golden State Realty",
-    jobId: "J-2020",
-    amount: "$756.00",
-    balance: "$756.00",
-    status: "overdue",
-    due: "9/1/2025",
-  },
-  {
-    id: "INV-3004",
-    customer: "Craft Brewery Co",
-    jobId: "J-2002",
-    amount: "$604.80",
-    balance: "$604.80",
-    status: "unpaid",
-    due: "10/18/2025",
-  },
+const STATUS_TABS: { name: string; status?: InvoiceStatus }[] = [
+  { name: "All" },
+  { name: "Draft", status: "DRAFT" },
+  { name: "Open", status: "OPEN" },
+  { name: "Partial", status: "PARTIAL" },
+  { name: "Paid", status: "PAID" },
+  { name: "Overdue", status: "OVERDUE" },
 ];
 
-export type InvoiceType = (typeof invoicesData)[number];
-const statsCards = [
-  {
-    title: "Outstanding",
-    amount: "$1,960.8",
-    dotColor: "bg-[#90A1B9]",
-    textColor: "text-[#0F172B]",
-    borderColor: "border border-[#E2E8F0]!",
-  },
-  {
-    title: "Overdue",
-    amount: "$756",
-    dotColor: "bg-[#FB2C36]",
-    textColor: "text-[#E7000B]",
-    borderColor: "border border-[#FFC9C9]!",
-  },
-  {
-    title: "Collected",
-    amount: "$8,700",
-    dotColor: "bg-[#00BC7D]",
-    textColor: "text-[#009966]",
-    borderColor: "border border-[#A4F4CF]!",
-  },
-];
-const tabs = [
-  { name: "All", count: 4 },
-  { name: "Unpaid", count: 1 },
-  { name: "Partial", count: 1 },
-  { name: "Paid", count: 1 },
-  { name: "Overdue", count: 1 },
-];
+export type TabOption = { name: string; count: number };
 
-export type TabOption = (typeof tabs)[number];
 const Invoices = () => {
   const [activeTab, setActiveTab] = useState("All");
+  const [search, setSearch] = useState("");
+  const searchDebounced = useDebounce(search, 500);
+  const [page, setPage] = useState(1);
 
   const [isVoiceDetailsOpen, setIsVoiceDetailsOpen] = useState(false);
   const [isInvoiceCreate, setIsInvoiceCreate] = useState(false);
-  const filteredInvoices =
-    activeTab === "All"
-      ? invoicesData
-      : invoicesData.filter((invoice) => invoice.status === activeTab);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(
+    null,
+  );
+
+  const activeStatus = STATUS_TABS.find((t) => t.name === activeTab)?.status;
+
+  const { data, isLoading } = useGetInvoicesQuery({
+    page,
+    limit: 10,
+    status: activeStatus,
+  });
+
+  const invoicesData = data?.data ?? [];
+  const totalPages = data?.meta.totalPages ?? 1;
+
+  const filteredInvoices = useMemo(() => {
+    if (!searchDebounced) return invoicesData;
+    const q = searchDebounced.toLowerCase();
+    return invoicesData.filter(
+      (inv) =>
+        inv.invoiceNumber.toLowerCase().includes(q) ||
+        `${inv.customer.firstName} ${inv.customer.lastName}`
+          .toLowerCase()
+          .includes(q) ||
+        (inv.customer.companyName ?? "").toLowerCase().includes(q),
+    );
+  }, [invoicesData, searchDebounced]);
+
+  const tabs: TabOption[] = STATUS_TABS.map((t) => ({
+    name: t.name,
+    count:
+      t.name === "All"
+        ? invoicesData.length
+        : invoicesData.filter((inv) => inv.status === t.status).length,
+  }));
+
+  const { data: dataSummary } = useGetInvoiceSummaryQuery();
+
+  const statsCards = [
+    {
+      title: "Outstanding",
+      amount: `$${dataSummary?.data.outstanding ?? 0}`,
+      dotColor: "bg-[#90A1B9]",
+      textColor: "text-[#0F172B]",
+      borderColor: "border border-[#E2E8F0]!",
+    },
+    {
+      title: "Overdue",
+      amount: `$${dataSummary?.data.collected ?? 0}`,
+      dotColor: "bg-[#FB2C36]",
+      textColor: "text-[#E7000B]",
+      borderColor: "border border-[#FFC9C9]!",
+    },
+    {
+      title: "Collected",
+      amount: `$${dataSummary?.data.collected ?? 0}`,
+      dotColor: "bg-[#00BC7D]",
+      textColor: "text-[#009966]",
+      borderColor: "border border-[#A4F4CF]!",
+    },
+  ];
+
+  const handleOpenDetails = (invoiceId: string) => {
+    setSelectedInvoiceId(invoiceId);
+    setIsVoiceDetailsOpen(true);
+  };
+
+  const handleOpenPayment = (invoiceId: string) => {
+    setSelectedInvoiceId(invoiceId);
+    setIsInvoiceCreate(true);
+  };
+
   return (
     <>
       <div className="flex flex-col gap-6">
@@ -103,10 +120,14 @@ const Invoices = () => {
             <DashboardSearch
               className="bg-transparent! border-[#CAD5E2]! text-[#0A0A0A]/50!"
               placeholder="Search invoices..."
+              value={search}
+              onChange={(value) => {
+                setSearch(value);
+                setPage(1);
+              }}
             />
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {statsCards.map((card, index) => (
             <CardContainer size="lg" key={index} className={card.borderColor}>
@@ -122,24 +143,43 @@ const Invoices = () => {
             </CardContainer>
           ))}
         </div>
-
         <InvoiceTab
           tabs={tabs}
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setActiveTab={(tab) => {
+            setActiveTab(tab);
+            setPage(1);
+          }}
         />
-
-        <InvoiceTable
-          setIsVoiceDetailsOpen={setIsVoiceDetailsOpen}
-          setIsInvoiceCreate={setIsInvoiceCreate}
-          invoicesData={filteredInvoices}
+        <LoadingStatus
+          isLoading={isLoading}
+          items={filteredInvoices}
+          itemName="Invoices"
         />
+        {!isLoading && filteredInvoices.length > 1 && (
+          <InvoiceTable
+            invoicesData={filteredInvoices}
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            onOpenDetails={handleOpenDetails}
+            onOpenPayment={handleOpenPayment}
+          />
+        )}
       </div>
 
-      {isVoiceDetailsOpen && (
-        <InvoicePreviewModal setShowModal={setIsVoiceDetailsOpen} />
+      {isVoiceDetailsOpen && selectedInvoiceId && (
+        <InvoicePreviewModal
+          invoiceId={selectedInvoiceId}
+          setShowModal={setIsVoiceDetailsOpen}
+        />
       )}
-      {isInvoiceCreate && <PaymentModal setShowModal={setIsInvoiceCreate} />}
+      {isInvoiceCreate && selectedInvoiceId && (
+        <PaymentModal
+          invoiceId={selectedInvoiceId}
+          setShowModal={setIsInvoiceCreate}
+        />
+      )}
     </>
   );
 };

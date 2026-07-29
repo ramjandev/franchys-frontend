@@ -3,91 +3,39 @@ import DashboardTopSection from "@/components/shared/DashboardTopSection";
 import CommonTabs from "@/components/transaction/CommonTabs";
 import Overview from "@/components/transaction/Overview";
 import TransactionHistory from "@/components/transaction/TransactionHistory";
+import {
+  useGetPaymentSummaryQuery,
+  useGetTransactionSummaryQuery,
+} from "@/store/invoice/invoiceAPI";
 import { CheckCircle, Clock, DollarSign, XCircle } from "lucide-react";
 import { useState } from "react";
-export const transactionsData = [
-  {
-    id: "PAY-001",
-    invoice: "INV-2024-089",
-    customer: "Acme Corp",
-    amount: "$1250.00",
-    date: "2026-05-08",
-    method: "Visa •••• 4242",
-    status: "completed",
-  },
-  {
-    id: "PAY-002",
-    invoice: "INV-2024-088",
-    customer: "TechStart Inc",
-    amount: "$750.50",
-    date: "2026-05-07",
-    method: "Mastercard •••• 5555",
-    status: "completed",
-  },
-  {
-    id: "PAY-003",
-    invoice: "INV-2024-087",
-    customer: "Creative Agency",
-    amount: "$2100.00",
-    date: "2026-05-06",
-    method: "Bank Transfer",
-    status: "pending",
-  },
-  {
-    id: "PAY-004",
-    invoice: "INV-2024-086",
-    customer: "Local Bakery",
-    amount: "$450.00",
-    date: "2026-05-05",
-    method: "Visa •••• 4242",
-    status: "failed",
-  },
-  {
-    id: "PAY-005",
-    invoice: "INV-2024-085",
-    customer: "Fashion Brand",
-    amount: "$3200.00",
-    date: "2026-05-04",
-    method: "Mastercard •••• 5555",
-    status: "completed",
-  },
-];
 
-export type TransactionsType = typeof transactionsData;
-const metrics = [
-  {
-    label: "Total Revenue",
-    val: "$8,100.00",
-    bg: "bg-[#FFFDF5] border-[#FEF3C7]",
-    iconBg: "bg-[#FDE68A]/60",
-    iconColor: "text-[#B45309]",
-    Icon: DollarSign,
-  },
-  {
-    label: "Completed Payments",
-    val: "18",
-    bg: "bg-[#EFF6FF] border-[#DBEAFE]",
-    iconBg: "bg-[#BFDBFE]/60",
-    iconColor: "text-[#1D4ED8]",
-    Icon: CheckCircle,
-  },
-  {
-    label: "Pending Payments",
-    val: "3",
-    bg: "bg-[#FAF5FF] border-[#F3E8FF]",
-    iconBg: "bg-[#E9D5FF]/60",
-    iconColor: "text-[#7C3AED]",
-    Icon: Clock,
-  },
-  {
-    label: "Failed Payments",
-    val: "1",
-    bg: "bg-[#FFF5F5] border-[#FEE2E2]",
-    iconBg: "bg-[#FCA5A5]/60",
-    iconColor: "text-[#DC2626]",
-    Icon: XCircle,
-  },
-];
+export type PaymentHistoryItem = {
+  id: string;
+  paymentId: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  customerName: string;
+  amount: number;
+  date: string;
+  method: string | null;
+  status: "Completed" | "Pending" | "Failed" | string;
+};
+
+export type PaginationMeta = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export type PaymentHistoryResponse = {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: PaymentHistoryItem[];
+  meta: PaginationMeta;
+};
 
 const Payment = () => {
   const [activeTab, setActiveTab] = useState<"overview" | "history">(
@@ -95,10 +43,52 @@ const Payment = () => {
   );
   const [statusFilter, setStatusFilter] = useState("All");
 
+  const { data: transactionsRes, isLoading: isTxLoading } =
+    useGetTransactionSummaryQuery();
+  const transactions = transactionsRes?.data ?? [];
+
   const filteredTx =
     statusFilter === "All"
-      ? transactionsData
-      : transactionsData.filter((t) => t.status === statusFilter);
+      ? transactions
+      : transactions.filter(
+          (t) => t.status?.toLowerCase() === statusFilter.toLowerCase(),
+        );
+
+  const { data } = useGetPaymentSummaryQuery();
+  const metrics = [
+    {
+      label: "Total Revenue",
+      val: `$${data?.data?.totalRevenue ?? 0}`,
+      bg: "bg-[#FFFDF5] border-[#FEF3C7]",
+      iconBg: "bg-[#FDE68A]/60",
+      iconColor: "text-[#B45309]",
+      Icon: DollarSign,
+    },
+    {
+      label: "Completed Payments",
+      val: `$${data?.data?.completedPayments ?? 0}`,
+      bg: "bg-[#EFF6FF] border-[#DBEAFE]",
+      iconBg: "bg-[#BFDBFE]/60",
+      iconColor: "text-[#1D4ED8]",
+      Icon: CheckCircle,
+    },
+    {
+      label: "Pending Payments",
+      val: `$${data?.data?.pendingPayments ?? 0}`,
+      bg: "bg-[#FAF5FF] border-[#F3E8FF]",
+      iconBg: "bg-[#E9D5FF]/60",
+      iconColor: "text-[#7C3AED]",
+      Icon: Clock,
+    },
+    {
+      label: "Failed Payments",
+      val: `$${data?.data?.failedPayments ?? 0}`,
+      bg: "bg-[#FFF5F5] border-[#FEE2E2]",
+      iconBg: "bg-[#FCA5A5]/60",
+      iconColor: "text-[#DC2626]",
+      Icon: XCircle,
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -138,12 +128,13 @@ const Payment = () => {
 
         <div className="p-6">
           {activeTab === "overview" ? (
-            <Overview />
+            <Overview transactions={transactions} isLoading={isTxLoading} />
           ) : (
             <TransactionHistory
               filteredTx={filteredTx}
               statusFilter={statusFilter}
               setStatusFilter={setStatusFilter}
+              isLoading={isTxLoading}
             />
           )}
         </div>

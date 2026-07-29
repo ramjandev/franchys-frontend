@@ -29,6 +29,7 @@ import InvoiceFeesSettings from "@/pages/Admin/Settings/InvoiceFeesSettings";
 import InvoiceSettings from "@/pages/Admin/Settings/InvoiceSettings";
 import LineItemsSettings from "@/pages/Admin/Settings/LineItemsSettings";
 import MessagingSettings from "@/pages/Admin/Settings/MessagingSettings";
+import PaymentTermsSettings from "@/pages/Admin/Settings/PaymentTermsSettings";
 import PricingMatrixDetail from "@/pages/Admin/Settings/PricingMatrixDetail";
 import PricingMatrixSettings from "@/pages/Admin/Settings/PricingMatrixSettings";
 import ProfileSettings from "@/pages/Admin/Settings/ProfileSettings";
@@ -65,6 +66,8 @@ const router = createBrowserRouter([
         element: <VerifyCode />,
       },
 
+      { path: "quotes/public/:id", element: <QuotePreview /> },
+
       //protected routes
       {
         path: "admin",
@@ -77,11 +80,13 @@ const router = createBrowserRouter([
               { path: "dashboard", element: <Dashboard /> },
               { path: "quotes", element: <Quotes /> },
               { path: "quotes/new", element: <CreateQuote /> },
-              { path: "quotes/preview", element: <QuotePreview /> },
+              { path: "quotes/edit/:id", element: <CreateQuote /> },
+              { path: "quotes/preview/:id", element: <QuotePreview /> },
               { path: "invoices", element: <Invoices /> },
               { path: "invoices/:id", element: <InvoiceDetails /> },
               { path: "customers", element: <Customers /> },
               { path: "customers/new", element: <AddNewCustomer /> },
+              { path: "customers/edit/:id", element: <AddNewCustomer /> },
               { path: "job-board", element: <JobBoard /> },
               { path: "mockups", element: <MockupBuilderPage /> },
               { path: "category-brand", element: <CategoryBrandManager /> },
@@ -105,6 +110,7 @@ const router = createBrowserRouter([
                   { path: "fees", element: <InvoiceFeesSettings /> },
                   { path: "pricing", element: <PricingMatrixSettings /> },
                   { path: "pricing/:id", element: <PricingMatrixDetail /> },
+                  { path: "payment-terms", element: <PaymentTermsSettings /> },
                   { path: "vendors", element: <VendorsSettings /> },
                   { path: "users", element: <UsersSettings /> },
                   { path: "social", element: <SocialLinksSettings /> },

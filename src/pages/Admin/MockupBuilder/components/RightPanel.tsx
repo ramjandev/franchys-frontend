@@ -1,9 +1,14 @@
-import React from "react";
-import { Eye, EyeOff, Trash2, Save, Download } from "lucide-react";
-import { useMockup } from "../context/MockupContext";
 import CardContainer from "@/components/shared/CardContainer";
+import CommonButton from "@/components/shared/CommonButton";
+import { mockupCaptureRef } from "@/lib/mockupCaptureRef";
+import { saveImage } from "@/store/mockUp/designSlice";
+import { useMockup } from "@/store/mockUp/hooks/useMockup";
+import { useUploadMockupsMutation } from "@/store/quote/quoteAPI";
+import { toBlob } from "html-to-image";
+import { Download, Eye, EyeOff, Save, Trash2 } from "lucide-react";
+import React from "react";
+import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-// import { Toast } from "radix-ui";
 
 const CANVAS_W = 420;
 const CANVAS_H = 500;
@@ -16,8 +21,10 @@ const RightPanel: React.FC = () => {
     setSelectedLayerId,
     updateLayer,
     removeLayer,
-    // duplicateLayer
   } = useMockup();
+
+  const dispatch = useDispatch();
+  const [uploadMockups, { isLoading }] = useUploadMockupsMutation();
 
   const activeLayers = layersByView[activeView] || [];
   const selectedLayer = activeLayers.find((l) => l.id === selectedLayerId);
@@ -55,20 +62,38 @@ const RightPanel: React.FC = () => {
     toast.success(`Mockup exported successfully as high-resolution ${format}!`);
   };
 
-  const handleSaveMockup = () => {
-    const mockupState = {
-      layers: layersByView,
-      activeView
-    };
-    localStorage.setItem("franchys_mockup_design", JSON.stringify(mockupState));
-    toast.success("Mockup design configuration saved successfully!");
+  const handleSaveMockup = async () => {
+    const node = mockupCaptureRef.current;
+    if (!node) {
+      toast.error("Nothing to save yet — add a garment first.");
+      return;
+    }
+
+    try {
+      const blob = await toBlob(node, { pixelRatio: 2, cacheBust: true });
+      if (!blob) throw new Error("Canvas capture returned empty result");
+
+      const fileName = `mockup-${activeView.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}.png`;
+      const file = new File([blob], fileName, { type: "image/png" });
+
+      const res = await uploadMockups([file]).unwrap();
+
+      res.data.urls.forEach((url) => dispatch(saveImage(url)));
+
+      toast.success("Mockup saved successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save mockup image.");
+    }
   };
 
   return (
-    <div className="w-full xl:w-[240px] shrink-0 flex flex-col gap-5 xl:overflow-y-auto xl:h-full pb-4">
+    <div className="w-full xl:w-60 shrink-0 flex flex-col gap-5 xl:overflow-y-auto xl:h-full pb-4">
       {/* Layers Panel */}
       <CardContainer className="p-4 bg-white border border-[#E6EBF2] rounded-xl shadow-sm flex flex-col gap-3">
-        <h3 className="font-bold text-sm text-[#111827] uppercase tracking-wider">Layers</h3>
+        <h3 className="font-bold text-sm text-[#111827] uppercase tracking-wider">
+          Layers
+        </h3>
         <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto pr-1">
           {/* Base Layer */}
           <div className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-xs font-semibold text-[#5C7899]">
@@ -94,9 +119,14 @@ const RightPanel: React.FC = () => {
                 }`}
               >
                 <span className="truncate max-w-[120px]">{displayLabel}</span>
-                <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                <div
+                  className="flex items-center gap-1.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <button
-                    onClick={() => handleToggleVisibility(layer.id, layer.visible)}
+                    onClick={() =>
+                      handleToggleVisibility(layer.id, layer.visible)
+                    }
                     className="text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     {layer.visible ? (
@@ -120,44 +150,52 @@ const RightPanel: React.FC = () => {
 
       {/* Position Alignment Panel */}
       <CardContainer className="p-4 bg-white border border-[#E6EBF2] rounded-xl shadow-sm flex flex-col gap-3">
-        <h3 className="font-bold text-sm text-[#111827] uppercase tracking-wider">Position</h3>
+        <h3 className="font-bold text-sm text-[#111827] uppercase tracking-wider">
+          Position
+        </h3>
         <div className="grid grid-cols-2 gap-2">
           {(["Top", "Center", "Left", "Right"] as const).map((pos) => (
-            <button
+            <CommonButton
               key={pos}
               onClick={() => handleAlign(pos)}
               disabled={!selectedLayer}
-              className="h-8  bg-[#F3F4F6] hover:bg-blue-50 hover:text-blue-700 rounded-lg text-xs font-semibold text-[#4B5563] transition-all disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-[#4B5563] disabled:hover:border-[#D1D5DC]"
+              className="hover:bg-[#155DFC]! hover:text-white!"
+              variant="ghost"
+              size="sm"
             >
               {pos}
-            </button>
+            </CommonButton>
           ))}
         </div>
       </CardContainer>
 
       {/* Export Panel */}
       <CardContainer className="p-4 bg-white border border-[#E6EBF2] rounded-xl shadow-sm flex flex-col gap-3">
-        <h3 className="font-bold text-sm text-[#111827] uppercase tracking-wider">Export</h3>
+        <h3 className="font-bold text-sm text-[#111827] uppercase tracking-wider">
+          Export
+        </h3>
         <div className="flex flex-col gap-2">
           {(["PNG", "JPG", "SVG"] as const).map((fmt) => (
-            <button
+            <CommonButton
               key={fmt}
               onClick={() => handleExport(fmt)}
-              className="w-full flex items-center gap-2 h-9 bg-[#F3F4F6] hover:bg-blue-50 hover:text-blue-700 rounded-lg px-3 text-xs font-bold text-[#4B5563] transition-colors"
+              className="hover:bg-[#155DFC]! hover:text-white!"
+              variant="ghost"
             >
-              <Download className="w-3.5 h-3.5 text-gray-500" />
+              <Download className="" />
               Export as {fmt}
-            </button>
+            </CommonButton>
           ))}
         </div>
 
-        <button
+        <CommonButton
+          variant="primaryGreen"
           onClick={handleSaveMockup}
-          className="w-full mt-2 h-10 bg-[#16A34A] hover:bg-[#15803D] text-white text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm uppercase tracking-wider"
+          disabled={isLoading}
         >
-          <Save className="w-4 h-4" />
-          Save Mockup
-        </button>
+          <Save />
+          {isLoading ? "Saving..." : "Save Mockup"}
+        </CommonButton>
       </CardContainer>
     </div>
   );

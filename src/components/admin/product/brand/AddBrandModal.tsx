@@ -4,8 +4,8 @@ import { inputClass } from "@/pages/Login";
 import {
   useCreateBrandMutation,
   useUpdateBrandMutation,
-} from "@/store/settings/brandCategory/brandCategoryApi";
-import { Brand } from "@/store/settings/brandCategory/types/brandCategoryTypes";
+} from "@/store/brandCategory/brandCategoryApi";
+import { Brand } from "@/store/brandCategory/types/brandCategoryTypes";
 
 import { useState } from "react";
 import { z } from "zod";

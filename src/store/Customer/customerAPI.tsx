@@ -1,19 +1,15 @@
 import { baseAPI } from "../BaseApi/baseAPI";
 import {
-  CreateCustomerRequest,
   CreateCustomerResponse,
   GetAllCustomersResponse,
   GetCustomerResponse,
-  UpdateCustomerRequest,
+  GetCustomersParams,
   UpdateCustomerResponse,
 } from "./types/customerTypes";
 
 export const customerAPI = baseAPI.injectEndpoints({
   endpoints: (build) => ({
-    createCustomer: build.mutation<
-      CreateCustomerResponse,
-      CreateCustomerRequest
-    >({
+    createCustomer: build.mutation<CreateCustomerResponse, FormData>({
       query: (data) => ({
         url: "/customer",
         method: "POST",
@@ -22,21 +18,13 @@ export const customerAPI = baseAPI.injectEndpoints({
       invalidatesTags: ["Customer"],
     }),
 
-    getAllCustomers: build.query<GetAllCustomersResponse, void>({
-      query: () => ({
+    getAllCustomers: build.query<GetAllCustomersResponse, GetCustomersParams>({
+      query: (params) => ({
         url: "/customer",
         method: "GET",
+        params,
       }),
-      providesTags: (result) =>
-        result
-          ? [
-              ...result.data.map(({ id }) => ({
-                type: "Customer" as const,
-                id,
-              })),
-              { type: "Customer" as const, id: "LIST" },
-            ]
-          : [{ type: "Customer" as const, id: "LIST" }],
+      providesTags: ["Customer"],
     }),
 
     getCustomerById: build.query<GetCustomerResponse, string>({
@@ -49,7 +37,7 @@ export const customerAPI = baseAPI.injectEndpoints({
 
     updateCustomer: build.mutation<
       UpdateCustomerResponse,
-      UpdateCustomerRequest
+      { id: string; data: FormData }
     >({
       query: ({ id, ...data }) => ({
         url: `/customer/${id}`,

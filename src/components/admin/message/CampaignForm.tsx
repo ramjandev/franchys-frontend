@@ -1,5 +1,5 @@
 import CommonButton from "@/components/shared/CommonButton";
-import { inputClass } from "@/pages/Admin/MockupBuilder/components/LeftPanel";
+import { inputClass } from "@/pages/Login";
 import { useCreateCampaignMutation } from "@/store/campaign/campaignAPI";
 import { CampaignType as ApiCampaignType } from "@/store/campaign/types/campaignTypes";
 import { zodResolver } from "@hookform/resolvers/zod";

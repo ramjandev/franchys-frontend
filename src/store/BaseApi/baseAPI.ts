@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import Cookies from "js-cookie";
 import { toast } from "react-toastify";
-import { logout } from "../Auth/authSlice";
 import { RootState } from "../store";
 
 // Original baseQueryAPI
@@ -30,11 +28,11 @@ const baseQueryWithToasts: typeof baseQueryAPI = async (
     typeof args === "object" && "method" in args ? args.method : "GET";
 
   // Handle 401 errors globally
-  if (result?.error && result.error.status === 401) {
-    Cookies.remove("accessToken");
-    api.dispatch(logout());
-    toast.error("Session expired. Please login again.");
-  }
+  // if (result?.error && result.error.status === 401) {
+  //   Cookies.remove("accessToken");
+  //   api.dispatch(logout());
+  //   toast.error("Session expired. Please login again.");
+  // }
 
   if (method !== "GET") {
     if (
@@ -53,11 +51,27 @@ const baseQueryWithToasts: typeof baseQueryAPI = async (
     }
 
     // Error toast for non-GET methods (excluding 401 which is handled above)
-    if (result?.error && result.error.status !== 401) {
-      const message =
-        (result.error.data as { message?: string })?.message ||
-        "Something went wrong. Please try again.";
-      toast.error(message);
+    // if (result?.error && result.error.status !== 401) {
+    //   const message =
+    //     (result.error.data as { message?: string })?.message ||
+    //     "Something went wrong. Please try again.";
+    //   toast.error(message);
+    // }
+    if (result?.error) {
+      const errorData = result.error.data as {
+        message?: string;
+        error?: string;
+      };
+      const isSessionExpired =
+        result.error.status === 401 && errorData?.error === "Unauthorized"; // whatever your real auth 401 looks like
+
+      if (isSessionExpired) {
+        // handle logout/session expiry here, no generic toast
+      } else {
+        toast.error(
+          errorData?.message || "Something went wrong. Please try again.",
+        );
+      }
     }
   }
 
@@ -80,6 +94,13 @@ export const baseAPI = createApi({
     "Product",
     "ProfileShop",
     "Me",
+    "Quote",
+    "LineItemCustomization",
+    "Job",
+    "Invoice",
+    "InvoiceInformation",
+    "PaymentTerm",
+    "WhatsAppConversation",
   ],
 
   endpoints: () => ({}),

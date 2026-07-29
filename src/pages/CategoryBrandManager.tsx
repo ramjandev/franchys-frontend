@@ -10,11 +10,11 @@ import {
   useDeleteCategoryMutation,
   useGetBrandsQuery,
   useGetCategoriesQuery,
-} from "@/store/settings/brandCategory/brandCategoryApi";
+} from "@/store/brandCategory/brandCategoryApi";
 import {
   Brand,
   Category,
-} from "@/store/settings/brandCategory/types/brandCategoryTypes";
+} from "@/store/brandCategory/types/brandCategoryTypes";
 
 import { useState } from "react";
 import { GoPlusCircle } from "react-icons/go";

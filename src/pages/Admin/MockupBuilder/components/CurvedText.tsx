@@ -1,5 +1,5 @@
+import { MockupLayer } from "@/store/mockUp/designSlice";
 import React from "react";
-import { type MockupLayer } from "../context/MockupContext";
 
 interface CurvedTextProps {
   layer: MockupLayer;

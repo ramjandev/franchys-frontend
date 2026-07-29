@@ -2,6 +2,7 @@ import { baseAPI } from "../BaseApi/baseAPI";
 import {
   LoginResponse,
   RegisterUserRequest,
+  UserProfileResponse,
   VerifyOtpResponse,
 } from "./types/authTypes";
 
@@ -62,6 +63,12 @@ export const authAPI = baseAPI.injectEndpoints({
         body: data,
       }),
     }),
+    getMe: build.query<UserProfileResponse, void>({
+      query: () => ({
+        url: "/auth/me",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -73,4 +80,5 @@ export const {
   useVerifyMutation,
   useResetPasswordMutation,
   useChangePasswordMutation,
+  useGetMeQuery,
 } = authAPI;

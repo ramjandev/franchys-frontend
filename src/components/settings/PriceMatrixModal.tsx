@@ -3,7 +3,7 @@ import { inputClass } from "@/pages/Login";
 import {
   useCreatePriceMatrixMutation,
   useUpdatePriceMatrixMutation,
-} from "@/store/settings/matdsf/priceMatrixAPI";
+} from "@/store/settings/PriceMatrices/priceMatrixAPI";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { GoPlusCircle } from "react-icons/go";

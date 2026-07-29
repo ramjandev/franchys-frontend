@@ -13,31 +13,36 @@ import { useState } from "react";
 
 const Products = () => {
   const [page, setPage] = useState(1);
+  const [limit] = useState(10);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [filters, setFilters] = useState({
+    search: "",
     category: "All",
     brand: "All",
     color: "All",
     size: "All",
   });
 
-  const { data, isLoading } = useGetProductsQuery({ page });
-  const products = data?.data ?? [];
-
-  const setFilter = (key: string, val: string) =>
+  const setFilter = (key: string, val: string) => {
     setFilters((f) => ({ ...f, [key]: val }));
+    setPage(1);
+  };
 
-  const filtered = products.filter((p) => {
-    const matchCategory =
-      filters.category === "All" || p.category.name === filters.category;
-    const matchBrand =
-      filters.brand === "All" || p.brand.name === filters.brand;
-    const matchSize =
-      filters.size === "All" || p.availableSizes.includes(filters.size);
-    return matchCategory && matchBrand && matchSize;
+  console.log("filters", filters);
+
+  const { data, isLoading } = useGetProductsQuery({
+    page,
+    limit,
+    search: filters.search || undefined,
+    categoryId: filters.category !== "All" ? filters.category : undefined,
+    brandId: filters.brand !== "All" ? filters.brand : undefined,
+    color: filters.color !== "All" ? filters.color : undefined,
+    size: filters.size !== "All" ? filters.size : undefined,
   });
+
+  const products = data?.data ?? [];
 
   const openCreate = () => {
     setEditingProduct(undefined);
@@ -67,8 +72,8 @@ const Products = () => {
           loadingArray(8).map((_, index) => (
             <DashboardCardSkeleton key={index} />
           ))
-        ) : filtered.length > 0 ? (
-          filtered.map((product) => (
+        ) : products.length > 0 ? (
+          products.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
@@ -83,7 +88,7 @@ const Products = () => {
         )}
       </div>
       {!isLoading &&
-        filtered.length > 0 &&
+        products.length > 0 &&
         (data?.meta?.totalPages ?? 1) > 1 && (
           <div className="flex justify-center">
             <Pagination

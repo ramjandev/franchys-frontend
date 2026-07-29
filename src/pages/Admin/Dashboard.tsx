@@ -16,9 +16,8 @@ const Dashboard = () => {
   };
 
   const { data } = useGetDashboardQuery();
-
   const summary = data?.data?.summary;
-  // const revenueTrends = data?.data?.revenueTrends;
+
   const statsData = [
     {
       title: "Total Revenue",
@@ -38,7 +37,7 @@ const Dashboard = () => {
     },
     {
       title: "Pending Approvals",
-      value: summary?.conversionRate ?? 0,
+      value: summary?.pendingApprovals ?? 0,
       icon: CircleDot,
       cardClassName: "bg-[#FAF5FF] border-[#E9D4FF]",
       iconWrapperClassName: "bg-[#E9D4FF]",
@@ -46,7 +45,7 @@ const Dashboard = () => {
     },
     {
       title: "Unpaid Invoices",
-      value: summary?.campaignsSent ?? 0,
+      value: summary?.unpaidInvoices ?? 0,
       icon: FileText,
       cardClassName: "bg-[#FDF2F8] border-[#FCCEE8]",
       iconWrapperClassName: "bg-[#FCCEE8]",
@@ -61,8 +60,8 @@ const Dashboard = () => {
         buttonOne="Create Quote"
         buttonTwo="Add Customer"
         buttonThree="Privacy On"
-        actionOne={() => navigate("../quotes/new")}
-        actionTwo={() => navigate("../customers/new")}
+        actionOne={() => navigate("/admin/quotes/new")}
+        actionTwo={() => navigate("/admin/customers/new")}
         actionThree={handlePrivacy}
       />
 
@@ -73,13 +72,8 @@ const Dashboard = () => {
       </div>
 
       <RevenueBar
-        total={490827.06}
-        trends={[
-          { month: "Apr 1 – Apr 7", revenue: 0 },
-          { month: "Apr 8 – Apr 14", revenue: 0 },
-          { month: "Apr 15 – Apr 21", revenue: 1039.15 },
-          { month: "Apr 22 – Apr 28", revenue: 37087.99 },
-        ]}
+        total={summary?.totalRevenue ?? 0}
+        trends={data?.data?.revenueTrends ?? []}
       />
       <CustomerList />
     </div>

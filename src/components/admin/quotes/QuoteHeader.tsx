@@ -1,34 +1,66 @@
 import logo from "@/assets/images/textLogo.png";
 import CommonHeader from "@/components/shared/CommonHeader";
+import { Quote } from "@/store/quote/types/quoteTypes";
 
-const orderDetails = [
-  {
-    label: "Sales Rep:",
-    value: "Maria Laura Marte",
-    color: "#0F172B",
-  },
-  {
-    label: "Delivery Method:",
-    value: "Pick-up",
-    color: "#0F172B",
-  },
-  {
-    label: "PO Number:",
-    value: "PO-2024-456",
-    color: "#0F172B",
-  },
-  {
-    label: "Customer Due Date:",
-    value: "05/02/2026",
-    color: "#E7000B",
-  },
-  {
-    label: "Production Due Date:",
-    value: "04/28/2026",
-    color: "#0F172B",
-  },
-];
-const QuoteHeader = () => {
+interface QuoteHeaderProps {
+  quote?: Quote;
+}
+
+const formatDate = (date?: string | null) => {
+  if (!date) return "-";
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  });
+};
+
+const QuoteHeader: React.FC<QuoteHeaderProps> = ({ quote }) => {
+  const customer = quote?.customer;
+  const rep = quote?.rep;
+
+  const customerDisplayName =
+    customer?.companyName ||
+    `${customer?.firstName ?? ""} ${customer?.lastName ?? ""}`.trim() ||
+    "-";
+
+  const contactName =
+    customer?.companyName && (customer?.firstName || customer?.lastName)
+      ? `${customer?.firstName ?? ""} ${customer?.lastName ?? ""}`.trim()
+      : null;
+
+  const addressLines = [
+    customer?.street,
+    [customer?.city, customer?.state, customer?.postalCode]
+      .filter(Boolean)
+      .join(", "),
+  ].filter((line): line is string => Boolean(line));
+
+  const orderDetails = [
+    {
+      label: "Sales Rep:",
+      value: rep?.name || "-",
+    },
+    {
+      label: "Delivery Method:",
+      value: quote?.deliveryMethod || "-",
+    },
+    {
+      label: "PO Number:",
+      value: quote?.poNumber || "-",
+    },
+    {
+      label: "Customer Due Date:",
+      value: formatDate(quote?.dueDate),
+    },
+    {
+      // Not returned by the API — no separate production-due-date field
+      // exists on Quote, so this stays blank until the backend adds one.
+      label: "Production Due Date:",
+      value: "-",
+    },
+  ];
+
   return (
     <div className="mb-6">
       <div className="flex justify-between items-start pb-4 mb-4 ">
@@ -55,14 +87,15 @@ const QuoteHeader = () => {
             QUOTE
           </CommonHeader>
           <CommonHeader size="lg" className="text-skyBlue justify-end!">
-            Q-1024
+            {quote?.quoteNumber || "-"}
           </CommonHeader>
 
           <CommonHeader size="xs" className=" mt-1 justify-end!">
-            Date: 04/15/2026
+            Date: {formatDate(quote?.createdAt)}
           </CommonHeader>
           <CommonHeader size="xs" className=" mt-1 justify-end!">
-            Expires: 05/15/2026
+            {/* No dedicated "expires" field on Quote — using dueDate */}
+            Expires: {formatDate(quote?.dueDate)}
           </CommonHeader>
         </div>
       </div>
@@ -73,23 +106,33 @@ const QuoteHeader = () => {
             QUOTE FOR:
           </div>
           <CommonHeader size="lg" className="text-[#0F172B]! font-bold!">
-            Riverside Church
-          </CommonHeader>
+            {customerDisplayName}
+          </CommonHeader>{" "}
+          <br />
           <CommonHeader size="xs" className=" mt-0.5">
-            John Smith
+            {contactName && (
+              <>
+                {contactName}
+                <br />
+              </>
+            )}
+            {addressLines.map((line) => (
+              <span key={line}>
+                {line}
+                <br />
+              </span>
+            ))}
+            {customer?.email}
             <br />
-            789 Church Street
-            <br />
-            Austin, TX 78701
-            <br />
-            john@riversidechurch.org
-            <br />
-            (555) 123-4587
+            {customer?.phone}
           </CommonHeader>
         </div>
         <div className="w-full  sm:w-60 space-y-3">
           {orderDetails.map((detail, i) => (
-            <div className="w-full flex justify-between gap-3">
+            <div
+              key={detail.label}
+              className="w-full flex justify-between gap-3"
+            >
               <CommonHeader size="xs" className="">
                 {detail.label}
               </CommonHeader>

@@ -1,17 +1,18 @@
-import React, { useRef, useState } from "react";
-import { ZoomIn, ZoomOut } from "lucide-react";
-import { useMockup, GARMENT_OPTIONS } from "../context/MockupContext";
 import CardContainer from "@/components/shared/CardContainer";
+import { mockupCaptureRef } from "@/lib/mockupCaptureRef";
+import { GARMENT_OPTIONS, useMockup } from "@/store/mockUp/hooks/useMockup";
+import { ZoomIn, ZoomOut } from "lucide-react";
+import React, { useRef, useState } from "react";
 import { toast } from "react-toastify";
 
 // Subcomponents & hooks
-import { SHIRT_W, SHIRT_H, TShirtSVG, HoodieSVG } from "./GarmentSVGs";
+import { BlankGarmentPlaceholder } from "./BlankGarmentPlaceholder";
+import { CanvasLayers } from "./CanvasLayers";
+import { CanvasToolStrip } from "./CanvasToolStrip";
+import { FillPopover } from "./FillPopover";
+import { HoodieSVG, SHIRT_H, SHIRT_W, TShirtSVG } from "./GarmentSVGs";
 import { ProductModal } from "./ProductModal";
 import { ShapePopover } from "./ShapePopover";
-import { FillPopover } from "./FillPopover";
-import { CanvasToolStrip } from "./CanvasToolStrip";
-import { CanvasLayers } from "./CanvasLayers";
-import { BlankGarmentPlaceholder } from "./BlankGarmentPlaceholder";
 import { useDrawing } from "./useDrawing";
 
 const CenterCanvasArea: React.FC = () => {
@@ -35,7 +36,7 @@ const CenterCanvasArea: React.FC = () => {
     addLayer,
     updateLayer,
     removeLayer,
-    setClothingCode
+    setClothingCode,
   } = useMockup();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,13 +45,22 @@ const CenterCanvasArea: React.FC = () => {
 
   // States
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [isTablet, setIsTablet] = useState(window.innerWidth > 1439 && window.innerWidth < 1536);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth > 1439 && window.innerWidth < 1536,
+  );
 
   React.useEffect(() => {
-    const handleResize = () => { setIsMobile(window.innerWidth < 768 ); setIsTablet(window.innerWidth > 1439 && window.innerWidth < 1536)};
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsTablet(window.innerWidth > 1439 && window.innerWidth < 1536);
+    };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  React.useEffect(() => {
+    mockupCaptureRef.current = containerRef.current;
+  }, [hasGarment, selectedGarment, activeView, productColor]);
 
   const [showProductModal, setShowProductModal] = useState(false);
   const [showShapePopover, setShowShapePopover] = useState(false);
@@ -71,7 +81,7 @@ const CenterCanvasArea: React.FC = () => {
     canvasW,
     canvasH,
     activeColor,
-    setLayersByView
+    setLayersByView,
   });
 
   const handleSelectQuickGarment = (code: string) => {
@@ -95,7 +105,9 @@ const CenterCanvasArea: React.FC = () => {
       if (selectedLayerId) {
         removeLayer(selectedLayerId);
       } else {
-        toast.info("Erase Mode Active: Click any design layer on the canvas to erase it immediately.");
+        toast.info(
+          "Erase Mode Active: Click any design layer on the canvas to erase it immediately.",
+        );
       }
     } else if (toolId === "add-logo") {
       fileInputRef.current?.click();
@@ -108,7 +120,9 @@ const CenterCanvasArea: React.FC = () => {
       if (selected && selected.type === "text") {
         updateLayer(selected.id, { curved: !selected.curved });
       } else {
-        toast.warn("Please select a text layer first to apply the Curve effect.");
+        toast.warn(
+          "Please select a text layer first to apply the Curve effect.",
+        );
       }
     } else if (toolId === "open-project") {
       jsonInputRef.current?.click();
@@ -167,10 +181,13 @@ const CenterCanvasArea: React.FC = () => {
         handleJSONImport={handleJSONImport}
       />
 
-      <ShapePopover show={showShapePopover} onSelect={(shape) => {
-        addLayer("shape", { shapeType: shape, color: activeColor });
-        setShowShapePopover(false);
-      }} />
+      <ShapePopover
+        show={showShapePopover}
+        onSelect={(shape) => {
+          addLayer("shape", { shapeType: shape, color: activeColor });
+          setShowShapePopover(false);
+        }}
+      />
 
       <FillPopover
         show={activeTool === "fill"}
@@ -198,8 +215,11 @@ const CenterCanvasArea: React.FC = () => {
               <button
                 key={view}
                 onClick={() => setActiveView(view)}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeView === view ? "bg-[#3B82F6] text-white shadow-sm" : "text-[#5C7899] hover:bg-gray-100"
-                  }`}
+                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                  activeView === view
+                    ? "bg-[#3B82F6] text-white shadow-sm"
+                    : "text-[#5C7899] hover:bg-gray-100"
+                }`}
               >
                 {view}
               </button>
@@ -224,7 +244,9 @@ const CenterCanvasArea: React.FC = () => {
 
         <div className="flex-1 overflow-auto flex items-center justify-center bg-[#F3F4F6] relative p-8">
           {!hasGarment ? (
-            <BlankGarmentPlaceholder onSelectQuickGarment={handleSelectQuickGarment} />
+            <BlankGarmentPlaceholder
+              onSelectQuickGarment={handleSelectQuickGarment}
+            />
           ) : (
             <CardContainer
               className="relative shadow-xl overflow-hidden border-0"
@@ -238,7 +260,14 @@ const CenterCanvasArea: React.FC = () => {
                 background: "transparent",
               }}
             >
-              <div style={{ transform: isMobile || isTablet ? 'scale(0.5)' : 'scale(1)', transformOrigin: 'top left', width: SHIRT_W, height: SHIRT_H }}>
+              <div
+                style={{
+                  transform: isMobile || isTablet ? "scale(0.5)" : "scale(1)",
+                  transformOrigin: "top left",
+                  width: SHIRT_W,
+                  height: SHIRT_H,
+                }}
+              >
                 <div
                   ref={containerRef}
                   className="relative w-full h-full"
@@ -250,32 +279,32 @@ const CenterCanvasArea: React.FC = () => {
                     <TShirtSVG color={productColor} template={activeView} />
                   )}
 
-                <div
-                  className="absolute border border-dashed border-[#3B82F6]/40 overflow-hidden"
-                  style={{
-                    left: canvasLeft,
-                    top: canvasTop,
-                    width: canvasW,
-                    height: canvasH,
-                    zIndex: 10,
-                    touchAction: "none"
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  onPointerDown={handlePointerDown}
-                  onPointerMove={handlePointerMove}
-                  onPointerUp={handlePointerUp}
-                >
-                  <CanvasLayers
-                    activeLayers={activeLayers}
-                    selectedLayerId={selectedLayerId}
-                    setSelectedLayerId={setSelectedLayerId}
-                    activeTool={activeTool}
-                    zoom={zoom}
-                    updateLayer={updateLayer}
-                    removeLayer={removeLayer}
-                  />
+                  <div
+                    className="absolute border border-dashed border-[#3B82F6]/40 overflow-hidden"
+                    style={{
+                      left: canvasLeft,
+                      top: canvasTop,
+                      width: canvasW,
+                      height: canvasH,
+                      zIndex: 10,
+                      touchAction: "none",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    onPointerDown={handlePointerDown}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={handlePointerUp}
+                  >
+                    <CanvasLayers
+                      activeLayers={activeLayers}
+                      selectedLayerId={selectedLayerId}
+                      setSelectedLayerId={setSelectedLayerId}
+                      activeTool={activeTool}
+                      zoom={zoom}
+                      updateLayer={updateLayer}
+                      removeLayer={removeLayer}
+                    />
+                  </div>
                 </div>
-              </div>
               </div>
             </CardContainer>
           )}

@@ -1,3 +1,5 @@
+import { ApiResponse } from "@/store/Auth/types/authTypes";
+
 export interface Fee {
   infId: string;
   feeName: string;
@@ -18,13 +20,6 @@ export interface CreateFeeRequest {
 export type UpdateFeeRequest = Partial<CreateFeeRequest> & {
   infId: string;
 };
-
-export interface ApiResponse<T> {
-  statusCode: number;
-  success: boolean;
-  message: string;
-  data: T;
-}
 
 export type GetAllFeesResponse = ApiResponse<Fee[]>;
 export type GetFeeResponse = ApiResponse<Fee>;

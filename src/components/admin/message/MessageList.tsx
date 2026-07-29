@@ -1,3 +1,4 @@
+import VideoSkeleton from "@/components/shared/loading/VideoSkeleton";
 import Pagination from "@/components/shared/Pagination";
 import { EmailThread } from "@/store/messages/types/emailTrackerTypes";
 import { useState } from "react";
@@ -35,12 +36,7 @@ const MessageList: React.FC<MessageListProps> = ({
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
-      {isLoading && (
-        <p className="px-4 py-4 text-sm text-slate-400">Loading messages...</p>
-      )}
-      {!isLoading && threads.length === 0 && (
-        <p className="px-4 py-4 text-sm text-slate-400">No messages found.</p>
-      )}
+      {isLoading && <VideoSkeleton />}
       {paginatedThreads.map((t) => (
         <button
           key={t.id}
@@ -66,13 +62,16 @@ const MessageList: React.FC<MessageListProps> = ({
           </div>
         </button>
       ))}
-      <div className="flex items-center justify-center gap-1 py-4">
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-        />
-      </div>
+
+      {totalPages > 1 && paginatedThreads.length < threads.length && (
+        <div className="flex items-center justify-center gap-1 py-4">
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        </div>
+      )}
     </div>
   );
 };

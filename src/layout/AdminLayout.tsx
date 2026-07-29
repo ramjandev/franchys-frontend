@@ -2,14 +2,25 @@ import Header from "@/components/Header";
 import ProductionSheetBar from "@/components/invoice/ProductionSheetBar";
 import Sidebar from "@/components/sidebar/AdminSidebar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useGetMeQuery } from "@/store/Auth/authApi";
+import { addCurrentUser } from "@/store/Auth/authSlice";
 import { Menu } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import { Outlet, useLocation } from "react-router-dom";
 
 const AdminLayout = () => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const isInvoiceDetails = /^\/admin\/invoices\/[^/]+$/.test(pathname);
+
+  const dispatch = useDispatch();
+  const { data } = useGetMeQuery();
+  useEffect(() => {
+    if (data?.data) {
+      dispatch(addCurrentUser(data.data));
+    }
+  }, [data, dispatch]);
   return (
     <div className="flex h-screen bg-[#E7ECEF] overflow-hidden">
       {!isInvoiceDetails && (

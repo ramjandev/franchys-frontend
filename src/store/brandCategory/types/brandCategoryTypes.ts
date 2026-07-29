@@ -1,7 +1,9 @@
 // ---- Brand ----
 
-import { ApiResponse } from "@/store/Auth/types/authTypes";
-import { PaginatedApiResponse } from "../../users/types/userAdminTypes";
+import {
+  ApiResponse,
+  PaginatedApiResponse,
+} from "@/store/Auth/types/authTypes";
 
 export interface Brand {
   id: string;

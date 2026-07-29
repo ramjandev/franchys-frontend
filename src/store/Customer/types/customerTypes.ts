@@ -1,3 +1,8 @@
+import {
+  ApiResponse,
+  PaginatedApiResponse,
+} from "@/store/Auth/types/authTypes";
+
 export type CustomerType = "PERSONAL" | "BUSINESS";
 
 export interface Customer {
@@ -6,35 +11,40 @@ export interface Customer {
   lastName: string;
   email: string;
   phone: string;
-  language: string;
-  website?: string;
-  companyName?: string;
-  taxId?: string;
-  secondaryEmail?: string;
-  secondaryPhone?: string;
-  street?: string;
-  city?: string;
-  state?: string;
-  postalCode?: string;
-  country?: string;
-  tags?: string[];
-  notes?: string;
+  language: string | null;
+  website: string | null;
+  companyName: string | null;
+  taxId: string | null;
+  secondaryEmail: string | null;
+  secondaryPhone: string | null;
+  street: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  country: string | null;
+  tags: string[];
+  notes: string | null;
   customerType: CustomerType;
-  orderPurpose?: string;
-  eventType?: string;
-  eventDate?: string;
-  profileImage?: string;
+  orderPurpose: string | null;
+  eventType: string | null;
+  eventDate: string | null;
+  profileImage: string | null;
+  isDeleted: boolean;
+  stripeCustomerId: string | null;
   createdAt: string;
   updatedAt: string;
+  orders: number;
+  totalSpent: number;
 }
 
-export interface CreateCustomerRequest {
+// ---- Request payloads ----
+
+export interface CreateCustomerPayload {
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
-  customerType: CustomerType;
-  language: string;
+  language?: string;
   website?: string;
   companyName?: string;
   taxId?: string;
@@ -47,24 +57,25 @@ export interface CreateCustomerRequest {
   country?: string;
   tags?: string[];
   notes?: string;
+  customerType: CustomerType;
   orderPurpose?: string;
   eventType?: string;
   eventDate?: string;
-  profileImage?: string;
+  profileImage?: File;
 }
 
-export type UpdateCustomerRequest = Partial<CreateCustomerRequest> & {
-  id: string;
-};
+export type UpdateCustomerPayload = Partial<CreateCustomerPayload>;
 
-export interface ApiResponse<T> {
-  statusCode: number;
-  success: boolean;
-  message: string;
-  data: T;
+export interface GetCustomersParams {
+  search?: string;
+  page?: number;
+  limit?: number;
+  customerType?: CustomerType;
 }
 
-export type GetAllCustomersResponse = ApiResponse<Customer[]>;
+// ---- Response envelopes ----
+
+export type GetAllCustomersResponse = PaginatedApiResponse<Customer[]>;
 export type GetCustomerResponse = ApiResponse<Customer>;
 export type CreateCustomerResponse = ApiResponse<Customer>;
 export type UpdateCustomerResponse = ApiResponse<Customer>;

@@ -5,6 +5,7 @@ import MessageList from "@/components/admin/message/MessageList";
 import MessageTab from "@/components/admin/message/MessageTab";
 import CommonButton from "@/components/shared/CommonButton";
 import DashboardTopSection from "@/components/shared/DashboardTopSection";
+import WhatAppTracker from "@/components/whatApp/WhatAppTracker";
 
 import {
   useGetEmailThreadsQuery,
@@ -33,7 +34,6 @@ const Messages: React.FC = () => {
     }
   };
 
-  console.log("selectedThreadId", selectedThreadId);
   return (
     <div className="flex flex-col ">
       <div className=" flex items-center justify-between gap-6">
@@ -44,41 +44,48 @@ const Messages: React.FC = () => {
         />
 
         <div className="flex items-center gap-3">
-          <CommonButton onClick={handleSync} variant="secondary">
-            <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} />
-            {isSyncing ? "Syncing..." : "Sync Inbox"}
-          </CommonButton>
-
+          {tab === "Email" && (
+            <CommonButton onClick={handleSync} variant="secondary">
+              <RefreshCw
+                size={16}
+                className={isSyncing ? "animate-spin" : ""}
+              />
+              {isSyncing ? "Syncing..." : "Sync Inbox"}
+            </CommonButton>
+          )}
           <CommonButton variant="primaryBlue" to="../campaigns">
             <MdOutlineCampaign className="text-lg" />
             Marketing Campaigns
           </CommonButton>
         </div>
       </div>
-
       <header className="flex items-center gap-3shrink-0 pb-6">
         <MessageTab tab={tab} setTab={setTab} />
 
         <div className="flex-1" />
       </header>
 
-      <main className="flex flex-1 min-h-0 gap-3 pb-4">
-        <div className="w-[340px] bg-white rounded-2xl shadow-sm overflow-y-auto">
-          <MessageList
-            threads={threads}
-            isLoading={isLoading}
-            selectedThreadId={selectedThreadId}
-            onSelect={setSelectedThreadId}
-          />
-        </div>
-        <div className="flex-1 bg-white rounded-2xl shadow-sm overflow-y-auto">
-          {selectedThreadId ? (
-            <MessageDetail threadId={selectedThreadId} />
-          ) : (
-            <EmptyDetail />
-          )}
-        </div>
-      </main>
+      {tab === "Email" ? (
+        <main className="flex flex-1 items-start min-h-0 gap-3 pb-4">
+          <div className="w-[340px] bg-white rounded-2xl shadow-sm overflow-y-auto">
+            <MessageList
+              threads={threads}
+              isLoading={isLoading}
+              selectedThreadId={selectedThreadId}
+              onSelect={setSelectedThreadId}
+            />
+          </div>
+          <div className="flex-1 bg-white rounded-2xl shadow-sm overflow-y-auto">
+            {selectedThreadId ? (
+              <MessageDetail threadId={selectedThreadId} />
+            ) : (
+              <EmptyDetail />
+            )}
+          </div>
+        </main>
+      ) : (
+        <WhatAppTracker />
+      )}
     </div>
   );
 };

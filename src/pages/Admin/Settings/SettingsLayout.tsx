@@ -12,6 +12,8 @@ import {
   User,
   Users,
 } from "lucide-react";
+import { MdOutlinePayment } from "react-icons/md";
+
 import { IoSettingsOutline } from "react-icons/io5";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
@@ -30,6 +32,11 @@ const settingsLinks = [
   },
   { name: "Invoice Fees", path: "/admin/settings/fees", icon: DollarSign },
   { name: "Pricing Matrix", path: "/admin/settings/pricing", icon: TrendingUp },
+  {
+    name: "Payment Terms",
+    path: "/admin/settings/payment-terms",
+    icon: MdOutlinePayment,
+  },
   { name: "Vendors", path: "/admin/settings/vendors", icon: Building },
   { name: "Users", path: "/admin/settings/users", icon: Users },
   { name: "Social Links", path: "/admin/settings/social", icon: LinkIcon },

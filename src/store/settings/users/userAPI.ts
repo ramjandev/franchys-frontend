@@ -38,7 +38,7 @@ export const userAPI = baseAPI.injectEndpoints({
     }),
     restoreAdmin: build.mutation<void, string>({
       query: (id) => ({
-        url: `/users/admin/${id}/restore`,
+        url: `/users/admin/${id}/unban`,
         method: "POST",
         body: {},
       }),

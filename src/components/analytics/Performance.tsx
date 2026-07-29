@@ -1,7 +1,11 @@
-import { productPerformanceData } from "@/pages/Admin/AnalyticsData";
+import { ProductPerformance } from "@/store/dashboard/types/dashboard";
 import CardContainer from "../shared/CardContainer";
 
-const Performance = () => {
+interface PerformanceProps {
+  performance: ProductPerformance[];
+}
+
+const Performance: React.FC<PerformanceProps> = ({ performance }) => {
   return (
     <CardContainer className="bg-white border border-[#E6EBF2] rounded-2xl shadow-sm p-6 overflow-hidden flex flex-col gap-4">
       <h2 className="text-lg font-bold text-[#111827]">Product Performance</h2>
@@ -17,22 +21,19 @@ const Performance = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#F1F5F9]">
-            {productPerformanceData.map((prod) => (
-              <tr
-                key={prod.product}
-                className="hover:bg-slate-50/50 transition-colors"
-              >
+            {performance.map((prod, i) => (
+              <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                 <td className="px-4 py-3.5 text-[#0F172B] font-semibold">
-                  {prod.product}
+                  {prod.productName}
                 </td>
                 <td className="px-4 py-3.5 text-[#45556C] font-semibold">
                   {prod.category}
                 </td>
                 <td className="px-4 py-3.5 text-[#0F172B] font-semibold">
-                  {prod.sold}
+                  {prod.unitsSold}
                 </td>
                 <td className="px-4 py-3.5 font-semibold text-[#0F172B]">
-                  {prod.revenue}
+                  ${prod.revenue}
                 </td>
               </tr>
             ))}

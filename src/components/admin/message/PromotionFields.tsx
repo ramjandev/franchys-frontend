@@ -1,4 +1,4 @@
-import { inputClass } from "@/pages/Admin/MockupBuilder/components/LeftPanel";
+import { inputClass } from "@/pages/Login";
 import type { PromotionVals } from "./MessageData";
 
 interface PromotionValsProps {

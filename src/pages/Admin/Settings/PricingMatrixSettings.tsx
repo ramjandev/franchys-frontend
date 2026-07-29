@@ -8,7 +8,7 @@ import { loadingArray } from "@/lib/utils";
 import {
   useDeletePriceMatrixMutation,
   useGetPriceMatrixQuery,
-} from "@/store/settings/matdsf/priceMatrixAPI";
+} from "@/store/settings/PriceMatrices/priceMatrixAPI";
 import { useState } from "react";
 import { GoPlusCircle } from "react-icons/go";
 import { Link } from "react-router-dom";

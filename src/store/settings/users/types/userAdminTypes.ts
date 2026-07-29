@@ -1,6 +1,9 @@
 // ---- Permissions ----
 
-import { ApiResponse } from "@/store/Auth/types/authTypes";
+import {
+  ApiResponse,
+  PaginatedApiResponse,
+} from "@/store/Auth/types/authTypes";
 
 export interface AdminPermissions {
   canCreateCustomers: boolean;
@@ -91,23 +94,6 @@ export interface GetAdminParams {
   search?: string;
   page?: number;
   limit?: number;
-}
-
-// ---- Response envelopes ----
-
-export interface PaginationMeta {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface PaginatedApiResponse<T> {
-  statusCode: number;
-  success: boolean;
-  message: string;
-  data: T;
-  meta: PaginationMeta;
 }
 
 export type CreateAdminResponse = ApiResponse<AdminUser>;
