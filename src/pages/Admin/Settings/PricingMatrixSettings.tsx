@@ -11,7 +11,7 @@ import {
 } from "@/store/settings/PriceMatrices/priceMatrixAPI";
 import { useState } from "react";
 import { GoPlusCircle } from "react-icons/go";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const PricingMatrixSettings = () => {
   const [showModal, setShowModal] = useState(false);
@@ -22,17 +22,15 @@ const PricingMatrixSettings = () => {
 
   const matricesData = data?.data ?? [];
 
-  const handleDelete = async (e: React.MouseEvent, priceMatrixId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+  const handleDelete = async (priceMatrixId: string) => {
+    if (!priceMatrixId) return;
     try {
       await deletePriceMatrix(priceMatrixId).unwrap();
     } catch (err) {
       console.error(err);
     }
   };
-
+  const navigate = useNavigate();
   return (
     <div className="">
       <div className="mb-6 pb-4 border-b border-border flex flex-col md:flex-row justify-between items-start gap-5">
@@ -58,29 +56,28 @@ const PricingMatrixSettings = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {matricesData.map((matrix) => (
-            <Link
-              key={matrix.priceMatrixId}
-              to={`/admin/settings/pricing/${matrix.priceMatrixId}`}
-            >
-              <CardContainer size="sm" className="relative group">
+            <CardContainer size="sm" className="relative group">
+              <div className="absolute top-3 right-3">
+                {" "}
+                <IconActionButton
+                  title="Edit matrix"
+                  variant="edit"
+                  onClick={() =>
+                    navigate(`/admin/settings/pricing/${matrix.priceMatrixId}`)
+                  }
+                />
                 <IconActionButton
                   title="Delete matrix"
                   variant="delete"
-                  className="absolute top-3 right-3"
                   isLoading={
                     isDeleting && originalArgs === matrix.priceMatrixId
                   }
-                  onClick={(e) =>
-                    handleDelete(
-                      e as unknown as React.MouseEvent,
-                      matrix.priceMatrixId,
-                    )
-                  }
+                  onClick={() => handleDelete(matrix.priceMatrixId)}
                 />
-                <CommonHeader size="lg"> {matrix.name}</CommonHeader>
-                <CommonHeader size="sm">{matrix.priceType}</CommonHeader>
-              </CardContainer>
-            </Link>
+              </div>
+              <CommonHeader size="lg"> {matrix.name}</CommonHeader>
+              <CommonHeader size="sm">{matrix.priceType}</CommonHeader>
+            </CardContainer>
           ))}
         </div>
       )}

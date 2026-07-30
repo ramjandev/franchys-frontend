@@ -7,6 +7,7 @@ import {
 import { X } from "lucide-react";
 import { useState } from "react";
 import { GoPlusCircle } from "react-icons/go";
+import { useNavigate } from "react-router-dom";
 import ModalAction from "./ModalAction";
 import ModalContainer from "./ModalContainer";
 
@@ -52,7 +53,7 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
     useCreatePriceMatrixMutation();
   const [updatePriceMatrix, { isLoading: isUpdating }] =
     useUpdatePriceMatrixMutation();
-
+  const navigate = useNavigate();
   const isSubmitting = isCreating || isUpdating;
   const isEditMode = Boolean(editMatrixId);
 
@@ -133,6 +134,7 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
       } else {
         await createPriceMatrix({ name, priceType, priceTiers }).unwrap();
       }
+      navigate("/admin/settings/pricing");
       setShowModal(false);
     } catch (err) {
       console.error(err);
@@ -164,7 +166,6 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
             item={priceTypeOptions}
             onValueChange={(val) => setPriceType(val)}
             placeholder="Select product type"
-            w={undefined as unknown as number} // let it fill the field width via className
             className="w-full"
           />
         </div>

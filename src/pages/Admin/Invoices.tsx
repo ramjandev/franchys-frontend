@@ -15,13 +15,20 @@ import {
 import { InvoiceStatus } from "@/store/invoice/types/invoiceTypes";
 import { useMemo, useState } from "react";
 
-const STATUS_TABS: { name: string; status?: InvoiceStatus }[] = [
+interface StatusTab {
+  name: string;
+  status?: InvoiceStatus;
+}
+
+const STATUS_TABS: StatusTab[] = [
   { name: "All" },
   { name: "Draft", status: "DRAFT" },
   { name: "Open", status: "OPEN" },
   { name: "Partial", status: "PARTIAL" },
   { name: "Paid", status: "PAID" },
   { name: "Overdue", status: "OVERDUE" },
+  { name: "Void", status: "VOID" },
+  { name: "Uncollectible", status: "UNCOLLECTIBLE" },
 ];
 
 export type TabOption = { name: string; count: number };
@@ -40,35 +47,31 @@ const Invoices = () => {
 
   const activeStatus = STATUS_TABS.find((t) => t.name === activeTab)?.status;
 
+  // NOTE: search is sent to backend now too (see below) — remove if your
+  // API doesn't support a `search` param yet, and I'll add it server-side instead.
   const { data, isLoading } = useGetInvoicesQuery({
     page,
     limit: 10,
     status: activeStatus,
+    search: searchDebounced || undefined,
   });
 
   const invoicesData = data?.data ?? [];
   const totalPages = data?.meta.totalPages ?? 1;
 
-  const filteredInvoices = useMemo(() => {
-    if (!searchDebounced) return invoicesData;
-    const q = searchDebounced.toLowerCase();
-    return invoicesData.filter(
-      (inv) =>
-        inv.invoiceNumber.toLowerCase().includes(q) ||
-        `${inv.customer.firstName} ${inv.customer.lastName}`
-          .toLowerCase()
-          .includes(q) ||
-        (inv.customer.companyName ?? "").toLowerCase().includes(q),
-    );
-  }, [invoicesData, searchDebounced]);
+  // Backend already filters by status + search, so no client-side filtering needed.
+  const filteredInvoices = invoicesData;
 
-  const tabs: TabOption[] = STATUS_TABS.map((t) => ({
-    name: t.name,
-    count:
-      t.name === "All"
-        ? invoicesData.length
-        : invoicesData.filter((inv) => inv.status === t.status).length,
-  }));
+  // Tab counts now come from the backend's statusCounts, not the current page.
+  const tabs: TabOption[] = useMemo(() => {
+    const counts = data?.statusCounts;
+    const total = data?.meta.total ?? 0;
+
+    return STATUS_TABS.map((t) => ({
+      name: t.name,
+      count: t.status ? (counts?.[t.status] ?? 0) : total,
+    }));
+  }, [data]);
 
   const { data: dataSummary } = useGetInvoiceSummaryQuery();
 
@@ -156,7 +159,7 @@ const Invoices = () => {
           items={filteredInvoices}
           itemName="Invoices"
         />
-        {!isLoading && filteredInvoices.length > 1 && (
+        {!isLoading && filteredInvoices.length > 0 && (
           <InvoiceTable
             invoicesData={filteredInvoices}
             page={page}

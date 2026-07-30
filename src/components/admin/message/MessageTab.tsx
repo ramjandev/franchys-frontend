@@ -1,5 +1,5 @@
+import { Tab } from "@/pages/Admin/Messages";
 import type { Dispatch, SetStateAction } from "react";
-import type { Tab } from "./MessageData";
 
 interface MessageTabProps {
   tab: string;

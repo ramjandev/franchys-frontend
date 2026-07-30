@@ -17,11 +17,11 @@ const ModalContainer: React.FC<PriceMatrixModalProps> = ({
   children,
 }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4  rounded-2xl">
       <div
-        className={`rounded-t-2xl bg-white rounded-xl  w-full ${size} max-h-[90vh] overflow-y-auto z-20`}
+        className={` bg-white  w-full ${size} max-h-[90vh] overflow-y-auto z-20 rounded-2xl overflow-hidden `}
       >
-        <div className="bg-gradient-to-r from-[#155DFC] to-[#1447E6] p-4 flex items-center justify-between rounded-t-2xl ">
+        <div className="bg-gradient-to-r from-[#155DFC] z-30 to-[#1447E6] p-4 flex items-center justify-between rounded-t-2xl  ">
           <div>
             <CommonHeader size="xl" className="text-white!">
               {title}

@@ -1,5 +1,6 @@
 export type KnownStatus =
   | "approved"
+  | "active"
   | "paid"
   | "sent"
   | "partial"
@@ -22,6 +23,7 @@ interface StatusBadgeProps {
 // statuses without touching the component logic.
 const STATUS_STYLES: Record<KnownStatus, string> = {
   approved: "bg-[#D0FAE5] text-[#007A55]",
+  active: "bg-[#D0FAE5] text-[#007A55]",
   paid: "bg-[#D0FAE5] text-[#007A55]",
   sent: "bg-[#FEF3C6] text-[#BB4D00]",
   partial: "bg-[#FEF3C6] text-[#BB4D00]",
@@ -36,6 +38,7 @@ const STATUS_STYLES: Record<KnownStatus, string> = {
 
 const DEFAULT_LABELS: Record<KnownStatus, string> = {
   approved: "Approved",
+  active: "Active",
   paid: "Paid",
   sent: "Sent",
   partial: "Partial",
