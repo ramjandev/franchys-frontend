@@ -20,8 +20,6 @@ import ProtectedRoute from "./ProtectedRoute";
 
 // Settings Pages
 import AllCampaigns from "@/components/admin/message/AllCampaigns";
-import CampaignDetail from "@/components/admin/message/CampaignDetail";
-import CampaignForm from "@/components/admin/message/CampaignForm";
 import QuotePreview from "@/components/admin/quotes/QuotePreview";
 import InvoiceDetails from "@/pages/Admin/InvoiceDetails";
 import MockupBuilderPage from "@/pages/Admin/MockupBuilder/MockupBuilderPage";
@@ -89,12 +87,11 @@ const router = createBrowserRouter([
               { path: "customers/edit/:id", element: <AddNewCustomer /> },
               { path: "job-board", element: <JobBoard /> },
               { path: "mockups", element: <MockupBuilderPage /> },
+              { path: "mockups/:productId", element: <MockupBuilderPage /> },
               { path: "category-brand", element: <CategoryBrandManager /> },
               { path: "products", element: <Products /> },
               { path: "messages", element: <Messages /> },
-              { path: "campaign-create", element: <CampaignForm /> },
               { path: "campaigns", element: <AllCampaigns /> },
-              { path: "campaigns/:id", element: <CampaignDetail /> },
               { path: "payment", element: <Payment /> },
               { path: "analytics", element: <Analytics /> },
               { path: "change-password", element: <ChangePassword /> },

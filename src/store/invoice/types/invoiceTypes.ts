@@ -179,6 +179,7 @@ export interface GetInvoicesParams {
   limit?: number;
   customerId?: string;
   quoteId?: string;
+  search?: string;
   status?: InvoiceStatus;
 }
 
@@ -210,12 +211,23 @@ export interface PaymentHistoryItem {
   status: "Completed" | "Pending" | "Failed" | string;
 }
 
+export interface InvoiceStatusCounts {
+  DRAFT: number;
+  OPEN: number;
+  PARTIAL: number;
+  PAID: number;
+  OVERDUE: number;
+  VOID: number;
+  UNCOLLECTIBLE: number;
+}
 // ---- Response envelopes ----
 
 export type PaymentHistoryResponse = PaginatedApiResponse<PaymentHistoryItem[]>;
 export type GetPaymentSummaryResponse = ApiResponse<PaymentSummary>;
 export type GetInvoicesSummaryResponse = ApiResponse<InvoiceSummary>;
-export type GetInvoicesResponse = PaginatedApiResponse<InvoiceListItem[]>;
+export type GetInvoicesResponse = PaginatedApiResponse<InvoiceListItem[]> & {
+  statusCounts: InvoiceStatusCounts;
+};
 export type GetInvoiceByIdResponse = ApiResponse<Invoice>;
 export type CreateInvoiceResponse = ApiResponse<Invoice>;
 export type UpdateInvoiceResponse = ApiResponse<Invoice>;

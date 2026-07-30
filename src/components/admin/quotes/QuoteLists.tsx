@@ -106,7 +106,10 @@ const QuoteLists: React.FC<QuoteListsProps> = ({
                   </td>
 
                   <td className={` ${tableDesign.td} text-center `}>
-                    <CommonButton to="../mockups" size="xs">
+                    <CommonButton
+                      to={`../mockups/${quote.customerId}`}
+                      size="xs"
+                    >
                       Create Mockup
                     </CommonButton>
                   </td>
