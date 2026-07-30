@@ -1,5 +1,4 @@
 import EmptyDetail from "@/components/admin/message/EmptyDetail";
-import { type Tab } from "@/components/admin/message/MessageData";
 import MessageDetail from "@/components/admin/message/MessageDetail";
 import MessageList from "@/components/admin/message/MessageList";
 import MessageTab from "@/components/admin/message/MessageTab";
@@ -14,6 +13,7 @@ import {
 import { RefreshCw } from "lucide-react";
 import React, { useState } from "react";
 import { MdOutlineCampaign } from "react-icons/md";
+export type Tab = "Email" | "WhatsApp";
 
 const Messages: React.FC = () => {
   const [tab, setTab] = useState<Tab>("Email");

@@ -4,7 +4,9 @@ import EntityCard from "@/components/admin/product/EntityCard";
 import CardContainer from "@/components/shared/CardContainer";
 import CommonButton from "@/components/shared/CommonButton";
 import DashboardTopSection from "@/components/shared/DashboardTopSection";
+import DashboardCardSkeleton from "@/components/shared/loading/DashboardCardSkeleton";
 import CommonTabs, { TabItem } from "@/components/transaction/CommonTabs";
+import { loadingArray } from "@/lib/utils";
 import {
   useDeleteBrandMutation,
   useDeleteCategoryMutation,
@@ -98,9 +100,11 @@ const CategoryBrandManager = () => {
           {activeTab === "category" && (
             <>
               {isCategoriesLoading && (
-                <p className="text-sm text-[#62748E] py-10 text-center">
-                  Loading categories...
-                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {loadingArray(4).map((_, i) => (
+                    <DashboardCardSkeleton key={i} />
+                  ))}
+                </div>
               )}
               {!isCategoriesLoading && categories.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-14 text-center">
@@ -134,9 +138,11 @@ const CategoryBrandManager = () => {
           {activeTab === "brand" && (
             <>
               {isBrandsLoading && (
-                <p className="text-sm text-[#62748E] py-10 text-center">
-                  Loading brands...
-                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {loadingArray(4).map((_, i) => (
+                    <DashboardCardSkeleton key={i} />
+                  ))}
+                </div>
               )}
               {!isBrandsLoading && brands.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-14 text-center">

@@ -1,127 +1,173 @@
+import CommonButton from "@/components/shared/CommonButton";
 import DashboardTopSection from "@/components/shared/DashboardTopSection";
-import LoadingStatus from "@/components/shared/loading/LoadingStatus";
-import StatusBadge from "@/components/shared/StatusBadge";
-import { useGetCampaignsQuery } from "@/store/campaign/campaignAPI";
-import { Link, useNavigate } from "react-router-dom";
+import DashboardCardSkeleton from "@/components/shared/loading/DashboardCardSkeleton";
+import { useDebounce } from "@/components/shared/useDebounce";
+import { loadingArray } from "@/lib/utils";
+import { useGetAllCustomersQuery } from "@/store/Customer/customerAPI"; // adjust to your actual api slice path
+import { Customer, CustomerType } from "@/store/Customer/types/customerTypes"; // adjust to your actual types path
+import { useState } from "react";
+import PromotionalModal from "./PromotionalModal";
 
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+const typeBadgeStyles: Record<CustomerType, string> = {
+  PERSONAL: "bg-purple-100 text-purple-600",
+  BUSINESS: "bg-amber-100 text-amber-600",
+};
+
+function getInitials(firstName: string, lastName: string) {
+  return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
+}
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(amount ?? 0);
+}
 
 const AllCampaigns = () => {
-  const navigate = useNavigate();
+  const [selected, setSelected] = useState<string[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const searchDebounced = useDebounce(search, 500);
 
-  const { data, isLoading } = useGetCampaignsQuery();
+  const { data, isLoading, isFetching, isError, refetch } =
+    useGetAllCustomersQuery({ search: searchDebounced, page: 1, limit: 100 });
 
-  const campaignData = data?.data ?? [];
+  const customers: Customer[] = data?.data ?? [];
+
+  const onToggle = (id: string) => {
+    if (selected.includes(id)) {
+      setSelected(selected.filter((x) => x !== id));
+    } else {
+      setSelected([...selected, id]);
+    }
+  };
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="">
-        <DashboardTopSection
-          title=" All Campaigns"
-          backButton
-          buttonOne="New Campaign"
-          actionOne={() => navigate("../campaign-create")}
+    <div>
+      <DashboardTopSection
+        title="Promotions"
+        description="Create and manage promotional campaigns, discounts, and special offers."
+        backButton
+      />
+      <div className="shrink-0 bg-white rounded-2xl p-5 shadow-sm flex flex-col gap-3 overflow-y-auto">
+        <div className="flex items-center justify-between">
+          <span className="font-bold text-[15px] text-slate-800">
+            Customers
+          </span>
+          <span className="bg-slate-100 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-slate-500">
+            {selected.length} selected
+          </span>
+        </div>
+        <p className="text-xs text-slate-400 mt-0">
+          Select customers to include in your campaign
+        </p>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search customers..."
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-blue-400"
         />
-        <LoadingStatus
-          isLoading={isLoading}
-          items={campaignData}
-          itemName="campaigns"
-        />
+        {isLoading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+            {loadingArray(12).map((_, index) => (
+              <DashboardCardSkeleton key={index} />
+            ))}
+          </div>
+        )}
 
-        {!isLoading && campaignData.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <div className="flex flex-col gap-3">
-              {!isLoading && campaignData.length === 0 && (
-                <p className="text-sm text-slate-400 px-4 py-6 text-center">
-                  No campaigns found.
-                </p>
-              )}
-              {campaignData.map((c) => (
-                <div
-                  key={c.id}
-                  className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors"
-                >
-                  {/* Icon */}
-                  <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-lg shrink-0">
-                    🏷️
-                  </div>
+        {!isLoading && !isError && customers.length === 0 && (
+          <div className="py-8 text-center text-sm text-slate-400">
+            No customers found.
+          </div>
+        )}
+        <div
+          className={` grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 ${isFetching ? "opacity-60" : ""}`}
+        >
+          {customers.map((c) => {
+            const sel = selected.includes(c.id);
+            const fullName = `${c.firstName} ${c.lastName}`.trim();
 
-                  {/* Title + desc */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate">
-                      {c.title}
-                    </p>
-                    <p className="text-xs text-slate-400 truncate">
-                      {c.targetAudience}
-                    </p>
-                  </div>
+            return (
+              <button
+                key={c.id}
+                onClick={() => onToggle(c.id)}
+                className={`flex items-center gap-3 p-3 rounded-xl border-2 text-left cursor-pointer transition-all ${
+                  sel
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-slate-100 bg-white hover:border-slate-200"
+                }`}
+              >
+                {c.profileImage ? (
+                  <img
+                    src={c.profileImage}
+                    alt={fullName}
+                    className="w-9 h-9 rounded-full object-cover shrink-0"
+                  />
+                ) : (
+                  <span className="w-9 h-9 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500">
+                    {getInitials(c.firstName, c.lastName)}
+                  </span>
+                )}
 
-                  {/* Type */}
-                  <div className="w-28 shrink-0">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider">
-                      Type
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-slate-700 truncate">
+                      {fullName}
                     </p>
-                    <p className="text-sm font-semibold text-slate-700">
-                      {c.type}
-                    </p>
-                  </div>
-
-                  {/* Recipients */}
-                  <div className="w-24 shrink-0">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider">
-                      Recipients
-                    </p>
-                    <p
-                      className={`text-sm font-semibold ${
-                        c.recipientsCount ? "text-blue-500" : "text-slate-400"
+                    <span
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
+                        typeBadgeStyles[c.customerType]
                       }`}
                     >
-                      {c.recipientsCount
-                        ? c.recipientsCount.toLocaleString()
-                        : "–"}
-                    </p>
+                      {c.customerType}
+                    </span>
                   </div>
-
-                  {/* Created */}
-                  <div className="w-28 shrink-0">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider">
-                      Created
+                  <p className="text-xs text-slate-400 truncate">{c.email}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-sm font-bold text-blue-500">
+                      {formatCurrency(c.totalSpent)}
                     </p>
-                    <p className="text-sm font-semibold text-slate-700">
-                      {formatDate(c.createdAt)}
-                    </p>
-                  </div>
-
-                  {/* Status */}
-                  <div className="w-20 shrink-0 flex justify-center">
-                    <StatusBadge status={c.status} />
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Link to={`../campaigns/${c.id}`}>
-                      <button className="px-4 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold border-none cursor-pointer transition-colors">
-                        View
-                      </button>
-                    </Link>
-                    <Link to={`../campaign-create/${c.id}`}>
-                      <button className="px-4 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold cursor-pointer transition-colors">
-                        Edit
-                      </button>
-                    </Link>
+                    <span className="text-xs text-slate-400">
+                      · {c.orders} order{c.orders === 1 ? "" : "s"}
+                    </span>
                   </div>
                 </div>
-              ))}
+
+                {sel && (
+                  <span className="text-blue-500 text-base shrink-0">✓</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-end gap-3">
+          {selected.length > 0 && (
+            <div className="rounded-lg bg-green-50 px-5 py-2.5 text-center text-sm font-semibold text-green-600 w-fit">
+              {selected.length} customer{selected.length > 1 ? "s" : ""} linked
             </div>
-          </div>
+          )}
+
+          <CommonButton
+            onClick={() => setIsOpen(true)}
+            isLoading={isLoading}
+            loadingText="Sending..."
+          >
+            Send Promotions
+          </CommonButton>
+        </div>
+        {isOpen && (
+          <PromotionalModal
+            close={() => setIsOpen(false)}
+            selectedCustomerIds={selected}
+          />
         )}
       </div>
     </div>
   );
 };
+
 export default AllCampaigns;
