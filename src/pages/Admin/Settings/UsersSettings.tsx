@@ -22,35 +22,35 @@ import {
 import { RotateCcw, ShieldBan, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const permissionUiConfig: {
+export const permissionUiConfig: {
   label: string;
   keys: (keyof AdminPermissions)[];
 }[] = [
-  { label: "Can view customers", keys: [] },
+  { label: "Can view customers", keys: ["canViewCustomers"] },
   {
     label: "Can add/edit customers",
     keys: ["canCreateCustomers", "canUpdateCustomers"],
   },
   { label: "Can delete customers", keys: ["canDeleteCustomers"] },
-  { label: "Can view quotes", keys: [] },
+  { label: "Can view quotes", keys: ["canViewQuotes"] },
   {
     label: "Can create/edit quotes",
     keys: ["canCreateQuotes", "canUpdateQuotes"],
   },
   { label: "Can delete quotes", keys: ["canDeleteQuotes"] },
   { label: "Can approve quotes", keys: ["canApproveQuotes"] },
-  { label: "Can view jobs", keys: [] },
+  { label: "Can view jobs", keys: ["canViewJobs"] },
   { label: "Can create/edit jobs", keys: ["canCreateJobs", "canUpdateJobs"] },
   { label: "Can delete jobs", keys: ["canDeleteJobs"] },
-  { label: "Can view invoices", keys: [] },
+  { label: "Can view invoices", keys: ["canViewInvoices"] },
   {
     label: "Can create/edit invoices",
     keys: ["canCreateInvoices", "canUpdateInvoices"],
   },
   { label: "Can delete invoices", keys: ["canDeleteInvoices"] },
   { label: "Can take payments", keys: ["canTakePayment"] },
-  { label: "Can view reports", keys: [] },
-  { label: "Can view analytics", keys: [] },
+  { label: "Can view reports", keys: ["canViewReports"] },
+  { label: "Can view analytics", keys: ["canViewAnalytics"] },
   {
     label: "Can manage users",
     keys: ["canCreateUsers", "canUpdateUsers", "canDeleteUsers"],
@@ -63,7 +63,7 @@ const permissionUiConfig: {
     label: "Can manage vendors",
     keys: ["canCreateVendor", "canUpdateVendor", "canDeleteVendor"],
   },
-  { label: "Can view mockups", keys: [] },
+  { label: "Can view mockups", keys: ["canViewMockups"] },
   {
     label: "Can create/edit mockups",
     keys: ["canCreateProducts", "canUpdateProducts"],
@@ -100,19 +100,34 @@ const UserPermissionCard: React.FC<UserPermissionCardProps> = ({
   const [restoreAdmin, { isLoading: isRestoring }] = useRestoreAdminMutation();
   const [banAdmin, { isLoading: isBanning }] = useBanAdminMutation();
 
-  const [permissions, setPermissions] = useState<AdminPermissions>(
-    admin.permissions ?? defaultPermissions,
-  );
+  const isSuperAdmin = admin.role === "SUPER_ADMIN";
+  const savedPermissions = admin.userPermissions?.[0] ?? null;
 
-  // keep local checkbox state in sync if the admin record refetches/changes
+  const toPlainPermissions = (
+    source: typeof savedPermissions,
+  ): AdminPermissions => {
+    if (!source) return defaultPermissions;
+    const { userPermissionId, userId, ...rest } = source;
+    return rest;
+  };
+
+  const baselinePermissions = toPlainPermissions(savedPermissions);
+
+  const [permissions, setPermissions] =
+    useState<AdminPermissions>(baselinePermissions);
+
   useEffect(() => {
-    setPermissions(admin.permissions ?? defaultPermissions);
-  }, [admin.permissions]);
+    setPermissions(toPlainPermissions(savedPermissions));
+  }, [admin.userPermissions]);
+
+  const isDirty =
+    JSON.stringify(permissions) !== JSON.stringify(baselinePermissions);
 
   const togglePermission = (keys: (keyof AdminPermissions)[]) => {
-    if (keys.length === 0) return; // no backend field to toggle
-    const currentlyAllChecked = keys.every((key) => permissions[key]);
+    if (keys.length === 0) return;
+    if (isSuperAdmin) return;
     setPermissions((prev) => {
+      const currentlyAllChecked = keys.every((key) => prev[key]);
       const next = { ...prev };
       keys.forEach((key) => {
         next[key] = !currentlyAllChecked;
@@ -232,18 +247,28 @@ const UserPermissionCard: React.FC<UserPermissionCardProps> = ({
               key={idx}
               label={perm.label}
               labelClassName={` text-[#314158]! font-medium! `}
+              // SUPER_ADMIN always shows every permission as granted
               checked={
-                perm.keys.length > 0
-                  ? perm.keys.every((key) => permissions[key])
-                  : false
+                isSuperAdmin
+                  ? true
+                  : perm.keys.length > 0
+                    ? perm.keys.every((key) => permissions[key])
+                    : false
               }
+              disabled={isSuperAdmin}
               onChange={() => togglePermission(perm.keys)}
             />
           ))}
         </div>
-        <CommonButton className="mt-6" onClick={handleSave} disabled={isSaving}>
-          {isSaving ? "Saving..." : "Save"}
-        </CommonButton>
+        {!isSuperAdmin && (
+          <CommonButton
+            className="mt-6"
+            onClick={handleSave}
+            disabled={isSaving || !isDirty}
+          >
+            {isSaving ? "Saving..." : "Save"}
+          </CommonButton>
+        )}
       </div>
     </div>
   );

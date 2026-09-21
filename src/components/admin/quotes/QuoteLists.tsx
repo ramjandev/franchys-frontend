@@ -3,9 +3,12 @@ import DeleteAlert from "@/components/shared/DeleteButton";
 import IconActionButton from "@/components/shared/IconActionButton";
 import Pagination from "@/components/shared/Pagination";
 import StatusBadge from "@/components/shared/StatusBadge";
+import { useCreateInvoiceMutation } from "@/store/invoice/invoiceAPI";
 import { useDeleteQuoteMutation } from "@/store/quote/quoteAPI";
 import { Quote } from "@/store/quote/types/quoteTypes";
+import { FileCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export const tableDesign = {
   table:
@@ -48,7 +51,9 @@ const QuoteLists: React.FC<QuoteListsProps> = ({
   totalPages,
   onPageChange,
 }) => {
+  const navigate = useNavigate();
   const [deleteQuote] = useDeleteQuoteMutation();
+  const [createInvoice] = useCreateInvoiceMutation();
 
   const handleDelete = async (id: string) => {
     try {
@@ -58,12 +63,46 @@ const QuoteLists: React.FC<QuoteListsProps> = ({
     }
   };
 
-  const navigate = useNavigate();
+  const handleConvertToInvoice = async (quote: Quote) => {
+    try {
+      const flatLineItems = (quote.groups ?? []).flatMap((g) => g.lineItems);
+      const invoiceLineItems = flatLineItems.map((li) => ({
+        description: li.description || `${li.category} ${li.itemNumber}`,
+        quantity: li.itemsCount || 1,
+        unitPrice: Number(li.unitPrice) || 0,
+      }));
+
+      await createInvoice({
+        customerId: quote.customerId,
+        quoteId: quote.id,
+        taxRate: Number(quote.taxRate) || 0,
+        discount: Number(quote.discount) || 0,
+        dueDate: quote.dueDate || undefined,
+        notes: quote.notes || undefined,
+        lineItems:
+          invoiceLineItems.length > 0
+            ? invoiceLineItems
+            : [
+                {
+                  description: `Order from Quote ${quote.quoteNumber}`,
+                  quantity: 1,
+                  unitPrice: Number(quote.subtotal) || 0,
+                },
+              ],
+      }).unwrap();
+
+      toast.success(`Quote ${quote.quoteNumber} converted to Invoice!`);
+      navigate("/admin/invoices");
+    } catch (err) {
+      console.error("Failed to convert quote to invoice", err);
+      toast.error("Failed to convert quote to invoice.");
+    }
+  };
 
   return (
-    <div className="bg-white rounded-xl  overflow-hidden">
+    <div className="bg-white rounded-xl overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
+        <table className={tableDesign.table}>
           <thead className={tableDesign.thead}>
             <tr>
               {tableHeaders.map((item, index) => (
@@ -116,6 +155,14 @@ const QuoteLists: React.FC<QuoteListsProps> = ({
 
                   <td className={tableDesign.td}>
                     <div className="flex items-center gap-2 justify-center">
+                      <button
+                        type="button"
+                        onClick={() => handleConvertToInvoice(quote)}
+                        className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded transition cursor-pointer"
+                        title="Convert to Invoice"
+                      >
+                        <FileCheck size={16} />
+                      </button>
                       <IconActionButton
                         variant="view"
                         title="View"

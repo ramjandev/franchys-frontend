@@ -7,7 +7,7 @@ import { tableDesign } from "../quotes/QuoteLists";
 
 const tableHeaders = [
   { label: "#", align: "text-center " },
-  { label: "Customer/Contact", align: "text-left " },
+  { label: "Customer", align: "text-left " },
   { label: "Company", align: "text-left " },
   { label: "Orders", align: "text-left" },
   { label: "Type", align: "text-left " },
@@ -46,26 +46,6 @@ const CustomerList = () => {
               </thead>
 
               <tbody className="">
-                {isLoading && (
-                  <tr>
-                    <td
-                      colSpan={tableHeaders.length}
-                      className={`${tableDesign.td} text-center text-[#5C7899]`}
-                    >
-                      Loading...
-                    </td>
-                  </tr>
-                )}
-                {!isLoading && customersData.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={tableHeaders.length}
-                      className={`${tableDesign.td} text-center text-[#5C7899]`}
-                    >
-                      No customers found.
-                    </td>
-                  </tr>
-                )}
                 {customersData.map((item, index) => (
                   <tr
                     key={item.id}

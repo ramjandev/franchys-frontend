@@ -57,7 +57,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
             render={({ field }) => (
               <AvatarUpload
                 value={field.value}
-                label="Profile Image"
+                label="Profile Image (Optional)"
                 onChange={(dataUrl: string | null) =>
                   field.onChange(dataUrl ?? "")
                 }
@@ -138,9 +138,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
           </div>
         )}
         <div className="space-y-2 md:col-span-2">
-          <label className={inputClass.label}>
-            Language Preference <span className="text-red-500">*</span>
-          </label>
+          <label className={inputClass.label}>Language Preference</label>
           <Controller
             name="language"
             control={control}

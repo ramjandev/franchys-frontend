@@ -14,29 +14,44 @@ const Quotes = () => {
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useGetQuotesQuery({
+  const { data, isLoading, isFetching } = useGetQuotesQuery({
     page,
     limit: 10,
     search: searchDebounced,
     status: status === "all" ? undefined : status,
   });
+
   const quotes = data?.data ?? [];
   const totalPages = data?.meta.totalPages ?? 1;
 
+  const isSearchFetching = isFetching && !!searchDebounced;
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleStatusChange = (value: string) => {
+    setStatus(value);
+    setPage(1);
+  };
+
   return (
-    <div className="flex flex-col gap-6  w-full">
+    <div className="flex flex-col gap-6 w-full">
       <DashboardTopSection
         title="Quotes"
-        description=" Create and manage customer quotes."
+        description="Create and manage customer quotes."
         buttonOne="New Quote"
         actionOne={() => navigate("/admin/quotes/new")}
       />
 
       <SearchWithFilter
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={handleSearchChange}
         status={status}
-        onStatusChange={setStatus}
+        onStatusChange={handleStatusChange}
+        isFetching={isSearchFetching}
+        placeholder="Search quotes..."
       />
 
       <LoadingStatus isLoading={isLoading} items={quotes} itemName="quotes" />

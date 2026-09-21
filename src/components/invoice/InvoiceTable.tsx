@@ -61,6 +61,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
       console.error("Failed to send invoice reminder", err);
     }
   };
+
   return (
     <div className="bg-white rounded-xl  overflow-hidden">
       <div className="overflow-x-auto">
@@ -136,6 +137,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                         onClick={() => onOpenPayment(invoice.id)}
                       />
                     )}
+
                     {invoice.status === "OVERDUE" && (
                       <CommonButton
                         onClick={() => handleSendReminder(invoice.id)}

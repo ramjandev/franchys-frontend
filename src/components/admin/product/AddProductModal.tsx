@@ -14,6 +14,7 @@ import {
   useGetBrandsQuery,
   useGetCategoriesQuery,
 } from "@/store/brandCategory/brandCategoryApi";
+import { useGetSelectedSizesQuery } from "@/store/settings/customLineItems/lineItemCustomizationAPI";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -26,15 +27,13 @@ interface AddProductModalProps {
   product?: Product;
 }
 
-const SIZE_OPTIONS = ["XS", "S", "M", "L", "XL", "2XL"] as const;
-
 const OTHER_VALUE = "other";
 
 const productSchema = z
   .object({
     itemNo: z.string().trim().min(1, "Item number is required"),
     productName: z.string().trim().min(1, "Product name is required"),
-    price: z.number().positive("Price must be greater than 0"),
+    price: z.number().min(0, "Price must be 0 or greater"),
     colors: z.array(
       z.object({
         name: z.string().trim().min(1, "Color name is required"),
@@ -47,7 +46,7 @@ const productSchema = z
     brandName: z.string().trim(),
     description: z.string().trim(),
     material: z.string().trim(),
-    weight: z.number().positive("Weight must be greater than 0"),
+    weight: z.union([z.number().min(0, "Weight must be 0 or greater"), z.nan()]).optional(),
     style: z.string().trim(),
     availableSizes: z.array(z.string()),
   })
@@ -79,6 +78,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
 
   const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
   const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
+
   const isSubmitting = isCreating || isUpdating;
 
   const [images, setImages] = useState<{ file?: File; preview: string }[]>(
@@ -100,6 +100,10 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     { label: "Other (custom)", value: OTHER_VALUE },
   ];
 
+  // size
+  const { data } = useGetSelectedSizesQuery();
+  const availableSizes = data?.data?.map((s) => s) ?? [];
+
   const {
     register,
     control,
@@ -114,14 +118,14 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       itemNo: product?.itemNo ?? "",
       productName: product?.productName ?? "",
       price: product ? Number(product.price) : 0,
-      colors: product?.colors ?? [{ name: "Black", code: "#000" }],
+      colors: product?.colors ?? [],
       categoryId: product?.categoryId ?? "",
       categoryName: "",
       brandId: product?.brandId ?? "",
       brandName: "",
       description: "",
       material: product?.material ?? "",
-      weight: product?.weight ?? 0,
+      weight: product?.weight ? Number(product.weight) : undefined,
       style: product?.style ?? "",
       availableSizes: product?.availableSizes ?? [],
     },
@@ -176,19 +180,22 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       formData.append("brandName", values.brandName);
     }
 
+    if (values.description) formData.append("description", values.description);
     if (values.material) formData.append("material", values.material);
-    if (values.weight !== undefined)
+    if (
+      values.weight !== undefined &&
+      values.weight !== null &&
+      !Number.isNaN(values.weight)
+    ) {
       formData.append("weight", String(values.weight));
+    }
     if (values.style) formData.append("style", values.style);
-    if (values.availableSizes.length > 0) {
+    if (values.availableSizes && values.availableSizes.length > 0) {
       formData.append("availableSizes", JSON.stringify(values.availableSizes));
     }
-    if (values.colors.length > 0) {
+    if (values.colors && values.colors.length > 0) {
       formData.append("colors", JSON.stringify(values.colors));
     }
-
-    // only newly-picked File objects need (re)uploading — existing image
-    // URLs (from edit mode) have no `file`, so they're skipped here
     images.forEach(({ file }) => {
       if (file) formData.append("images", file);
     });
@@ -321,9 +328,19 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
             </div>
             {/* Colors */}
             <div>
-              <label className={inputClass.label}>Colors</label>
+              <div className="flex items-center justify-between">
+                <label className={inputClass.label}>Colors</label>
+                <span className="text-[11px] text-[#62748E] font-normal">
+                  (Optional)
+                </span>
+              </div>
 
               <div className="space-y-2 mt-2">
+                {colorFields.length === 0 && (
+                  <p className="text-xs text-[#62748E] italic py-1">
+                    No colors added (optional for non-apparel)
+                  </p>
+                )}
                 {colorFields.map((field, index) => (
                   <div key={field.id} className="flex items-center gap-2">
                     <label className="relative w-10 h-10 rounded-lg border border-slate-200 cursor-pointer shrink-0 overflow-hidden">
@@ -472,7 +489,12 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
 
           {/* Specifications */}
           <div>
-            <label className={inputClass.label}>Specifications</label>
+            <div className="flex items-center justify-between">
+              <label className={inputClass.label}>Specifications</label>
+              <span className="text-[11px] text-[#62748E] font-normal">
+                (Optional)
+              </span>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
               <div>
                 <p className="text-[10px] font-semibold text-[#62748E] uppercase tracking-wider mb-1">
@@ -480,14 +502,14 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                 </p>
                 <input
                   type="text"
-                  placeholder="e.g. Polyester"
+                  placeholder="e.g. Polyester / Ceramic"
                   className={inputClass.input}
                   {...register("material")}
                 />
               </div>
               <div>
                 <p className="text-[10px] font-semibold text-[#62748E] uppercase tracking-wider mb-1">
-                  Weight
+                  Weight (lbs)
                 </p>
                 <input
                   type="number"
@@ -496,6 +518,11 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                   className={inputClass.input}
                   {...register("weight", { valueAsNumber: true })}
                 />
+                {errors.weight && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.weight.message}
+                  </p>
+                )}
               </div>
               <div>
                 <p className="text-[10px] font-semibold text-[#62748E] uppercase tracking-wider mb-1">
@@ -503,7 +530,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                 </p>
                 <input
                   type="text"
-                  placeholder="e.g. Athletic"
+                  placeholder="e.g. Athletic / Mug / Pen"
                   className={inputClass.input}
                   {...register("style")}
                 />
@@ -513,19 +540,24 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
 
           {/* Available Sizes */}
           <div>
-            <label className={inputClass.label}>Available Sizes</label>
+            <div className="flex items-center justify-between">
+              <label className={inputClass.label}>Available Sizes</label>
+              <span className="text-[11px] text-[#62748E] font-normal">
+                (Optional for non-apparel)
+              </span>
+            </div>
             <Controller
               control={control}
               name="availableSizes"
               render={({ field }) => (
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {SIZE_OPTIONS.map((size) => (
+                  {availableSizes.map((size) => (
                     <button
                       key={size}
                       type="button"
                       onClick={() => toggleSize(size, field.onChange)}
                       className={`px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer transition-colors ${
-                        field.value.includes(size)
+                        (field.value || []).includes(size)
                           ? "border-blue-500 bg-blue-50 text-blue-600"
                           : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                       }`}

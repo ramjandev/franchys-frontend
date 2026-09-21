@@ -1,3 +1,4 @@
+import EmptyState from "./EmptyState";
 import TableLoading from "./TableLoading";
 
 type ListStatusProps = {
@@ -12,8 +13,8 @@ const LoadingStatus: React.FC<ListStatusProps> = ({
   itemName = "items",
 }) => {
   if (isLoading) return <>{<TableLoading />}</>;
-  if (!items.length)
-    return <div className="py-5 text-center">{`No ${itemName} found.`}</div>;
+  if (!items.length) return <EmptyState title={`No ${itemName} found.`} />;
+
   return null;
 };
 

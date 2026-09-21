@@ -1,13 +1,11 @@
 import CardContainer from "@/components/shared/CardContainer";
 import CommonButton from "@/components/shared/CommonButton";
 import { mockupCaptureRef } from "@/lib/mockupCaptureRef";
-import { saveImage } from "@/store/mockUp/designSlice";
 import { useMockup } from "@/store/mockUp/hooks/useMockup";
 import { useUploadMockupsMutation } from "@/store/quote/quoteAPI";
 import { toBlob } from "html-to-image";
 import { Download, Eye, EyeOff, Save, Trash2 } from "lucide-react";
 import React from "react";
-import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 
 const CANVAS_W = 420;
@@ -23,7 +21,7 @@ const RightPanel: React.FC = () => {
     removeLayer,
   } = useMockup();
 
-  const dispatch = useDispatch();
+
   const [uploadMockups, { isLoading }] = useUploadMockupsMutation();
 
   const activeLayers = layersByView[activeView] || [];
@@ -78,7 +76,7 @@ const RightPanel: React.FC = () => {
 
       const res = await uploadMockups([file]).unwrap();
 
-      res.data.urls.forEach((url) => dispatch(saveImage(url)));
+      console.log("Mockup saved successfully:", res);
 
       toast.success("Mockup saved successfully!");
     } catch (err) {

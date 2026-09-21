@@ -3,11 +3,16 @@ import CommonButton from "@/components/shared/CommonButton";
 import CommonSelect from "@/components/shared/CommonSelect";
 import { inputClass } from "@/pages/Login";
 import { GARMENT_OPTIONS, useMockup } from "@/store/mockUp/hooks/useMockup";
+import { Product } from "@/store/Product/types/productTypes";
 import { RotateCcw, Sparkles, Upload } from "lucide-react";
 import React, { useRef } from "react";
 import { TbBracketsContain } from "react-icons/tb";
 import { toast } from "react-toastify";
-const LeftPanel: React.FC = () => {
+
+interface LeftPanelProps {
+  product: Product;
+}
+const LeftPanel: React.FC<LeftPanelProps> = () => {
   const {
     clothingCode,
     setClothingCode,

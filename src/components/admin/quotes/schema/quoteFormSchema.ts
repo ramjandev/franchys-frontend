@@ -5,12 +5,14 @@ export const lineItemSchema = z.object({
   itemNumber: z.string().trim(),
   color: z.string().trim(),
   description: z.string().trim().min(1, "Description is required"),
-  imprintType: z.string().trim(),
+  imprintType: z.string().trim().optional(),
   sizes: z.record(z.string(), z.number()),
   items: z.number(),
   markup: z.number(),
+  baseCost: z.number().optional(),
   price: z.number(),
   taxed: z.boolean(),
+  mockups: z.array(z.string()).optional(),
 });
 
 export const groupSchema = z.object({
@@ -46,8 +48,10 @@ export const makeDefaultLineItem = (
   sizes: Object.fromEntries(sizeKeys.map((s) => [s, 0])),
   items: 0,
   markup: 0,
+  baseCost: 0,
   price: 0,
   taxed: false,
+  mockups: [],
 });
 
 export const makeDefaultGroup = (

@@ -113,7 +113,6 @@ interface DesignState {
   history: string[];
   future: string[];
   privacy?: boolean;
-  savedImages: string[];
 }
 
 const initialState: DesignState = {
@@ -134,7 +133,6 @@ const initialState: DesignState = {
   history: [],
   future: [],
   privacy: false,
-  savedImages: [],
 };
 
 const makeId = (type: string) =>
@@ -268,12 +266,6 @@ const designSlice = createSlice({
       state.layersByView = JSON.parse(next);
       state.selectedLayerId = null;
     },
-    saveImage: (state, action: PayloadAction<string>) => {
-      state.savedImages.push(action.payload);
-    },
-    resetSavedImages: (state) => {
-      state.savedImages = [];
-    },
 
     //dashboard privacy
     togglePrivacy: (state) => {
@@ -299,8 +291,6 @@ export const {
   resetCanvas,
   undo,
   redo,
-  saveImage,
-  resetSavedImages,
   //dashboard privacy
   togglePrivacy,
 } = designSlice.actions;

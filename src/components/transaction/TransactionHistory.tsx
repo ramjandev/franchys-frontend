@@ -1,6 +1,7 @@
 import { PaymentHistoryItem } from "@/pages/Admin/Payment";
-import { Download, Filter } from "lucide-react";
+import { Download, Filter, Loader2 } from "lucide-react";
 import CommonButton from "../shared/CommonButton";
+import { usePdfExport } from "../shared/htmlToPdf/usePdfExport";
 import StatusBadge from "../shared/StatusBadge";
 import CommonTabs from "./CommonTabs";
 
@@ -30,6 +31,12 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
   setStatusFilter,
   isLoading,
 }) => {
+  const { targetRef, exportPdf, isExporting } = usePdfExport<HTMLDivElement>({
+    filename: `transactions-${statusFilter.toLowerCase()}-${new Date()
+      .toISOString()
+      .slice(0, 10)}.pdf`,
+  });
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl">
@@ -53,13 +60,20 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
           />
         </div>
 
-        <CommonButton variant="secondary">
-          <Download />
-          Export
+        <CommonButton
+          variant="secondary"
+          onClick={() => exportPdf()}
+          disabled={isExporting || filteredTx.length === 0}
+        >
+          {isExporting ? <Loader2 className="animate-spin" /> : <Download />}
+          {isExporting ? "Generating…" : "Export"}
         </CommonButton>
       </div>
 
-      <div className="border border-[#E6EBF2] rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.01)] overflow-x-auto">
+      <div
+        ref={targetRef}
+        className="border border-[#E6EBF2] rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.01)] overflow-x-auto"
+      >
         <table className="w-full text-sm text-left whitespace-nowrap">
           <thead className="text-xs text-[#5C7899] bg-[#F8FAFC] border-b border-[#E6EBF2]">
             <tr>

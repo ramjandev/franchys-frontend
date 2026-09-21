@@ -140,6 +140,7 @@ const ProfileSettings = () => {
                 type="email"
                 className={inputClass.input}
                 {...register("email")}
+                readOnly
               />
               {errors.email && (
                 <p className="text-xs text-red-500 mt-1">

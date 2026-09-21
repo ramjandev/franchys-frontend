@@ -31,8 +31,11 @@ const AllCampaigns = () => {
   const [search, setSearch] = useState("");
   const searchDebounced = useDebounce(search, 500);
 
-  const { data, isLoading, isFetching, isError, refetch } =
-    useGetAllCustomersQuery({ search: searchDebounced, page: 1, limit: 100 });
+  const { data, isLoading, isFetching, isError } = useGetAllCustomersQuery({
+    search: searchDebounced,
+    page: 1,
+    limit: 100,
+  });
 
   const customers: Customer[] = data?.data ?? [];
 

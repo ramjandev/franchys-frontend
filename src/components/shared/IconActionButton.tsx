@@ -1,4 +1,14 @@
-import { Loader2, Trash2, X } from "lucide-react";
+import {
+  Copy,
+  Download,
+  FileText,
+  Loader2,
+  Plus,
+  Settings,
+  Trash2,
+  X,
+} from "lucide-react";
+
 import type { FC } from "react";
 import { HiOutlinePencil } from "react-icons/hi2";
 import { MdOutlineRemoveRedEye } from "react-icons/md";
@@ -8,7 +18,17 @@ interface IconActionButtonProps {
   onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   className?: string;
   isLoading?: boolean;
-  variant?: "edit" | "delete" | "remove" | "view";
+
+  variant?:
+    | "edit"
+    | "delete"
+    | "remove"
+    | "view"
+    | "add"
+    | "download"
+    | "copy"
+    | "settings"
+    | "file";
 }
 
 const variantClasses: Record<
@@ -16,9 +36,22 @@ const variantClasses: Record<
   string
 > = {
   edit: "text-[#62748E] hover:bg-[#F1F5F9] hover:text-[#155DFC]",
+
   delete: "text-[#E7000B] hover:bg-red-50 hover:text-[#E7000B]",
-  view: "text-[#62748E] hover:bg-[#F1F5F9] hover:text-[#155DFC]",
+
   remove: "text-[#E7000B] hover:bg-red-50",
+
+  view: "text-[#62748E] hover:bg-[#F1F5F9] hover:text-[#155DFC]",
+
+  add: "text-[#16A34A] hover:bg-green-50 hover:text-[#15803D]",
+
+  download: "text-[#62748E] hover:bg-[#F1F5F9] hover:text-[#155DFC]",
+
+  copy: "text-[#62748E] hover:bg-[#F1F5F9] hover:text-[#155DFC]",
+
+  settings: "text-[#62748E] hover:bg-[#F1F5F9] hover:text-[#155DFC]",
+
+  file: "text-[#62748E] hover:bg-[#F1F5F9] hover:text-[#155DFC]",
 };
 
 const IconActionButton: FC<IconActionButtonProps> = ({
@@ -36,12 +69,31 @@ const IconActionButton: FC<IconActionButtonProps> = ({
     switch (variant) {
       case "edit":
         return <HiOutlinePencil size={15} />;
+
       case "delete":
         return <Trash2 size={15} />;
+
       case "remove":
         return <X size={15} />;
+
       case "view":
         return <MdOutlineRemoveRedEye size={15} />;
+
+      case "add":
+        return <Plus size={15} />;
+
+      case "download":
+        return <Download size={15} />;
+
+      case "copy":
+        return <Copy size={15} />;
+
+      case "settings":
+        return <Settings size={15} />;
+
+      case "file":
+        return <FileText size={15} />;
+
       default:
         return null;
     }
@@ -53,7 +105,9 @@ const IconActionButton: FC<IconActionButtonProps> = ({
       title={title}
       onClick={onClick}
       disabled={isLoading}
-      className={`p-1.5 rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${variantClasses[variant]} ${className}`}
+      className={`p-1.5 rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+        variantClasses[variant]
+      } ${className}`}
     >
       {renderIcon()}
     </button>

@@ -11,6 +11,7 @@ import {
 } from "redux-persist";
 import authReducer from "./Auth/authSlice";
 import { baseAPI } from "./BaseApi/baseAPI";
+import imageReducer from "./imageSlice/imageSlice";
 import designReducer from "./mockUp/designSlice";
 
 import * as storageModule from "redux-persist/lib/storage";
@@ -24,22 +25,22 @@ const persistConfig = {
   storage,
 };
 
-const designPersistConfig = {
-  key: "design",
+const imagePersistConfig = {
+  key: "image",
   storage,
-  whitelist: ["savedImages"],
+  whitelist: ["productType", "selectedProduct"],
 };
 
 const persistedReducer = persistReducer(persistConfig, authReducer);
-const persistedDesignReducer = persistReducer(
-  designPersistConfig,
-  designReducer,
-);
+
+const persistedImageReducer = persistReducer(imagePersistConfig, imageReducer);
+
 export const store = configureStore({
   reducer: {
     [baseAPI.reducerPath]: baseAPI.reducer,
-    design: persistedDesignReducer,
+    design: designReducer,
     auth: persistedReducer,
+    image: persistedImageReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

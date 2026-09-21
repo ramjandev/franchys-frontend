@@ -9,16 +9,20 @@ export interface AdminPermissions {
   canCreateCustomers: boolean;
   canUpdateCustomers: boolean;
   canDeleteCustomers: boolean;
+  canViewCustomers: boolean;
   canCreateQuotes: boolean;
   canUpdateQuotes: boolean;
   canDeleteQuotes: boolean;
   canApproveQuotes: boolean;
+  canViewQuotes: boolean;
   canCreateJobs: boolean;
   canUpdateJobs: boolean;
   canDeleteJobs: boolean;
+  canViewJobs: boolean;
   canCreateProducts: boolean;
   canUpdateProducts: boolean;
   canDeleteProducts: boolean;
+  canViewMockups: boolean;
   canCreateUsers: boolean;
   canUpdateUsers: boolean;
   canDeleteUsers: boolean;
@@ -27,6 +31,7 @@ export interface AdminPermissions {
   canDeleteInvoices: boolean;
   canApproveInvoices: boolean;
   canTakePayment: boolean;
+  canViewInvoices: boolean;
   canCreateInvoiceFees: boolean;
   canUpdateInvoiceFees: boolean;
   canDeleteInvoiceFees: boolean;
@@ -35,6 +40,8 @@ export interface AdminPermissions {
   canCreateVendor: boolean;
   canUpdateVendor: boolean;
   canDeleteVendor: boolean;
+  canViewReports: boolean;
+  canViewAnalytics: boolean;
 }
 
 export interface AdminPermissionsWithMeta extends AdminPermissions {
@@ -45,7 +52,7 @@ export interface AdminPermissionsWithMeta extends AdminPermissions {
 // ---- Core entity ----
 
 export type AdminRole = "ADMIN" | "SUPER_ADMIN" | string;
-export type AdminStatus = "TRIAL" | "ACTIVE" | "SUSPENDED" | "BANNED" | string;
+export type AdminStatus = "TRIAL" | "ACTIVE" | "SUSPEND" | "BANNED" | string;
 
 export interface AdminUser {
   userId: string;
@@ -69,11 +76,10 @@ export interface AdminUser {
   tasksRemainderEmail: boolean;
   taskAssignEmail: boolean;
   isDeleted: boolean;
-  phone: string;
+  phone: string | null;
   address: string | null;
   country: string | null;
-  // API may not always return a permissions record for a user
-  permissions: AdminPermissionsWithMeta | null;
+  userPermissions: AdminPermissionsWithMeta[];
 }
 
 // ---- Request payloads ----
@@ -81,7 +87,6 @@ export interface AdminUser {
 export interface CreateAdmin {
   name: string;
   email: string;
-  phone: string;
   password: string;
   permissions: AdminPermissions;
 }

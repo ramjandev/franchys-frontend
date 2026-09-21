@@ -30,8 +30,6 @@ const Products = () => {
     setPage(1);
   };
 
-  console.log("filters", filters);
-
   const { data, isLoading } = useGetProductsQuery({
     page,
     limit,
@@ -43,6 +41,8 @@ const Products = () => {
   });
 
   const products = data?.data ?? [];
+
+  console.log("products", data);
 
   const openCreate = () => {
     setEditingProduct(undefined);
@@ -72,8 +72,8 @@ const Products = () => {
           loadingArray(8).map((_, index) => (
             <DashboardCardSkeleton key={index} />
           ))
-        ) : products.length > 0 ? (
-          products.map((product) => (
+        ) : products && products.length > 0 ? (
+          products?.map((product) => (
             <ProductCard
               key={product.id}
               product={product}

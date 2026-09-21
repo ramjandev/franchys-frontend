@@ -93,8 +93,8 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               DESCRIPTION
             </CommonHeader>
             <CommonHeader size="sm">
-              {product.itemNo} &bull; {product.brand.name} &bull;{" "}
-              {product.category.name}
+              {product.itemNo} &bull; {product?.brand?.name ?? ""} &bull;{" "}
+              {product?.category?.name ?? "Custom"}
             </CommonHeader>
           </div>
 

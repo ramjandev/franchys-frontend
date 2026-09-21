@@ -6,12 +6,12 @@ import {
   DollarSign,
   FileText,
   Link as LinkIcon,
-  MessageSquare,
   Store,
   TrendingUp,
   User,
   Users,
 } from "lucide-react";
+import { LuDatabaseBackup } from "react-icons/lu";
 import { MdOutlinePayment } from "react-icons/md";
 
 import { IoSettingsOutline } from "react-icons/io5";
@@ -40,7 +40,7 @@ const settingsLinks = [
   { name: "Vendors", path: "/admin/settings/vendors", icon: Building },
   { name: "Users", path: "/admin/settings/users", icon: Users },
   { name: "Social Links", path: "/admin/settings/social", icon: LinkIcon },
-  { name: "Messaging", path: "/admin/settings/messaging", icon: MessageSquare },
+  { name: "SanMar", path: "/admin/settings/sanmar", icon: LuDatabaseBackup },
 ];
 
 const selectOptions = settingsLinks.map((link) => ({

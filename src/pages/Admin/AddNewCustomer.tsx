@@ -3,7 +3,6 @@ import AdditionalInformationCard from "@/components/customer/AdditionalInformati
 import AddressInformationCard from "@/components/customer/AddressInformationCard";
 import CompanyInformation from "@/components/customer/CompanyInformation";
 import CustomerTab from "@/components/customer/CustomerTab";
-import OrderDetails from "@/components/customer/OrderDetails";
 import PersonalInformation from "@/components/customer/PersonalInformation";
 import {
   CustomerFormValues,
@@ -32,6 +31,8 @@ const defaultValues: CustomerFormValues = {
   website: "",
   companyName: "",
   taxId: "",
+  isTaxExempt: false,
+  taxExemptNumber: "",
   secondaryFirstName: "",
   secondaryLastName: "",
   secondaryEmail: "",
@@ -43,7 +44,6 @@ const defaultValues: CustomerFormValues = {
   country: "United States",
   tags: [],
   notes: "",
-  orderPurpose: "",
   eventType: "",
   eventDate: "",
   profileImage: "",
@@ -82,9 +82,6 @@ const AddNewCustomer = () => {
     useUpdateCustomerMutation();
 
   const isLoading = isLoadingCreate || isLoadingUpdate;
-
-  // Populate the form once when editing, so a background refetch never
-  // silently overwrites unsaved edits.
   const hasInitialized = useRef(false);
   useEffect(() => {
     if (customerData?.data && !hasInitialized.current) {
@@ -103,6 +100,8 @@ const AddNewCustomer = () => {
         website: c.website ?? "",
         companyName: c.companyName ?? "",
         taxId: c.taxId ?? "",
+        isTaxExempt: c.isTaxExempt ?? false,
+        taxExemptNumber: c.taxExemptNumber ?? "",
         secondaryFirstName: "",
         secondaryLastName: "",
         secondaryEmail: c.secondaryEmail ?? "",
@@ -114,7 +113,6 @@ const AddNewCustomer = () => {
         country: c.country ?? "United States",
         tags: c.tags ?? [],
         notes: c.notes ?? "",
-        orderPurpose: c.orderPurpose ?? "",
         eventType: c.eventType ?? "",
         eventDate: c.eventDate ? c.eventDate.slice(0, 10) : "",
         profileImage: c.profileImage ?? "",
@@ -168,10 +166,16 @@ const AddNewCustomer = () => {
       formData.append("email", data.email);
       formData.append("phone", data.phone);
       formData.append("customerType", data.customerType);
-      formData.append("language", data.language);
+      if (data.language) formData.append("language", data.language);
       if (data.website) formData.append("website", data.website);
       if (data.companyName) formData.append("companyName", data.companyName);
       if (data.taxId) formData.append("taxId", data.taxId);
+      if (data.isTaxExempt !== undefined) {
+        formData.append("isTaxExempt", String(data.isTaxExempt));
+      }
+      if (data.taxExemptNumber) {
+        formData.append("taxExemptNumber", data.taxExemptNumber);
+      }
 
       if (showSecondary) {
         if (data.secondaryFirstName)
@@ -184,23 +188,19 @@ const AddNewCustomer = () => {
           formData.append("secondaryPhone", data.secondaryPhone);
       }
 
-      formData.append("street", data.street);
-      formData.append("city", data.city);
-      formData.append("state", data.state);
-      formData.append("postalCode", data.postalCode);
-      formData.append("country", data.country);
+      if (data.street) formData.append("street", data.street);
+      if (data.city) formData.append("city", data.city);
+      if (data.state) formData.append("state", data.state);
+      if (data.postalCode) formData.append("postalCode", data.postalCode);
+      if (data.country) formData.append("country", data.country);
 
       (data.tags || []).forEach((tag) => formData.append("tags[]", tag));
 
       if (data.notes) formData.append("notes", data.notes);
-      if (data.orderPurpose) formData.append("orderPurpose", data.orderPurpose);
       if (data.eventType) formData.append("eventType", data.eventType);
       if (data.eventDate)
         formData.append("eventDate", new Date(data.eventDate).toISOString());
 
-      // Only append the image if a NEW one was selected (data URL string).
-      // An existing remote URL (unchanged) is left alone so it isn't
-      // mistakenly re-uploaded as a "file".
       if (data.profileImage && data.profileImage.startsWith("data:")) {
         const file = dataUrlToFile(data.profileImage, "profileImage.png");
         formData.append("profileImage", file);
@@ -208,10 +208,8 @@ const AddNewCustomer = () => {
 
       if (isEditMode && id) {
         await updateCustomer({ id, data: formData }).unwrap();
-        toast.success("Customer updated successfully");
       } else {
         await createCustomer(formData).unwrap();
-        toast.success("Customer created successfully");
       }
       navigate(-1);
     } catch (err) {
@@ -267,10 +265,13 @@ const AddNewCustomer = () => {
             setShowSecondary={setShowSecondary}
           />
 
-          {customerType === "business" ? (
-            <CompanyInformation register={register} errors={errors} />
-          ) : (
-            <OrderDetails register={register} errors={errors} />
+          {customerType === "business" && (
+            <CompanyInformation
+              register={register}
+              control={control}
+              errors={errors}
+              watch={watch}
+            />
           )}
           <AddressInformationCard
             register={register}

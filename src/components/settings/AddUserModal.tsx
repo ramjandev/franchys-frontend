@@ -14,16 +14,20 @@ export const defaultPermissions: AdminPermissions = {
   canCreateCustomers: true,
   canUpdateCustomers: true,
   canDeleteCustomers: true,
+  canViewCustomers: true,
   canCreateQuotes: true,
   canUpdateQuotes: true,
   canDeleteQuotes: true,
   canApproveQuotes: true,
+  canViewQuotes: true,
   canCreateJobs: true,
   canUpdateJobs: true,
   canDeleteJobs: true,
+  canViewJobs: true,
   canCreateProducts: true,
   canUpdateProducts: true,
   canDeleteProducts: true,
+  canViewMockups: true,
   canCreateUsers: true,
   canUpdateUsers: true,
   canDeleteUsers: true,
@@ -32,6 +36,7 @@ export const defaultPermissions: AdminPermissions = {
   canDeleteInvoices: true,
   canApproveInvoices: true,
   canTakePayment: true,
+  canViewInvoices: true,
   canCreateInvoiceFees: true,
   canUpdateInvoiceFees: true,
   canDeleteInvoiceFees: true,
@@ -40,6 +45,8 @@ export const defaultPermissions: AdminPermissions = {
   canCreateVendor: true,
   canUpdateVendor: true,
   canDeleteVendor: true,
+  canViewReports: true,
+  canViewAnalytics: true,
 };
 
 const addUserSchema = z
@@ -87,7 +94,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ setShowModal }) => {
     defaultValues: {
       name: "",
       email: "",
-      phone: "",
       password: "",
       confirmPassword: "",
     },
@@ -99,7 +105,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ setShowModal }) => {
       await createAdmin({
         name: values.name,
         email: values.email,
-        phone: values.phone,
         password: values.password,
         permissions: defaultPermissions,
       }).unwrap();
@@ -153,17 +158,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ setShowModal }) => {
               <p className="text-xs text-[#E7000B]">{errors.email.message}</p>
             )}
           </div>
-          <div className="space-y-2">
-            <label className={inputClass.label}>Phone</label>
-            <input
-              placeholder="(555) 123-4567"
-              className={inputClass.input}
-              {...register("phone")}
-            />
-            {errors.phone && (
-              <p className="text-xs text-[#E7000B]">{errors.phone.message}</p>
-            )}
-          </div>
+
           <div className="space-y-2">
             <label className={inputClass.label}>Password</label>
             <div className="relative">

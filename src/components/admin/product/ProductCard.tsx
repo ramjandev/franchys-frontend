@@ -35,7 +35,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         )}
 
         <span className="absolute top-3 left-3 flex items-center px-2 py-0.5 rounded-full bg-white/90 text-[#314158] text-[10px] font-semibold shadow-sm">
-          {product.category.name}
+          {product?.category?.name ?? "Custom"}
         </span>
 
         <div className="absolute bottom-3 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -55,14 +55,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
       </div>
       <div className="p-4 border-t border-[#F1F5F9]">
         <CommonHeader size="sm" className="text-[#0F172B]!  font-medium! ">
-          {product.productName}
+          {product?.productName ?? ""}
         </CommonHeader>
         <CommonHeader size="xs" className=" ">
-          {product.brand.name}
+          {product?.brand?.name ?? ""}
         </CommonHeader>
 
         <CommonHeader size="xs" className="text-[#94A3B8]! mt-0.5">
-          Item No: {product.itemNo}
+          Item No: {product.itemNo ?? ""}
         </CommonHeader>
 
         {(product.material || product.style) && (

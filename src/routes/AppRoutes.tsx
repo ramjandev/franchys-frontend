@@ -21,16 +21,16 @@ import ProtectedRoute from "./ProtectedRoute";
 // Settings Pages
 import AllCampaigns from "@/components/admin/message/AllCampaigns";
 import QuotePreview from "@/components/admin/quotes/QuotePreview";
-import InvoiceDetails from "@/pages/Admin/InvoiceDetails";
+import JobDetails from "@/pages/Admin/JobDetails";
 import MockupBuilderPage from "@/pages/Admin/MockupBuilder/MockupBuilderPage";
 import InvoiceFeesSettings from "@/pages/Admin/Settings/InvoiceFeesSettings";
 import InvoiceSettings from "@/pages/Admin/Settings/InvoiceSettings";
 import LineItemsSettings from "@/pages/Admin/Settings/LineItemsSettings";
-import MessagingSettings from "@/pages/Admin/Settings/MessagingSettings";
 import PaymentTermsSettings from "@/pages/Admin/Settings/PaymentTermsSettings";
 import PricingMatrixDetail from "@/pages/Admin/Settings/PricingMatrixDetail";
 import PricingMatrixSettings from "@/pages/Admin/Settings/PricingMatrixSettings";
 import ProfileSettings from "@/pages/Admin/Settings/ProfileSettings";
+import SanMar from "@/pages/Admin/Settings/SanMar";
 import SettingsLayout from "@/pages/Admin/Settings/SettingsLayout";
 import ShopSettings from "@/pages/Admin/Settings/ShopSettings";
 import SocialLinksSettings from "@/pages/Admin/Settings/SocialLinksSettings";
@@ -45,7 +45,6 @@ const router = createBrowserRouter([
     path: "/",
     element: <App />,
     children: [
-      //public routes
       {
         index: true,
         element: <Login />,
@@ -66,7 +65,6 @@ const router = createBrowserRouter([
 
       { path: "quotes/public/:id", element: <QuotePreview /> },
 
-      //protected routes
       {
         path: "admin",
         element: <ProtectedRoute />,
@@ -81,11 +79,12 @@ const router = createBrowserRouter([
               { path: "quotes/edit/:id", element: <CreateQuote /> },
               { path: "quotes/preview/:id", element: <QuotePreview /> },
               { path: "invoices", element: <Invoices /> },
-              { path: "invoices/:id", element: <InvoiceDetails /> },
+
               { path: "customers", element: <Customers /> },
               { path: "customers/new", element: <AddNewCustomer /> },
               { path: "customers/edit/:id", element: <AddNewCustomer /> },
               { path: "job-board", element: <JobBoard /> },
+              { path: "job-board/:id", element: <JobDetails /> },
               { path: "mockups", element: <MockupBuilderPage /> },
               { path: "mockups/:productId", element: <MockupBuilderPage /> },
               { path: "category-brand", element: <CategoryBrandManager /> },
@@ -111,7 +110,7 @@ const router = createBrowserRouter([
                   { path: "vendors", element: <VendorsSettings /> },
                   { path: "users", element: <UsersSettings /> },
                   { path: "social", element: <SocialLinksSettings /> },
-                  { path: "messaging", element: <MessagingSettings /> },
+                  { path: "sanmar", element: <SanMar /> },
                 ],
               },
             ],

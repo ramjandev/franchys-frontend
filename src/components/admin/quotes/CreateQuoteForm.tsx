@@ -3,7 +3,6 @@ import CommonButton from "@/components/shared/CommonButton";
 import CommonHeader from "@/components/shared/CommonHeader";
 import CommonSelect from "@/components/shared/CommonSelect";
 import { inputClass } from "@/pages/Login";
-import { useGetAllCustomersQuery } from "@/store/Customer/customerAPI";
 import {
   useCreateQuoteMutation,
   useGetQuoteByIdQuery,
@@ -23,12 +22,13 @@ import { useGetSelectedSizesQuery } from "@/store/settings/customLineItems/lineI
 import { RootState } from "@/store/store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
-import { resetSavedImages } from "@/store/mockUp/designSlice";
+import CustomerSearchSelect from "./CustomerSearchSelect";
 import LineItemsGroup from "./LineItemsGroup";
 import SummaryCard from "./SummaryCard";
 import { deliveryMethods } from "./data";
@@ -42,20 +42,25 @@ const FIXED_TAX_RATE = 7;
 
 const CreateQuoteForm = () => {
   const { user } = useSelector((s: RootState) => s.auth);
-  const { savedImages } = useSelector((s: RootState) => s.design);
-  const { data: customersData } = useGetAllCustomersQuery({ limit: 100 });
   const { data: sizesData } = useGetSelectedSizesQuery();
-  const sizes = sizesData?.data ?? [];
+
+  // Dynamic sizes state
+  const [activeSizes, setActiveSizes] = useState<string[]>([]);
+
+  // Sync backend default sizes into activeSizes
+  useEffect(() => {
+    if (sizesData?.data && sizesData.data.length > 0) {
+      setActiveSizes((prev) => {
+        const set = new Set([...prev, ...sizesData.data]);
+        return Array.from(set);
+      });
+    }
+  }, [sizesData]);
 
   const { id: quoteId } = useParams<{ id?: string }>();
   const isEditMode = Boolean(quoteId);
 
   const repId = user?.userId ?? "";
-  const customerOptions =
-    customersData?.data.map((customer) => ({
-      label: `${customer.firstName} ${customer.lastName}`,
-      value: customer.id,
-    })) ?? [];
 
   const { data: quoteData } = useGetQuoteByIdQuery(quoteId!, {
     skip: !quoteId,
@@ -92,29 +97,55 @@ const CreateQuoteForm = () => {
     if (repId) setValue("repId", repId);
   }, [repId, setValue]);
 
+  // Backfill sizes initially once when loaded
+  const hasBackfilledRef = useRef(false);
   useEffect(() => {
-    if (sizes.length === 0) return;
+    if (hasBackfilledRef.current || activeSizes.length === 0) return;
     const currentGroups = watch("groups");
     const needsBackfill = currentGroups.every((g) =>
       g.lineItems.every((li) => Object.keys(li.sizes).length === 0),
     );
     if (needsBackfill) {
+      hasBackfilledRef.current = true;
       reset({
         ...watch(),
         groups: currentGroups.map((g) => ({
           ...g,
           lineItems: g.lineItems.map((li) => ({
             ...li,
-            sizes: Object.fromEntries(sizes.map((s) => [s, li.sizes[s] ?? 0])),
+            sizes: Object.fromEntries(
+              activeSizes.map((s) => [s, li.sizes[s] ?? 0]),
+            ),
           })),
         })),
       });
     }
-  }, [sizes.join(",")]);
+  }, [activeSizes]);
 
+  // Load existing quote data
   useEffect(() => {
     if (quoteData?.data) {
       const q = quoteData.data;
+
+      // Collect any sizes present in quote line items
+      const existingSizes: string[] = [];
+      q.groups.forEach((g) => {
+        g.lineItems.forEach((li) => {
+          if (li.sizeBreakdown) {
+            Object.keys(li.sizeBreakdown).forEach((sz) => {
+              if (sz && !existingSizes.includes(sz)) {
+                existingSizes.push(sz);
+              }
+            });
+          }
+        });
+      });
+      if (existingSizes.length > 0) {
+        setActiveSizes((prev) =>
+          Array.from(new Set([...prev, ...existingSizes])),
+        );
+      }
+
       reset({
         customerId: q.customerId,
         repId: q.repId || repId,
@@ -133,16 +164,47 @@ const CreateQuoteForm = () => {
             color: li.color,
             description: li.description,
             imprintType: li.imprintType,
-            sizes: li.sizeBreakdown,
+            sizes: li.sizeBreakdown || {},
             items: li.itemsCount,
-            markup: Number(li.markupPrice) ?? "",
+            markup: Number(li.markupPrice) || 0,
+            baseCost: Number(li.baseCost) || Number(li.unitPrice) || 0,
             price: Number(li.unitPrice) || 0,
             taxed: li.isTaxed,
+            mockups: li.mockups || [],
           })),
         })),
       });
     }
   }, [quoteData]);
+
+  // Handlers for adding and removing sizes (stable without resetting group field IDs)
+  const handleAddSize = (newSize: string) => {
+    const trimmed = newSize.trim();
+    if (!trimmed || activeSizes.includes(trimmed)) return;
+    setActiveSizes((prev) => [...prev, trimmed]);
+  };
+
+  const handleRemoveSize = (sizeToRemove: string) => {
+    setActiveSizes((prev) => prev.filter((s) => s !== sizeToRemove));
+
+    const currentGroups = watch("groups") || [];
+    currentGroups.forEach((g, gIdx) => {
+      g.lineItems.forEach((li, liIdx) => {
+        if (li.sizes && li.sizes[sizeToRemove]) {
+          const removedQty = Number(li.sizes[sizeToRemove]) || 0;
+          setValue(
+            `groups.${gIdx}.lineItems.${liIdx}.sizes.${sizeToRemove}`,
+            0,
+          );
+          const currentItems = Number(li.items) || 0;
+          setValue(
+            `groups.${gIdx}.lineItems.${liIdx}.items`,
+            Math.max(0, currentItems - removedQty),
+          );
+        }
+      });
+    });
+  };
 
   const {
     fields: groupFields,
@@ -150,9 +212,8 @@ const CreateQuoteForm = () => {
     remove: removeGroup,
   } = useFieldArray({ control, name: "groups" });
 
-  const dispatch = useDispatch();
   const handleAddGroup = () => {
-    appendGroup(makeDefaultGroup(sizes, groupFields.length + 1));
+    appendGroup(makeDefaultGroup(activeSizes, groupFields.length + 1));
   };
 
   const watchedGroups = watch("groups");
@@ -193,13 +254,16 @@ const CreateQuoteForm = () => {
       name: g.name,
       lineItems: g.lineItems.map((li) => {
         const lineTotal = li.items * li.price * (1 + li.markup / 100);
+        const effectiveBaseCost =
+          li.baseCost && li.baseCost > 0 ? li.baseCost : li.price;
+
         return {
           groupName: g.name,
           category: li.category,
           itemNumber: li.itemNumber,
           color: li.color,
           description: li.description,
-          baseCost: li.price,
+          baseCost: effectiveBaseCost,
           sizeBreakdown: li.sizes,
           markupPrice: li.markup,
           matrixId: g.priceMatrixId || undefined,
@@ -207,8 +271,7 @@ const CreateQuoteForm = () => {
           unitPrice: li.price,
           isTaxed: li.taxed,
           total: Number(lineTotal.toFixed(2)),
-          imprintType: li.imprintType,
-          mockups: savedImages ?? [],
+          imprintType: li.imprintType || "",
         };
       }),
     }));
@@ -216,7 +279,6 @@ const CreateQuoteForm = () => {
   const [recalculatedPricing, setRecalculatedPricing] =
     useState<RefreshPricingResult | null>(null);
   const [updateRefreshPricing] = useRefreshPricingNewMutation();
-  // need when quote is editing
   const [updateRefreshPricingExisting] = useRefreshPricingExistingMutation();
 
   const onRefreshPricing = async () => {
@@ -262,8 +324,8 @@ const CreateQuoteForm = () => {
 
       setRecalculatedPricing(result);
 
-      // sync recalculated price/markup back into form state so the
-      // subtotal/tax/total useMemo recomputes and SummaryCard re-renders
+      // Note: We preserve baseCost! Updating unitPrice and markup will NOT compound
+      // the base cost upon subsequent clicks to Refresh Pricing.
       result.groups.forEach((g, groupIdx) => {
         g.lineItems.forEach((li, lineItemIdx) => {
           setValue(
@@ -276,12 +338,18 @@ const CreateQuoteForm = () => {
           );
         });
       });
+      toast.success("Pricing refreshed successfully!");
     } catch (error) {
       console.error("Failed to refresh pricing", error);
+      toast.error("Failed to refresh pricing. Check connection.");
     }
   };
+
   const navigate = useNavigate();
-  const onSubmit = async (values: QuoteFormValues) => {
+
+  const executeSave = async (
+    values: QuoteFormValues,
+  ): Promise<string | undefined> => {
     const payload: CreateQuotePayload | UpdateQuotePayload = {
       customerId: values.customerId,
       repId: values.repId,
@@ -311,6 +379,8 @@ const CreateQuoteForm = () => {
           const lineItemTotal = recalculatedLineItem
             ? Number(recalculatedLineItem.total)
             : Number(lineTotal.toFixed(2));
+          const effectiveBaseCost =
+            li.baseCost && li.baseCost > 0 ? li.baseCost : li.price;
 
           return {
             groupName: g.name,
@@ -318,7 +388,7 @@ const CreateQuoteForm = () => {
             itemNumber: li.itemNumber,
             color: li.color,
             description: li.description,
-            baseCost: li.price,
+            baseCost: effectiveBaseCost,
             sizeBreakdown: li.sizes,
             markupPrice: li.markup,
             matrixId: g.priceMatrixId || undefined,
@@ -326,31 +396,61 @@ const CreateQuoteForm = () => {
             unitPrice,
             isTaxed: li.taxed,
             total: lineItemTotal,
-            imprintType: li.imprintType,
-            mockups: savedImages ?? [],
+            imprintType: li.imprintType || "",
           };
         }),
       })),
     };
 
+    if (isEditMode && quoteId) {
+      await updateQuote({ id: quoteId, data: payload }).unwrap();
+      return quoteId;
+    } else {
+      const res = await createQuote(payload).unwrap();
+      return res.data.id;
+    }
+  };
+
+  const onSubmit = async (values: QuoteFormValues) => {
     try {
-      if (isEditMode && quoteId) {
-        await updateQuote({ id: quoteId, data: payload }).unwrap();
-      } else {
-        await createQuote(payload).unwrap();
-      }
-      dispatch(resetSavedImages());
+      await executeSave(values);
+      toast.success(
+        isEditMode
+          ? "Quote updated successfully!"
+          : "Quote created successfully!",
+      );
       navigate("/admin/quotes");
     } catch (err) {
       console.error("Failed to save quote", err);
+      toast.error("Failed to save quote. Please check required fields.");
     }
+  };
+
+  const [isSavingAndContinuing, setIsSavingAndContinuing] = useState(false);
+
+  const handleSaveAndContinue = async () => {
+    handleSubmit(async (values) => {
+      try {
+        setIsSavingAndContinuing(true);
+        const savedId = await executeSave(values);
+        toast.success("Quote saved! You can continue editing.");
+        if (!isEditMode && savedId) {
+          navigate(`/admin/quotes/edit/${savedId}`, { replace: true });
+        }
+      } catch (err) {
+        console.error("Failed to save and continue", err);
+        toast.error("Failed to save quote. Please check required fields.");
+      } finally {
+        setIsSavingAndContinuing(false);
+      }
+    })();
   };
 
   const isSaving = isCreating || isUpdatingQuote;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className=" space-y-6">
-      <div className=" grid grid-cols-1 md:grid-cols-4 gap-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <CardContainer size="lg" className="col-span-3">
           <div className="flex items-center justify-between mb-6">
             <CommonHeader size="lg">Customer Details</CommonHeader>
@@ -369,8 +469,7 @@ const CreateQuoteForm = () => {
                 control={control}
                 name="customerId"
                 render={({ field }) => (
-                  <CommonSelect
-                    item={customerOptions}
+                  <CustomerSearchSelect
                     value={field.value}
                     onValueChange={field.onChange}
                     placeholder="Select a customer"
@@ -442,7 +541,9 @@ const CreateQuoteForm = () => {
             recalculatedPricing ? Number(recalculatedPricing.total) : total
           }
           onSaveDraft={handleSubmit(onSubmit)}
+          onSaveAndContinue={handleSaveAndContinue}
           isSaving={isSaving}
+          isSavingAndContinuing={isSavingAndContinuing}
           isEditMode={isEditMode}
         />
       </div>
@@ -451,7 +552,9 @@ const CreateQuoteForm = () => {
         <LineItemsGroup
           key={field.id}
           groupIndex={groupIndex}
-          sizes={sizes}
+          sizes={activeSizes}
+          onAddSize={handleAddSize}
+          onRemoveSize={handleRemoveSize}
           control={control}
           register={register}
           watch={watch}

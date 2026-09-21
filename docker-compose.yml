@@ -1,0 +1,12 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: francys_frontend
+
+    ports:
+      - "3002:80"
+
+    restart: unless-stopped

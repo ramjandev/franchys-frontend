@@ -1,4 +1,6 @@
 import { useGetInvoiceByIdQuery } from "@/store/invoice/invoiceAPI";
+import { Image } from "lucide-react";
+import { FiPrinter } from "react-icons/fi";
 import ModalAction from "../settings/ModalAction";
 import ModalContainer from "../settings/ModalContainer";
 import CommonHeader from "../shared/CommonHeader";
@@ -36,13 +38,38 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
   const total = Number(invoice.total);
   const isPaid = invoice.status === "PAID";
 
+  const quoteLineItems = invoice.quote?.lineItems ?? [];
+  const allMockups = quoteLineItems
+    .flatMap((li) => li.mockups || [])
+    .filter(Boolean);
+
   return (
     <ModalContainer
       close={() => setShowModal(false)}
       title="Invoice Preview"
-      size="max-w-xl"
+      size="max-w-2xl"
     >
-      <div className="p-6">
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          .printable-invoice-content, .printable-invoice-content * {
+            visibility: visible;
+          }
+          .printable-invoice-content {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100% !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
+
+      <div className="p-6 printable-invoice-content">
         <div className="flex items-start justify-between mb-6">
           <div>
             <CommonHeader size="3xl" className="font-medium!">
@@ -52,6 +79,11 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
             <CommonHeader className="text-[#45556C]!">
               {invoice.invoiceNumber}
             </CommonHeader>
+            {invoice.quote?.quoteNumber && (
+              <span className="text-xs text-slate-500">
+                Ref Quote: {invoice.quote.quoteNumber}
+              </span>
+            )}
           </div>
           <div className="text-right">
             <span
@@ -137,6 +169,33 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
           ))}
         </div>
 
+        {/* Attached Mockups */}
+        {allMockups.length > 0 && (
+          <div className="mb-6 p-4 rounded-lg bg-slate-50 border border-slate-200">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-2">
+              <Image size={14} className="text-slate-500" />
+              Attached Mockups ({allMockups.length})
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {allMockups.map((url, i) => (
+                <a
+                  key={url + i}
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-16 h-16 rounded-md border border-slate-200 bg-white overflow-hidden hover:scale-105 transition shadow-xs"
+                >
+                  <img
+                    src={url}
+                    alt={`Mockup ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="ml-auto w-64 space-y-2">
           <div className="flex justify-between">
             <CommonHeader size="sm" className="">
@@ -171,17 +230,29 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
         </div>
       </div>
 
-      <ModalAction
-        close={() => setShowModal(false)}
-        create="Download PDF"
-        isSubmitting={false}
-        loadingText="Downloading..."
-        onSubmit={() => {
-          if (invoice.invoicePdfUrl) {
-            window.open(invoice.invoicePdfUrl, "_blank");
-          }
-        }}
-      />
+      <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-slate-50 no-print">
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-100 rounded-lg text-slate-700 transition cursor-pointer"
+        >
+          <FiPrinter size={14} /> Print Invoice
+        </button>
+
+        <ModalAction
+          close={() => setShowModal(false)}
+          create="Download PDF"
+          isSubmitting={false}
+          loadingText="Downloading..."
+          onSubmit={() => {
+            if (invoice.invoicePdfUrl) {
+              window.open(invoice.invoicePdfUrl, "_blank");
+            } else {
+              window.print();
+            }
+          }}
+        />
+      </div>
     </ModalContainer>
   );
 };

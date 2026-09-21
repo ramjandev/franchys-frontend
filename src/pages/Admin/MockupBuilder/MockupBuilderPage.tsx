@@ -10,8 +10,7 @@ const MockupBuilderPage: React.FC = () => {
   const { productId } = useParams();
 
   console.log("productId", productId);
-
-  const { data, isLoading } = useGetProductByIdQuery(productId!, {
+  const { data } = useGetProductByIdQuery(productId!, {
     skip: !productId,
     refetchOnMountOrArgChange: true,
   });
@@ -27,7 +26,7 @@ const MockupBuilderPage: React.FC = () => {
       </div>
       <div className="flex-1 overflow-y-auto xl:overflow-hidden pb-8 xl:pb-0">
         <div className="flex flex-col xl:flex-row items-stretch gap-6 h-auto xl:h-full min-h-125">
-          <LeftPanel />
+          <LeftPanel product={data?.data!!} />
           <CenterCanvasArea />
           <RightPanel />
         </div>

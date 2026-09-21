@@ -5,9 +5,11 @@ import {
   useUpdateJobStatusMutation,
 } from "@/store/jobs/jobAPI";
 
+import IconActionButton from "@/components/shared/IconActionButton";
 import Pagination from "@/components/shared/Pagination";
 import { formatDate } from "@/lib/utils";
 import { Job, JobStatus } from "@/store/jobs/types/jobTypes";
+import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { tableDesign } from "../quotes/QuoteLists";
 import StatusPill from "./StatusPill";
@@ -53,7 +55,6 @@ const ListView: React.FC<ListViewProps> = ({
     { label: "Client", align: "text-left" },
     { label: "Description", align: "text-left" },
     { label: "Status", align: "text-left" },
-    { label: "Production Stage", align: "text-left" },
     { label: "Date", align: "text-left" },
     { label: "Amount", align: "text-left" },
     { label: "Action", align: "text-center" },
@@ -89,6 +90,8 @@ const ListView: React.FC<ListViewProps> = ({
       console.error("Failed to delete job", err);
     }
   };
+
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-6">
@@ -126,11 +129,7 @@ const ListView: React.FC<ListViewProps> = ({
                       }
                     />
                   </td>
-                  <td className={tableDesign.td}>
-                    <div className=" text-[#5C7899] bg-[#F1F5F9] whitespace-nowrap  px-2 py-1.5 rounded-md max-w-[175px]">
-                      {job.status}
-                    </div>
-                  </td>
+
                   <td className={tableDesign.td}>{formatDate(job.dueDate)}</td>
                   <td className={`${tableDesign.td} font-semibold`}>
                     ${job.amount}
@@ -138,6 +137,11 @@ const ListView: React.FC<ListViewProps> = ({
                   <td className={`${tableDesign.td} text-center`}>
                     <div className="flex justify-center">
                       <DeleteAlert action={() => handleDelete(job.id)} />
+                      <IconActionButton
+                        variant="view"
+                        title="View"
+                        onClick={() => navigate(`/admin/job-board/${job.id}`)}
+                      />
                     </div>
                   </td>
                 </tr>

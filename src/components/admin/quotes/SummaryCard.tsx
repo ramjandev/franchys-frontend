@@ -9,14 +9,14 @@ import { QuoteFormValues } from "./schema/quoteFormSchema";
 interface SummaryCardProps {
   register: UseFormRegister<QuoteFormValues>;
   subtotal: number;
-  // activeTab: "all" | "email" | "whatsapp";
-  // setActiveTab: (tab: "all" | "email" | "whatsapp") => void;
   discountAmount: number;
   taxAmount: number;
   taxRate: number;
   total: number;
   onSaveDraft: () => void;
+  onSaveAndContinue?: () => void;
   isSaving: boolean;
+  isSavingAndContinuing?: boolean;
   isEditMode: boolean;
 }
 
@@ -30,13 +30,11 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
   taxRate,
   total,
   onSaveDraft,
+  onSaveAndContinue,
   isSaving,
+  isSavingAndContinuing,
   isEditMode,
-  // activeTab,
-  // setActiveTab,
 }) => {
-  // const navigate = useNavigate();
-
   return (
     <CardContainer className="space-y-4">
       <CommonHeader size="lg" className="">
@@ -85,8 +83,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
         </CommonHeader>
       </div>
 
-      <div>{/* <MiniTabs value={activeTab} onChange={setActiveTab} /> */}</div>
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <CommonButton
           type="button"
           className="w-full! "
@@ -95,9 +92,23 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
           isLoading={isSaving}
           loadingText="Saving..."
         >
-          <Save />
-          {isEditMode ? "Update" : "Save as Draft"}
+          <Save size={15} />
+          {isEditMode ? "Save Quote" : "Save as Draft"}
         </CommonButton>
+
+        {onSaveAndContinue && (
+          <CommonButton
+            type="button"
+            className="w-full! bg-slate-100! text-slate-800! hover:bg-slate-200! border border-slate-300!"
+            variant="secondary"
+            onClick={onSaveAndContinue}
+            isLoading={isSavingAndContinuing}
+            loadingText="Saving..."
+          >
+            <Save size={15} />
+            Save & Continue Editing
+          </CommonButton>
+        )}
       </div>
     </CardContainer>
   );

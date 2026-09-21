@@ -30,21 +30,20 @@ export interface Product {
   productName: string;
   itemNo: string;
   price: string;
-  material: string;
+  material: string | null;
   weight: number;
-  style: string;
+  style: string | null;
   images: string[];
   availableSizes: string[];
   isDeleted: boolean;
-  categoryId: string;
+  categoryId: string | null;
   brandId: string;
   createdAt: string;
   updatedAt: string;
   colors: ProductColor[];
-  category: Category;
+  category: Category | null;
   brand: Brand;
 }
-
 // ---- Create/Update payload (multipart/form-data) ----
 
 export interface CreateProductPayload {

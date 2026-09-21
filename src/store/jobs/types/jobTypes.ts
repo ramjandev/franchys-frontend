@@ -32,6 +32,7 @@ export interface Job {
   description: string;
   status: JobStatus;
   dueDate: string | null;
+
   amount: string;
   quoteId: string | null;
   createdAt: string;
@@ -68,8 +69,6 @@ export interface GetJobsParams {
   limit?: number;
   status?: JobStatus;
 }
-
-// ---- Response envelopes ----
 
 export type GetJobsResponse = PaginatedApiResponse<Job[]>;
 export type GetJobByIdResponse = ApiResponse<JobWithHistory>;

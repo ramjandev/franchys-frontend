@@ -23,29 +23,40 @@ const qcItems = [
 
 import shirt from "@/assets/images/shirt.jpg";
 import InfoCheckbox from "@/components/invoice/InfoCheckbox";
+import { formatDate } from "@/lib/utils";
+import { useGetJobByIdQuery } from "@/store/jobs/jobAPI";
+import { JobStatus } from "@/store/jobs/types/jobTypes";
 import { FiPackage } from "react-icons/fi";
+import { useParams } from "react-router-dom";
 
-const InvoiceDetails = () => {
+const JobDetails = () => {
+  const { id } = useParams<{ id: string }>();
+
+  const { data } = useGetJobByIdQuery(id!, {
+    skip: !id,
+    refetchOnMountOrArgChange: true,
+  });
+  console.log("Job Details Data:", data?.data);
   const [doneCells, setDoneCells] = useState<Record<number, boolean>>({});
 
   const infoData = [
     {
       label: "Customer",
-      value: "Company Status Workflow",
+      value: data?.data?.clientName || "",
       bg: "bg-[#F8F9FB] border-[#E2E8F0]",
       labelColor: "text-[#64748B]",
       valueColor: "text-[#294566]",
     },
     {
       label: "Order Date",
-      value: "Dec 18, 2025",
+      value: formatDate(data?.data?.quote?.sentAt || ""),
       bg: "bg-[#F8F9FB] border-[#E2E8F0]",
       labelColor: "text-[#64748B]",
       valueColor: "text-[#294566]",
     },
     {
       label: "Due Date",
-      value: "Jan 15, 2026",
+      value: formatDate(data?.data.dueDate || ""),
 
       bg: "bg-[#FEF2F2] border-[#FECACA]",
       labelColor: "text-[#991B1B]",
@@ -60,6 +71,35 @@ const InvoiceDetails = () => {
       valueColor: "text-[#16A34A]",
     },
   ];
+
+  const statusStyles: Record<JobStatus, string> = {
+    QUOTE:
+      "border-blue-500/30 text-blue-500 bg-blue-500/10 hover:bg-blue-500 hover:text-white",
+
+    APPROVED:
+      "border-green-500/30 text-green-500 bg-green-500/10 hover:bg-green-500 hover:text-white",
+
+    ART: "border-purple-500/30 text-purple-500 bg-purple-500/10 hover:bg-purple-500 hover:text-white",
+
+    NEED_TO_ORDER:
+      "border-orange-500/30 text-orange-500 bg-orange-500/10 hover:bg-orange-500 hover:text-white",
+
+    ORDER_ARRIVED:
+      "border-cyan-500/30 text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500 hover:text-white",
+
+    PRODUCTION:
+      "border-yellow-500/30 text-yellow-600 bg-yellow-500/10 hover:bg-yellow-500 hover:text-white",
+
+    PAYMENT:
+      "border-pink-500/30 text-pink-500 bg-pink-500/10 hover:bg-pink-500 hover:text-white",
+
+    SHIP: "border-indigo-500/30 text-indigo-500 bg-indigo-500/10 hover:bg-indigo-500 hover:text-white",
+
+    COMPLETED:
+      "border-emerald-500/30 text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white",
+  };
+  const status = data?.data?.status as JobStatus | undefined;
+
   return (
     <CardContainer
       size="3xl"
@@ -73,15 +113,21 @@ const InvoiceDetails = () => {
             </CommonButton>
 
             <h1 className="text-2xl sm:text-4xl font-black text-[#294566] tracking-tight leading-none">
-              Job #Q-1001
+              Job # {data?.data?.jobId || ""}
             </h1>
 
             <CommonHeader className="text-[#5C7899]!">
               For Production Team Only · No Pricing Info
             </CommonHeader>
           </div>
-          <button className=" border border-[#FF6B6B]/37 text-[#FF6B6B] text-sm font-bold px-5 py-2 rounded-xl hover:bg-[#e07b39] hover:text-white transition-all duration-200 tracking-wide bg-[#FF6B6B]/12">
-            Art
+          <button
+            className={`text-sm font-bold px-5 py-2 rounded-xl transition-all duration-200 tracking-wide border ${
+              status
+                ? statusStyles[status]
+                : "border-gray-500/30 text-gray-500 bg-gray-500/10"
+            }`}
+          >
+            {status || ""}
           </button>
         </div>
 
@@ -218,4 +264,4 @@ const InvoiceDetails = () => {
   );
 };
 
-export default InvoiceDetails;
+export default JobDetails;

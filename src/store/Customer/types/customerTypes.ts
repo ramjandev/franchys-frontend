@@ -15,6 +15,8 @@ export interface Customer {
   website: string | null;
   companyName: string | null;
   taxId: string | null;
+  isTaxExempt?: boolean;
+  taxExemptNumber?: string | null;
   secondaryEmail: string | null;
   secondaryPhone: string | null;
   street: string | null;
@@ -48,6 +50,8 @@ export interface CreateCustomerPayload {
   website?: string;
   companyName?: string;
   taxId?: string;
+  isTaxExempt?: boolean;
+  taxExemptNumber?: string;
   secondaryEmail?: string;
   secondaryPhone?: string;
   street?: string;

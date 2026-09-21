@@ -27,13 +27,6 @@ const baseQueryWithToasts: typeof baseQueryAPI = async (
   const method =
     typeof args === "object" && "method" in args ? args.method : "GET";
 
-  // Handle 401 errors globally
-  // if (result?.error && result.error.status === 401) {
-  //   Cookies.remove("accessToken");
-  //   api.dispatch(logout());
-  //   toast.error("Session expired. Please login again.");
-  // }
-
   if (method !== "GET") {
     if (
       result?.data &&
@@ -50,13 +43,6 @@ const baseQueryWithToasts: typeof baseQueryAPI = async (
       }
     }
 
-    // Error toast for non-GET methods (excluding 401 which is handled above)
-    // if (result?.error && result.error.status !== 401) {
-    //   const message =
-    //     (result.error.data as { message?: string })?.message ||
-    //     "Something went wrong. Please try again.";
-    //   toast.error(message);
-    // }
     if (result?.error) {
       const errorData = result.error.data as {
         message?: string;
@@ -101,6 +87,7 @@ export const baseAPI = createApi({
     "InvoiceInformation",
     "PaymentTerm",
     "WhatsAppConversation",
+    "Sanmar",
   ],
 
   endpoints: () => ({}),
