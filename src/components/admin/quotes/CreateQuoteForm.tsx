@@ -249,7 +249,7 @@ const CreateQuoteForm = () => {
   const watchedGroups = watch("groups");
   const watchedDiscount = watch("discount");
 
-  const { subtotal, discountAmount, taxAmount, total } = useMemo(() => {
+  const { subtotal, discountAmount, total } = useMemo(() => {
     let subtotalSum = 0;
     let taxableSum = 0;
 
@@ -365,23 +365,37 @@ const CreateQuoteForm = () => {
         result = res.data;
       }
 
-      // If server returns total <= 0, ensure result has the calculated total so it's never 0
       const serverCalcSubtotal =
         Number(result.subtotal) > 0 ? Number(result.subtotal) : subtotal;
       const serverCalcDiscount =
         Number(result.discount) >= 0 && (values.discount || 0) > 0
           ? Number(result.discount)
           : discountAmount;
+
+      // Calculate tax only on items that are checked as taxed
+      let currentTaxable = 0;
+      values.groups.forEach((g) => {
+        g.lineItems.forEach((li) => {
+          if (li.taxed) {
+            const lineTotal =
+              li.total !== undefined && Number(li.total) > 0
+                ? Number(li.total)
+                : (li.items || 0) * (li.price || 0) * (1 + (li.markup || 0) / 100);
+            currentTaxable += lineTotal;
+          }
+        });
+      });
+
       const serverCalcTax =
-        Number(result.taxAmount) >= 0 ? Number(result.taxAmount) : taxAmount;
-      const computedTotal = Math.max(
+        currentTaxable > 0
+          ? Number((currentTaxable * (FIXED_TAX_RATE / 100)).toFixed(2))
+          : 0;
+
+      result.taxAmount = serverCalcTax.toFixed(2);
+      result.total = Math.max(
         0,
         serverCalcSubtotal - serverCalcDiscount + serverCalcTax,
-      );
-
-      if (!result.total || Number(result.total) <= 0) {
-        result.total = computedTotal.toFixed(2);
-      }
+      ).toFixed(2);
 
       isRefreshingPricingRef.current = true;
       setRecalculatedPricing(result);
@@ -628,32 +642,45 @@ const CreateQuoteForm = () => {
           </div>
         </CardContainer>
         {(() => {
+          // Calculate taxable subtotal strictly from line items where taxed is checked
+          let taxableSubtotal = 0;
+          watchedGroups.forEach((g) => {
+            g.lineItems.forEach((li) => {
+              if (li.taxed) {
+                const lineTotal =
+                  li.total !== undefined && Number(li.total) > 0
+                    ? Number(li.total)
+                    : (li.items || 0) *
+                      (li.price || 0) *
+                      (1 + (li.markup || 0) / 100);
+                taxableSubtotal += lineTotal;
+              }
+            });
+          });
+
           const effectiveSubtotal =
             recalculatedPricing && Number(recalculatedPricing.subtotal) > 0
               ? Number(recalculatedPricing.subtotal)
               : subtotal;
 
           const effectiveDiscount =
-            recalculatedPricing &&
-            Number(recalculatedPricing.discount) >= 0 &&
             (watchedDiscount || 0) > 0
-              ? Number(recalculatedPricing.discount)
-              : discountAmount;
-
-          const effectiveTax =
-            recalculatedPricing && Number(recalculatedPricing.taxAmount) >= 0
-              ? Number(recalculatedPricing.taxAmount)
-              : taxAmount;
-
-          const serverTotal =
-            recalculatedPricing && Number(recalculatedPricing.total) > 0
-              ? Number(recalculatedPricing.total)
+              ? (recalculatedPricing && Number(recalculatedPricing.discount) > 0
+                  ? Number(recalculatedPricing.discount)
+                  : discountAmount)
               : 0;
 
-          const effectiveTotal =
-            serverTotal > 0
-              ? serverTotal
-              : Math.max(0, effectiveSubtotal - effectiveDiscount + effectiveTax);
+          // Tax is ONLY added when item(s) have 'Taxed' checked, otherwise $0.00
+          const effectiveTax =
+            taxableSubtotal > 0
+              ? Number((taxableSubtotal * (FIXED_TAX_RATE / 100)).toFixed(2))
+              : 0;
+
+          // Total always accurately adds the tax value when taxed, and does not when untaxed
+          const effectiveTotal = Math.max(
+            0,
+            Number((effectiveSubtotal - effectiveDiscount + effectiveTax).toFixed(2)),
+          );
 
           return (
             <SummaryCard
@@ -661,11 +688,7 @@ const CreateQuoteForm = () => {
               subtotal={effectiveSubtotal}
               discountAmount={effectiveDiscount}
               taxAmount={effectiveTax}
-              taxRate={
-                recalculatedPricing && Number(recalculatedPricing.taxRate)
-                  ? Number(recalculatedPricing.taxRate)
-                  : FIXED_TAX_RATE
-              }
+              taxRate={FIXED_TAX_RATE}
               total={effectiveTotal}
               onSaveDraft={handleSubmit(onSubmit)}
               onSaveAndContinue={handleSaveAndContinue}
