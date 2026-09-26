@@ -1,8 +1,9 @@
 import CardContainer from "@/components/shared/CardContainer";
+import { DEFAULT_GARMENT_SVG } from "@/lib/defaultGarment";
 import { getCorsSafeUrl } from "@/lib/corsImage";
 import { mockupCaptureRef } from "@/lib/mockupCaptureRef";
 import { useMockup } from "@/store/mockUp/hooks/useMockup";
-import { Image as ImageIcon, ZoomIn, ZoomOut } from "lucide-react";
+import { ZoomIn, ZoomOut } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -30,6 +31,7 @@ const CenterCanvasArea: React.FC<CenterCanvasAreaProps> = ({
   const {
     canvasProductImage,
     setCanvasProductImage,
+    productViews,
     activeView,
     layersByView,
     setLayersByView,
@@ -65,12 +67,25 @@ const CenterCanvasArea: React.FC<CenterCanvasAreaProps> = ({
     height: 650,
   });
 
+  const effectiveProductImage =
+    canvasProductImage ||
+    (productViews && productViews.length > 0
+      ? productViews[0]
+      : DEFAULT_GARMENT_SVG);
+
   React.useEffect(() => {
-    if (!canvasProductImage) return;
+    if (!canvasProductImage) {
+      setCanvasProductImage(effectiveProductImage);
+    }
+  }, [canvasProductImage, effectiveProductImage, setCanvasProductImage]);
+
+  React.useEffect(() => {
+    const targetSrc = canvasProductImage || effectiveProductImage;
+    if (!targetSrc) return;
     const img = new Image();
     img.onload = () => {
-      const nw = img.naturalWidth || 650;
-      const nh = img.naturalHeight || 650;
+      const nw = img.naturalWidth || 600;
+      const nh = img.naturalHeight || 700;
       const maxW = isMobile ? 360 : 700;
       const maxH = isMobile ? 480 : 660;
 
@@ -87,8 +102,8 @@ const CenterCanvasArea: React.FC<CenterCanvasAreaProps> = ({
 
       setCanvasDimensions({ width: targetW, height: targetH });
     };
-    img.src = canvasProductImage;
-  }, [canvasProductImage, isMobile]);
+    img.src = targetSrc;
+  }, [canvasProductImage, effectiveProductImage, isMobile]);
 
   React.useEffect(() => {
     mockupCaptureRef.current = containerRef.current;
@@ -267,60 +282,38 @@ const CenterCanvasArea: React.FC<CenterCanvasAreaProps> = ({
 
         {/* Canvas Area */}
         <div className="flex-1 overflow-auto flex items-center justify-center bg-[#F3F4F6] relative p-3 md:p-6">
-          {!canvasProductImage ? (
-            <div className="flex flex-col items-center gap-4 max-w-sm text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-200">
-              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
-                <ImageIcon size={32} />
-              </div>
-              <div>
-                <h4 className="font-bold text-[#111827] text-base">
-                  No Product Image Selected
-                </h4>
-                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                  Select a product image from the left panel, or choose a product
-                  from the SanMar or System catalog to begin adding your logo.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleOpenProductSelection}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors cursor-pointer"
-              >
-                Choose Product
-              </button>
-            </div>
-          ) : (
-            <CardContainer
-              className="relative shadow-xl overflow-hidden border border-gray-200/80 rounded-2xl"
-              style={{
-                transform: `scale(${zoom / 100})`,
-                transformOrigin: "center center",
-                transition: "transform 0.15s ease",
-                padding: 0,
-                width: canvasDimensions.width,
-                height: canvasDimensions.height,
-                maxWidth: "100%",
-                background: "#FFFFFF",
-              }}
+          <CardContainer
+            className="relative shadow-xl overflow-hidden border border-gray-200/80 rounded-2xl"
+            style={{
+              transform: `scale(${zoom / 100})`,
+              transformOrigin: "center center",
+              transition: "transform 0.15s ease",
+              padding: 0,
+              width: canvasDimensions.width,
+              height: canvasDimensions.height,
+              maxWidth: "100%",
+              background: "#FFFFFF",
+            }}
+          >
+            <div
+              ref={containerRef}
+              className="relative w-full h-full flex items-center justify-center bg-white"
+              onClick={() => setSelectedLayerId(null)}
             >
-              <div
-                ref={containerRef}
-                className="relative w-full h-full flex items-center justify-center bg-white"
-                onClick={() => setSelectedLayerId(null)}
-              >
-                <img
-                  src={getCorsSafeUrl(canvasProductImage)}
-                  crossOrigin="anonymous"
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    if (canvasProductImage && target.src !== canvasProductImage) {
-                      target.removeAttribute("crossorigin");
-                      target.src = canvasProductImage;
-                    }
-                  }}
-                  alt="Product Canvas"
-                  className="w-full h-full object-contain pointer-events-none select-none"
-                />
+              <img
+                src={getCorsSafeUrl(canvasProductImage || effectiveProductImage)}
+                crossOrigin="anonymous"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  const currentSrc = canvasProductImage || effectiveProductImage;
+                  if (currentSrc && target.src !== currentSrc) {
+                    target.removeAttribute("crossorigin");
+                    target.src = currentSrc;
+                  }
+                }}
+                alt="Product Canvas"
+                className="w-full h-full object-contain pointer-events-none select-none"
+              />
 
                 <div
                   className="absolute inset-0 overflow-hidden"
@@ -345,7 +338,6 @@ const CenterCanvasArea: React.FC<CenterCanvasAreaProps> = ({
                 </div>
               </div>
             </CardContainer>
-          )}
         </div>
       </div>
     </div>

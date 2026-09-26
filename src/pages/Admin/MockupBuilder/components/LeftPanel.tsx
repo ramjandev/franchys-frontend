@@ -1,3 +1,4 @@
+import { DEFAULT_GARMENT_SVG, extractProductImages } from "@/lib/defaultGarment";
 import CardContainer from "@/components/shared/CardContainer";
 import CommonButton from "@/components/shared/CommonButton";
 import { inputClass } from "@/pages/Login";
@@ -39,15 +40,9 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
 
   // Extract all valid images from product (handles System and SanMar shapes)
   const productImages = useMemo(() => {
-    if (!product) return [];
-    const imgs: string[] = [];
-    if (product.images && Array.isArray(product.images)) {
-      imgs.push(...product.images);
-    }
-    if ("primaryImageUrl" in product && product.primaryImageUrl) {
-      imgs.push(product.primaryImageUrl);
-    }
-    return Array.from(new Set(imgs.filter(Boolean)));
+    const fromProduct = extractProductImages(product);
+    if (fromProduct.length > 0) return fromProduct;
+    return [DEFAULT_GARMENT_SVG];
   }, [product]);
 
   // When product changes or loads, sync productViews and auto-select first image

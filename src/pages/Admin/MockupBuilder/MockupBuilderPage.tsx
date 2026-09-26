@@ -2,6 +2,7 @@ import {
   setCanvasProductImage,
   setProductViews,
 } from "@/store/mockUp/designSlice";
+import { DEFAULT_GARMENT_SVG, extractProductImages } from "@/lib/defaultGarment";
 import { useGetProductByIdQuery } from "@/store/Product/productAPI";
 import { RootState } from "@/store/store";
 import { X } from "lucide-react";
@@ -69,18 +70,11 @@ const MockupBuilderPage: React.FC<MockupBuilderPageProps> = ({
   React.useEffect(() => {
     const targetProduct = data?.data || (selectedProduct as any);
     if (targetProduct) {
-      const imgs: string[] = [];
-      if (targetProduct.images && Array.isArray(targetProduct.images)) {
-        imgs.push(...targetProduct.images);
-      }
-      if ("primaryImageUrl" in targetProduct && targetProduct.primaryImageUrl) {
-        imgs.push(targetProduct.primaryImageUrl);
-      }
-      const unique = Array.from(new Set(imgs.filter(Boolean)));
-      if (unique.length > 0) {
-        dispatch(setProductViews(unique));
-        dispatch(setCanvasProductImage(unique[0]));
-      }
+      const extracted = extractProductImages(targetProduct);
+      const imagesToUse =
+        extracted.length > 0 ? extracted : [DEFAULT_GARMENT_SVG];
+      dispatch(setProductViews(imagesToUse));
+      dispatch(setCanvasProductImage(imagesToUse[0]));
     }
   }, [data, selectedProduct, dispatch]);
 
