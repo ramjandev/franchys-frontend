@@ -15,19 +15,27 @@ import { ProductAutocompleteItem } from "@/store/Product/types/productTypes";
 import { useGetSanmarProductsAutocompleteQuery } from "@/store/sanmar/sanmarApi";
 import { SanmarProductAutocompleteItem } from "@/store/sanmar/types/sanmarTypes";
 
+import MockupBuilderPage from "@/pages/Admin/MockupBuilder/MockupBuilderPage";
 import {
-  ProductType,
-  setProductType,
-  setSelectedProduct,
   addLineItemMockups,
+  ProductType,
   removeLineItemMockup,
   setActiveLineItemTarget,
+  setProductType,
+  setSelectedProduct,
 } from "@/store/imageSlice/imageSlice";
 import { useUploadMockupsMutation } from "@/store/quote/quoteAPI";
 import { RootState } from "@/store/store";
-import { Columns, Loader2, Palette, Plus, Trash2, Upload, X } from "lucide-react";
+import {
+  Columns,
+  Loader2,
+  Palette,
+  Plus,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-import { toast } from "react-toastify";
 import {
   Control,
   Controller,
@@ -37,6 +45,7 @@ import {
   UseFormWatch,
 } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import {
   buildGridTemplateColumns,
   buildTableHeaders,
@@ -47,7 +56,7 @@ import {
 } from "./data";
 import PriceMatrixModal from "./matrix/PriceMatrixModal";
 import { makeDefaultLineItem, QuoteFormValues } from "./schema/quoteFormSchema";
-import MockupBuilderPage from "@/pages/Admin/MockupBuilder/MockupBuilderPage";
+import { useGetPriceMatrixQuery } from "@/store/settings/PriceMatrices/priceMatrixAPI";
 
 interface LineItemsGroupProps {
   groupIndex: number;
@@ -118,6 +127,98 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
     name: `groups.${groupIndex}.lineItems`,
   });
 
+  const { data: matrixResponse } = useGetPriceMatrixQuery();
+  const matrices = matrixResponse?.data ?? [];
+
+  const watchedPriceMatrixId = watch(`groups.${groupIndex}.priceMatrixId`);
+  const watchedPriceMatrixColumn = watch(
+    `groups.${groupIndex}.priceMatrixColumn`,
+  );
+  const watchedImprintDetails = watch(`groups.${groupIndex}.imprintDetails`);
+  const watchedImprints = watch(`groups.${groupIndex}.imprints`);
+
+  const currentImprints = useMemo(() => {
+    if (watchedImprints && watchedImprints.length > 0) {
+      return watchedImprints;
+    }
+    if (watchedPriceMatrixId) {
+      return [
+        {
+          matrixId: watchedPriceMatrixId,
+          matrixColumn: watchedPriceMatrixColumn || "",
+          details: watchedImprintDetails || "",
+        },
+      ];
+    }
+    return [];
+  }, [
+    watchedImprints,
+    watchedPriceMatrixId,
+    watchedPriceMatrixColumn,
+    watchedImprintDetails,
+  ]);
+
+  const handleDeleteImprint = (indexToDelete: number) => {
+    const updated = currentImprints.filter((_, i) => i !== indexToDelete);
+    setValue(`groups.${groupIndex}.imprints`, updated, { shouldDirty: true });
+    const first = updated[0];
+    if (first) {
+      setValue(`groups.${groupIndex}.priceMatrixId`, first.matrixId, {
+        shouldDirty: true,
+      });
+      setValue(
+        `groups.${groupIndex}.priceMatrixColumn`,
+        first.matrixColumn,
+        { shouldDirty: true },
+      );
+      setValue(
+        `groups.${groupIndex}.imprintDetails`,
+        first.details || "",
+        { shouldDirty: true },
+      );
+      lineItemFields.forEach((_, idx) => {
+        setValue(
+          `groups.${groupIndex}.lineItems.${idx}.matrixId`,
+          first.matrixId,
+          { shouldDirty: true },
+        );
+        setValue(
+          `groups.${groupIndex}.lineItems.${idx}.matrixColumn`,
+          first.matrixColumn,
+          { shouldDirty: true },
+        );
+        if (first.details) {
+          setValue(
+            `groups.${groupIndex}.lineItems.${idx}.imprintType`,
+            first.details,
+            { shouldDirty: true },
+          );
+        }
+      });
+    } else {
+      setValue(`groups.${groupIndex}.priceMatrixId`, "", {
+        shouldDirty: true,
+      });
+      setValue(`groups.${groupIndex}.priceMatrixColumn`, "", {
+        shouldDirty: true,
+      });
+      setValue(`groups.${groupIndex}.imprintDetails`, "", {
+        shouldDirty: true,
+      });
+      lineItemFields.forEach((_, idx) => {
+        setValue(`groups.${groupIndex}.lineItems.${idx}.matrixId`, "", {
+          shouldDirty: true,
+        });
+        setValue(
+          `groups.${groupIndex}.lineItems.${idx}.matrixColumn`,
+          "",
+          { shouldDirty: true },
+        );
+      });
+    }
+    toast.info("Imprint removed");
+  };
+
   // --- product search / autocomplete popover state ---
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
@@ -140,13 +241,13 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
     { search: debouncedSearch },
     { skip: productType !== "sanmar" || !debouncedSearch },
   );
-  const { selectedProduct } = useSelector(
-    (state: RootState) => state.image,
-  );
+  const { selectedProduct } = useSelector((state: RootState) => state.image);
   const [uploadMockups] = useUploadMockupsMutation();
   const [uploadingRow, setUploadingRow] = useState<number | null>(null);
   const [previewMockupUrl, setPreviewMockupUrl] = useState<string | null>(null);
-  const [mockupModalRowIndex, setMockupModalRowIndex] = useState<number | null>(null);
+  const [mockupModalRowIndex, setMockupModalRowIndex] = useState<number | null>(
+    null,
+  );
 
   const handleUploadLineItemMockup = async (
     rowIdx: number,
@@ -223,7 +324,9 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
       dispatch(addLineItemMockups({ key, urls }));
 
       const currentMockups =
-        watch(`groups.${groupIndex}.lineItems.${mockupModalRowIndex}.mockups`) || [];
+        watch(
+          `groups.${groupIndex}.lineItems.${mockupModalRowIndex}.mockups`,
+        ) || [];
       const merged = Array.from(new Set([...currentMockups, ...urls]));
       setValue(
         `groups.${groupIndex}.lineItems.${mockupModalRowIndex}.mockups`,
@@ -915,7 +1018,9 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
                     {/* Render saved mockup thumbnails */}
                     {(() => {
                       const rowMockups: string[] =
-                        watch(`groups.${groupIndex}.lineItems.${idx}.mockups`) || [];
+                        watch(
+                          `groups.${groupIndex}.lineItems.${idx}.mockups`,
+                        ) || [];
                       return (
                         <>
                           {rowMockups.map((url, mIdx) => (
@@ -971,7 +1076,10 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
                                 className="hidden"
                                 disabled={uploadingRow === idx}
                                 onChange={(e) => {
-                                  handleUploadLineItemMockup(idx, e.target.files);
+                                  handleUploadLineItemMockup(
+                                    idx,
+                                    e.target.files,
+                                  );
                                   e.target.value = "";
                                 }}
                               />
@@ -1023,6 +1131,57 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
         </div>
       </div>
 
+      {/* Imprint Cards (Printavo reference style) */}
+      {currentImprints.length > 0 && (
+        <div className="mt-4 space-y-3">
+          {currentImprints.map((imp, idx) => {
+            const mat = matrices.find((m) => m.priceMatrixId === imp.matrixId);
+            const matName = mat?.name || imp.matrixId || "Matrix";
+            const colName = imp.matrixColumn || "";
+
+            return (
+              <div
+                key={idx}
+                className="rounded-lg bg-[#F8FAFC] border border-slate-200/90 p-4"
+              >
+                <div className="flex items-center gap-3 text-sm flex-wrap">
+                  <span className="text-[11px] font-bold text-slate-400 tracking-widest uppercase">
+                    IMPRINT {idx + 1}
+                  </span>
+                  <span className="font-semibold text-slate-800">
+                    {matName} {colName ? `• ${colName}` : ""}
+                  </span>
+                  {imp.details && (
+                    <span className="text-xs text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                      {imp.details}
+                    </span>
+                  )}
+                </div>
+
+                <hr className="border-slate-200/80 my-3" />
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsPriceMatrixOpen(true)}
+                    className="px-3 py-1 bg-white border border-slate-300 rounded text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteImprint(idx)}
+                    className="px-2 py-1 text-xs font-medium text-slate-500 hover:text-red-600 transition cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Footer */}
       <div className="flex items-center justify-between mt-5 flex-wrap gap-3">
         <div className="flex gap-2.5">
@@ -1053,35 +1212,68 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
       {isPriceMatrixOpen && (
         <PriceMatrixModal
           setShowModal={setIsPriceMatrixOpen}
-          initialMatrixId={watch(`groups.${groupIndex}.priceMatrixId`)}
-          initialColumn={watch(`groups.${groupIndex}.priceMatrixColumn`)}
-          onSave={(matrixId, column, details) => {
-            setValue(`groups.${groupIndex}.priceMatrixId`, matrixId, {
+          initialImprints={currentImprints}
+          onSave={(imprints) => {
+            setValue(`groups.${groupIndex}.imprints`, imprints, {
               shouldDirty: true,
             });
-            setValue(`groups.${groupIndex}.priceMatrixColumn`, column, {
-              shouldDirty: true,
-            });
-            lineItemFields.forEach((_, idx) => {
+            const first = imprints[0];
+            if (first) {
+              setValue(`groups.${groupIndex}.priceMatrixId`, first.matrixId, {
+                shouldDirty: true,
+              });
               setValue(
-                `groups.${groupIndex}.lineItems.${idx}.matrixId`,
-                matrixId,
+                `groups.${groupIndex}.priceMatrixColumn`,
+                first.matrixColumn,
                 { shouldDirty: true },
               );
               setValue(
-                `groups.${groupIndex}.lineItems.${idx}.matrixColumn`,
-                column,
+                `groups.${groupIndex}.imprintDetails`,
+                first.details || "",
                 { shouldDirty: true },
               );
-              if (details) {
+              lineItemFields.forEach((_, idx) => {
                 setValue(
-                  `groups.${groupIndex}.lineItems.${idx}.imprintType`,
-                  details,
+                  `groups.${groupIndex}.lineItems.${idx}.matrixId`,
+                  first.matrixId,
                   { shouldDirty: true },
                 );
-              }
-            });
-            toast.success("Pricing matrix & column applied to group!");
+                setValue(
+                  `groups.${groupIndex}.lineItems.${idx}.matrixColumn`,
+                  first.matrixColumn,
+                  { shouldDirty: true },
+                );
+                if (first.details) {
+                  setValue(
+                    `groups.${groupIndex}.lineItems.${idx}.imprintType`,
+                    first.details,
+                    { shouldDirty: true },
+                  );
+                }
+              });
+              toast.success("Pricing matrix & column applied to group!");
+            } else {
+              setValue(`groups.${groupIndex}.priceMatrixId`, "", {
+                shouldDirty: true,
+              });
+              setValue(`groups.${groupIndex}.priceMatrixColumn`, "", {
+                shouldDirty: true,
+              });
+              setValue(`groups.${groupIndex}.imprintDetails`, "", {
+                shouldDirty: true,
+              });
+              lineItemFields.forEach((_, idx) => {
+                setValue(`groups.${groupIndex}.lineItems.${idx}.matrixId`, "", {
+                  shouldDirty: true,
+                });
+                setValue(
+                  `groups.${groupIndex}.lineItems.${idx}.matrixColumn`,
+                  "",
+                  { shouldDirty: true },
+                );
+              });
+              toast.info("Imprint removed");
+            }
           }}
         />
       )}

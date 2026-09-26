@@ -169,6 +169,16 @@ const CreateQuoteForm = () => {
           name: g.name,
           priceMatrixId: g.lineItems[0]?.matrixId ?? "",
           priceMatrixColumn: g.lineItems[0]?.matrixColumn ?? "",
+          imprintDetails: g.lineItems[0]?.imprintType ?? "",
+          imprints: g.lineItems[0]?.matrixId
+            ? [
+                {
+                  matrixId: g.lineItems[0].matrixId,
+                  matrixColumn: g.lineItems[0].matrixColumn ?? "",
+                  details: g.lineItems[0].imprintType ?? "",
+                },
+              ]
+            : [],
           lineItems: g.lineItems.map((li) => ({
             category: li.category,
             itemNumber: li.itemNumber,
