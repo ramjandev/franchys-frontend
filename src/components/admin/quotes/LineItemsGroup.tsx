@@ -305,19 +305,28 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
   };
 
   const handleOpenMockupBuilder = (rowIdx: number) => {
+    const rowItemNumber = watch(
+      `groups.${groupIndex}.lineItems.${rowIdx}.itemNumber`,
+    );
+    const rowDescription = watch(
+      `groups.${groupIndex}.lineItems.${rowIdx}.description`,
+    );
     const singleProductId =
+      watch(`groups.${groupIndex}.lineItems.${rowIdx}.productId`) ||
       (selectedProduct as any)?.productId ||
       (selectedProduct as any)?.id ||
-      (selectedProduct as any)?._id ||
-      watch(`groups.${groupIndex}.lineItems.${rowIdx}.productId`);
+      (selectedProduct as any)?._id;
+
+    if (!singleProductId || (!rowItemNumber && !rowDescription)) {
+      toast.warning("Please select a product first to design a mockup.");
+      return;
+    }
 
     dispatch(
       setActiveLineItemTarget({
         groupIndex,
         lineItemIndex: rowIdx,
-        itemNumber: watch(
-          `groups.${groupIndex}.lineItems.${rowIdx}.itemNumber`,
-        ),
+        itemNumber: rowItemNumber,
         productId: singleProductId,
       }),
     );
@@ -1105,15 +1114,45 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
                               />
                             </label>
 
-                            {/* Open Mockup Builder */}
-                            <button
-                              type="button"
-                              onClick={() => handleOpenMockupBuilder(idx)}
-                              className="p-1.5 rounded-md border border-slate-200 text-slate-500 hover:text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition cursor-pointer flex items-center justify-center"
-                              title="Design mockup in Mockup Builder"
-                            >
-                              <Palette size={13} />
-                            </button>
+                            {/* Open Mockup Builder (clickable only when single product is selected) */}
+                            {(() => {
+                              const rowItemNo = watch(
+                                `groups.${groupIndex}.lineItems.${idx}.itemNumber`,
+                              );
+                              const rowDesc = watch(
+                                `groups.${groupIndex}.lineItems.${idx}.description`,
+                              );
+                              const rowProdId =
+                                watch(
+                                  `groups.${groupIndex}.lineItems.${idx}.productId`,
+                                ) ||
+                                (selectedProduct as any)?.productId ||
+                                (selectedProduct as any)?.id ||
+                                (selectedProduct as any)?._id;
+                              const isProductSelected = Boolean(
+                                rowProdId && (rowItemNo || rowDesc),
+                              );
+
+                              return (
+                                <button
+                                  type="button"
+                                  disabled={!isProductSelected}
+                                  onClick={() => handleOpenMockupBuilder(idx)}
+                                  className={`p-1.5 rounded-md border transition flex items-center justify-center ${
+                                    isProductSelected
+                                      ? "border-slate-200 text-slate-500 hover:text-purple-600 hover:bg-purple-50 hover:border-purple-300 cursor-pointer"
+                                      : "border-slate-200/60 text-slate-300 opacity-40 cursor-not-allowed bg-slate-50"
+                                  }`}
+                                  title={
+                                    isProductSelected
+                                      ? "Design mockup in Mockup Builder"
+                                      : "Please select a product first"
+                                  }
+                                >
+                                  <Palette size={13} />
+                                </button>
+                              );
+                            })()}
                           </div>
                         </>
                       );
