@@ -9,6 +9,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { inputClass } from "@/pages/Login";
 import { useGetProductsForAutoCompleteQuery } from "@/store/Product/productAPI";
 import { ProductAutocompleteItem } from "@/store/Product/types/productTypes";
@@ -70,6 +76,7 @@ interface LineItemsGroupProps {
   onRemoveGroup: () => void;
   canRemoveGroup: boolean;
   onRefreshPricing: () => void;
+  isRefreshingPricing?: boolean;
 }
 
 const calcTotal = (items: number, price: number, markup: number) =>
@@ -105,6 +112,7 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
   onRemoveGroup,
   canRemoveGroup,
   onRefreshPricing,
+  isRefreshingPricing = false,
 }) => {
   const [columnVisibility, setColumnVisibility] =
     useState<TableColumnVisibility>(defaultColumnVisibility);
@@ -157,6 +165,24 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
     watchedPriceMatrixColumn,
     watchedImprintDetails,
   ]);
+
+  const watchedLineItems = watch(`groups.${groupIndex}.lineItems`) || [];
+
+  const hasSelectedImprint = useMemo(() => {
+    const hasInImprints =
+      currentImprints.length > 0 &&
+      currentImprints.some(
+        (imp) => Boolean(imp?.matrixId && String(imp.matrixId).trim() !== ""),
+      );
+    const hasGroupMatrix = Boolean(
+      watchedPriceMatrixId && String(watchedPriceMatrixId).trim() !== "",
+    );
+    const hasLineItemMatrix = watchedLineItems.some(
+      (li) => Boolean(li?.matrixId && String(li.matrixId).trim() !== ""),
+    );
+
+    return hasInImprints || hasGroupMatrix || hasLineItemMatrix;
+  }, [currentImprints, watchedPriceMatrixId, watchedLineItems]);
 
   const handleDeleteImprint = (indexToDelete: number) => {
     const updated = currentImprints.filter((_, i) => i !== indexToDelete);
@@ -1270,13 +1296,43 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
           >
             <BsFillLightningChargeFill size={13} /> Imprint
           </CommonButton>
-          <CommonButton
-            onClick={onRefreshPricing}
-            type="button"
-            variant="secondary"
-          >
-            <TfiReload size={13} /> Refresh Pricing
-          </CommonButton>
+          <TooltipProvider delayDuration={150}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={
+                    !hasSelectedImprint
+                      ? "inline-flex cursor-not-allowed"
+                      : "inline-flex"
+                  }
+                  title={
+                    !hasSelectedImprint
+                      ? "Add a pricing matrix to an imprint to enable quantity-based pricing"
+                      : undefined
+                  }
+                >
+                  <CommonButton
+                    onClick={onRefreshPricing}
+                    type="button"
+                    variant="secondary"
+                    disabled={!hasSelectedImprint || isRefreshingPricing}
+                    isLoading={isRefreshingPricing}
+                    loadingText="Refreshing..."
+                  >
+                    <TfiReload size={13} /> Refresh Pricing
+                  </CommonButton>
+                </span>
+              </TooltipTrigger>
+              {!hasSelectedImprint && (
+                <TooltipContent
+                  side="top"
+                  className="bg-slate-900 text-white text-xs px-3 py-1.5 rounded-md shadow-lg border border-slate-700 max-w-xs text-center z-50"
+                >
+                  Add a pricing matrix to an imprint to enable quantity-based pricing
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 

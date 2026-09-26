@@ -314,8 +314,11 @@ const CreateQuoteForm = () => {
   const [recalculatedPricing, setRecalculatedPricing] =
     useState<RefreshPricingResult | null>(null);
   const isRefreshingPricingRef = useRef(false);
-  const [updateRefreshPricing] = useRefreshPricingNewMutation();
-  const [updateRefreshPricingExisting] = useRefreshPricingExistingMutation();
+  const [updateRefreshPricing, { isLoading: isRefreshingNew }] =
+    useRefreshPricingNewMutation();
+  const [updateRefreshPricingExisting, { isLoading: isRefreshingExisting }] =
+    useRefreshPricingExistingMutation();
+  const isRefreshingPricing = isRefreshingNew || isRefreshingExisting;
 
   // Clear stale recalculated pricing if user manually modifies form fields
   useEffect(() => {
@@ -327,6 +330,24 @@ const CreateQuoteForm = () => {
   const onRefreshPricing = async () => {
     try {
       const values = watch();
+      const hasAnyImprintMatrix = values.groups.some(
+        (g) =>
+          (g.priceMatrixId && g.priceMatrixId.trim() !== "") ||
+          (g.imprints &&
+            g.imprints.some(
+              (imp) => imp.matrixId && imp.matrixId.trim() !== "",
+            )) ||
+          g.lineItems.some(
+            (li) => li.matrixId && li.matrixId.trim() !== "",
+          ),
+      );
+      if (!hasAnyImprintMatrix) {
+        toast.warning(
+          "Add a pricing matrix to an imprint to enable quantity-based pricing.",
+        );
+        return;
+      }
+
       const groupsPayload = buildGroupsPayload(values.groups);
 
       let result: RefreshPricingResult;
@@ -729,6 +750,7 @@ const CreateQuoteForm = () => {
           onRemoveGroup={() => removeGroup(groupIndex)}
           canRemoveGroup={groupFields.length > 1}
           onRefreshPricing={onRefreshPricing}
+          isRefreshingPricing={isRefreshingPricing}
         />
       ))}
 
