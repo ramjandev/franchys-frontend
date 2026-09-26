@@ -6,6 +6,10 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
+# Allow passing VITE_API_URL at build time with fallback
+ARG VITE_API_URL=https://api.franchys.dynv6.net/api/v1
+ENV VITE_API_URL=$VITE_API_URL
+
 # Copy package files first
 COPY package*.json ./
 

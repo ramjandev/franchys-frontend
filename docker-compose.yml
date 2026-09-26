@@ -3,7 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-
+      args:
+        - VITE_API_URL=https://api.franchys.dynv6.net/api/v1
     container_name: francys_frontend
 
     ports:
