@@ -24,30 +24,14 @@ jobs:
           port: ${{ secrets.SERVER_PORT || 22 }}
           script_stop: true
           script: |
-            APP_DIR="/root/franchys-frontend"
-            REPO_URL="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/ramjandev/franchys-frontend.git"
-
-            echo ">>> Navigating to deployment directory..."
-            if [ ! -d "$APP_DIR/.git" ]; then
-              echo ">>> Git repository not found. Cleaning and cloning fresh..."
-              rm -rf "$APP_DIR"
-              git clone "$REPO_URL" "$APP_DIR"
-              cd "$APP_DIR"
-            else
-              echo ">>> Updating repository to latest main branch..."
-              cd "$APP_DIR"
-              git remote set-url origin "$REPO_URL"
-              git fetch origin main
-              git reset --hard origin/main
-            fi
-
-            echo ">>> Building and starting Docker container..."
+            mkdir -p /root/franchys-frontend
+            cd /root/franchys-frontend
+            git init
+            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/ramjandev/franchys-frontend.git || git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/ramjandev/franchys-frontend.git
+            git fetch origin main
+            git reset --hard origin/main
             docker compose down || true
             docker compose up -d --build
-
-            echo ">>> Cleaning up dangling images..."
             docker image prune -f
-
-            echo ">>> Deployment completed successfully! Container status:"
             docker ps --filter "name=francys_frontend"
 
