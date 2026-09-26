@@ -20,92 +20,10 @@ export interface MockupLayer {
   strokeWidth?: number;
 }
 
-export interface GarmentColor {
-  name: string;
-  hex: string;
-}
-
-export interface GarmentOption {
-  code: string;
-  name: string;
-  colors: GarmentColor[];
-  views: Record<string, string>;
-}
-
-export const GARMENT_OPTIONS: GarmentOption[] = [
-  {
-    code: "3001",
-    name: "Bella+Canvas CVC Unisex T-Shirt",
-    colors: [
-      { name: "White", hex: "#FFFFFF" },
-      { name: "Black", hex: "#000000" },
-      { name: "Navy", hex: "#1B2A4A" },
-      { name: "Red", hex: "#C8102E" },
-      { name: "Athletic Heather", hex: "#B2B4B2" },
-    ],
-    views: {
-      Front: "front",
-      Back: "back",
-      "Left Sleeve": "left",
-      "Right Sleeve": "right",
-    },
-  },
-  {
-    code: "5000",
-    name: "Gildan Heavy Cotton T-Shirt",
-    colors: [
-      { name: "White", hex: "#FFFFFF" },
-      { name: "Black", hex: "#000000" },
-      { name: "Royal Blue", hex: "#004B87" },
-      { name: "Red", hex: "#DA291C" },
-    ],
-    views: {
-      Front: "front",
-      Back: "back",
-      "Left Sleeve": "left",
-      "Right Sleeve": "right",
-    },
-  },
-  {
-    code: "8000",
-    name: "Gildan DryBlend 50/50 T-Shirt",
-    colors: [
-      { name: "White", hex: "#FFFFFF" },
-      { name: "Black", hex: "#000000" },
-      { name: "Sport Grey", hex: "#9E9E9E" },
-      { name: "Forest Green", hex: "#1E3F20" },
-    ],
-    views: {
-      Front: "front",
-      Back: "back",
-      "Left Sleeve": "left",
-      "Right Sleeve": "right",
-    },
-  },
-  {
-    code: "18500",
-    name: "Gildan Heavy Blend Hoodie",
-    colors: [
-      { name: "White", hex: "#FFFFFF" },
-      { name: "Black", hex: "#000000" },
-      { name: "Navy", hex: "#1B2A4A" },
-      { name: "Grey", hex: "#9E9E9E" },
-    ],
-    views: {
-      Front: "front",
-      Back: "back",
-      "Left Sleeve": "left",
-      "Right Sleeve": "right",
-    },
-  },
-];
-
 interface DesignState {
-  clothingCode: string;
-  hasGarment: boolean;
-  selectedGarment: GarmentOption | null;
-  productColor: string;
+  canvasProductImage: string | null;
   activeView: string;
+  productViews: string[];
   layersByView: Record<string, MockupLayer[]>;
   selectedLayerId: string | null;
   activeTool: string;
@@ -116,17 +34,10 @@ interface DesignState {
 }
 
 const initialState: DesignState = {
-  clothingCode: "",
-  hasGarment: false,
-  selectedGarment: null,
-  productColor: "#FFFFFF",
-  activeView: "Front",
-  layersByView: {
-    Front: [],
-    Back: [],
-    "Left Sleeve": [],
-    "Right Sleeve": [],
-  },
+  canvasProductImage: null,
+  activeView: "default",
+  productViews: [],
+  layersByView: {},
   selectedLayerId: null,
   activeTool: "erase",
   zoom: 100,
@@ -163,17 +74,14 @@ const designSlice = createSlice({
   name: "design",
   initialState,
   reducers: {
-    setClothingCode(state, action: PayloadAction<string>) {
-      state.clothingCode = action.payload;
+    setCanvasProductImage(state, action: PayloadAction<string | null>) {
+      state.canvasProductImage = action.payload;
+      if (action.payload && (!state.activeView || state.activeView === "default")) {
+        state.activeView = action.payload;
+      }
     },
-    setHasGarment(state, action: PayloadAction<boolean>) {
-      state.hasGarment = action.payload;
-    },
-    setSelectedGarment(state, action: PayloadAction<GarmentOption | null>) {
-      state.selectedGarment = action.payload;
-    },
-    setProductColor(state, action: PayloadAction<string>) {
-      state.productColor = action.payload;
+    setProductViews(state, action: PayloadAction<string[]>) {
+      state.productViews = action.payload;
     },
     setActiveView(state, action: PayloadAction<string>) {
       state.activeView = action.payload;
@@ -275,10 +183,8 @@ const designSlice = createSlice({
 });
 
 export const {
-  setClothingCode,
-  setHasGarment,
-  setSelectedGarment,
-  setProductColor,
+  setCanvasProductImage,
+  setProductViews,
   setActiveView,
   setLayersByView,
   setSelectedLayerId,

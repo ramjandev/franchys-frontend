@@ -14,8 +14,13 @@ export const FillPopover: React.FC<FillPopoverProps> = ({ show, activeColor, onS
       <div className="grid grid-cols-4 gap-2">
         {["#FFFFFF", "#000000", "#1E3A8A", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899"].map((c) => (
           <button
+            type="button"
             key={c}
-            onClick={() => onSelectColor(c)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onSelectColor(c);
+            }}
             className={`w-6 h-6 rounded-full border border-gray-300 shadow-sm transition-transform hover:scale-110 ${
               activeColor === c ? "ring-2 ring-blue-500" : ""
             }`}

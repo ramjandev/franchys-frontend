@@ -24,9 +24,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { clearMockups, setSelectedProduct } from "@/store/imageSlice/imageSlice";
 
 import CustomerSearchSelect from "./CustomerSearchSelect";
 import LineItemsGroup from "./LineItemsGroup";
@@ -59,6 +60,15 @@ const CreateQuoteForm = () => {
 
   const { id: quoteId } = useParams<{ id?: string }>();
   const isEditMode = Boolean(quoteId);
+  const dispatch = useDispatch();
+
+  // Reset any cached mockups or selected product when opening a new quote
+  useEffect(() => {
+    if (!isEditMode) {
+      dispatch(clearMockups());
+      dispatch(setSelectedProduct(null));
+    }
+  }, [isEditMode, dispatch]);
 
   const repId = user?.userId ?? "";
 
@@ -158,6 +168,7 @@ const CreateQuoteForm = () => {
         groups: q.groups.map((g) => ({
           name: g.name,
           priceMatrixId: g.lineItems[0]?.matrixId ?? "",
+          priceMatrixColumn: g.lineItems[0]?.matrixColumn ?? "",
           lineItems: g.lineItems.map((li) => ({
             category: li.category,
             itemNumber: li.itemNumber,
@@ -171,6 +182,10 @@ const CreateQuoteForm = () => {
             price: Number(li.unitPrice) || 0,
             taxed: li.isTaxed,
             mockups: li.mockups || [],
+            matrixId: li.matrixId || "",
+            matrixColumn: li.matrixColumn || "",
+            printCost: Number(li.printCost) || 0,
+            total: Number(li.total) || 0,
           })),
         })),
       });
@@ -253,7 +268,10 @@ const CreateQuoteForm = () => {
     groups.map((g) => ({
       name: g.name,
       lineItems: g.lineItems.map((li) => {
-        const lineTotal = li.items * li.price * (1 + li.markup / 100);
+        const lineTotal =
+          li.total !== undefined && li.total > 0
+            ? li.total
+            : Number((li.items * li.price * (1 + li.markup / 100)).toFixed(2));
         const effectiveBaseCost =
           li.baseCost && li.baseCost > 0 ? li.baseCost : li.price;
 
@@ -266,20 +284,30 @@ const CreateQuoteForm = () => {
           baseCost: effectiveBaseCost,
           sizeBreakdown: li.sizes,
           markupPrice: li.markup,
-          matrixId: g.priceMatrixId || undefined,
-          printCost: 0,
+          matrixId: li.matrixId || g.priceMatrixId || undefined,
+          matrixColumn: li.matrixColumn || g.priceMatrixColumn || undefined,
+          printCost: li.printCost ?? 0,
           unitPrice: li.price,
           isTaxed: li.taxed,
-          total: Number(lineTotal.toFixed(2)),
+          total: lineTotal,
           imprintType: li.imprintType || "",
+          mockups: li.mockups || [],
         };
       }),
     }));
 
   const [recalculatedPricing, setRecalculatedPricing] =
     useState<RefreshPricingResult | null>(null);
+  const isRefreshingPricingRef = useRef(false);
   const [updateRefreshPricing] = useRefreshPricingNewMutation();
   const [updateRefreshPricingExisting] = useRefreshPricingExistingMutation();
+
+  // Clear stale recalculated pricing if user manually modifies form fields
+  useEffect(() => {
+    if (!isRefreshingPricingRef.current && recalculatedPricing) {
+      setRecalculatedPricing(null);
+    }
+  }, [watchedGroups, watchedDiscount]);
 
   const onRefreshPricing = async () => {
     try {
@@ -322,26 +350,63 @@ const CreateQuoteForm = () => {
         result = res.data;
       }
 
+      isRefreshingPricingRef.current = true;
       setRecalculatedPricing(result);
 
-      // Note: We preserve baseCost! Updating unitPrice and markup will NOT compound
-      // the base cost upon subsequent clicks to Refresh Pricing.
+      // Apply server-recalculated unitPrice, markup, total, printCost, and matrix fields
       result.groups.forEach((g, groupIdx) => {
         g.lineItems.forEach((li, lineItemIdx) => {
           setValue(
             `groups.${groupIdx}.lineItems.${lineItemIdx}.price`,
             Number(li.unitPrice),
+            { shouldDirty: true },
           );
           setValue(
             `groups.${groupIdx}.lineItems.${lineItemIdx}.markup`,
             Number(li.markupPrice),
+            { shouldDirty: true },
           );
+          setValue(
+            `groups.${groupIdx}.lineItems.${lineItemIdx}.total`,
+            Number(li.total),
+            { shouldDirty: true },
+          );
+          if (li.printCost !== undefined && li.printCost !== null) {
+            setValue(
+              `groups.${groupIdx}.lineItems.${lineItemIdx}.printCost`,
+              Number(li.printCost),
+              { shouldDirty: true },
+            );
+          }
+          if (li.matrixId) {
+            setValue(
+              `groups.${groupIdx}.lineItems.${lineItemIdx}.matrixId`,
+              li.matrixId,
+              { shouldDirty: true },
+            );
+          }
+          if (li.matrixColumn) {
+            setValue(
+              `groups.${groupIdx}.lineItems.${lineItemIdx}.matrixColumn`,
+              li.matrixColumn,
+              { shouldDirty: true },
+            );
+          }
         });
       });
+
+      setTimeout(() => {
+        isRefreshingPricingRef.current = false;
+      }, 250);
+
       toast.success("Pricing refreshed successfully!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to refresh pricing", error);
-      toast.error("Failed to refresh pricing. Check connection.");
+      const errMsg =
+        error?.data?.message ||
+        error?.message ||
+        "Failed to refresh pricing. Check connection.";
+      toast.error(errMsg);
     }
   };
 
@@ -378,7 +443,9 @@ const CreateQuoteForm = () => {
             : li.price;
           const lineItemTotal = recalculatedLineItem
             ? Number(recalculatedLineItem.total)
-            : Number(lineTotal.toFixed(2));
+            : li.total && li.total > 0
+              ? li.total
+              : Number(lineTotal.toFixed(2));
           const effectiveBaseCost =
             li.baseCost && li.baseCost > 0 ? li.baseCost : li.price;
 
@@ -391,12 +458,18 @@ const CreateQuoteForm = () => {
             baseCost: effectiveBaseCost,
             sizeBreakdown: li.sizes,
             markupPrice: li.markup,
-            matrixId: g.priceMatrixId || undefined,
-            printCost: 0,
+            matrixId: li.matrixId || g.priceMatrixId || undefined,
+            matrixColumn: li.matrixColumn || g.priceMatrixColumn || undefined,
+            printCost:
+              li.printCost ??
+              (recalculatedLineItem
+                ? Number(recalculatedLineItem.printCost)
+                : 0),
             unitPrice,
             isTaxed: li.taxed,
             total: lineItemTotal,
             imprintType: li.imprintType || "",
+            mockups: li.mockups || [],
           };
         }),
       })),
@@ -404,9 +477,13 @@ const CreateQuoteForm = () => {
 
     if (isEditMode && quoteId) {
       await updateQuote({ id: quoteId, data: payload }).unwrap();
+      dispatch(clearMockups());
+      dispatch(setSelectedProduct(null));
       return quoteId;
     } else {
       const res = await createQuote(payload).unwrap();
+      dispatch(clearMockups());
+      dispatch(setSelectedProduct(null));
       return res.data.id;
     }
   };
@@ -526,9 +603,7 @@ const CreateQuoteForm = () => {
           }
           discountAmount={
             recalculatedPricing
-              ? Number(recalculatedPricing.subtotal) -
-                Number(recalculatedPricing.total) +
-                Number(recalculatedPricing.taxAmount)
+              ? Number(recalculatedPricing.discount)
               : discountAmount
           }
           taxAmount={
@@ -536,7 +611,11 @@ const CreateQuoteForm = () => {
               ? Number(recalculatedPricing.taxAmount)
               : taxAmount
           }
-          taxRate={FIXED_TAX_RATE}
+          taxRate={
+            recalculatedPricing && Number(recalculatedPricing.taxRate)
+              ? Number(recalculatedPricing.taxRate)
+              : FIXED_TAX_RATE
+          }
           total={
             recalculatedPricing ? Number(recalculatedPricing.total) : total
           }

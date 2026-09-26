@@ -15,7 +15,7 @@ import { BiEdit } from "react-icons/bi";
 import { FiFileText, FiPrinter } from "react-icons/fi";
 import { MdOutlineRemoveRedEye } from "react-icons/md";
 import { useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import QuoteHeader from "./QuoteHeader";
 import QuoteLineItems from "./QuoteLineItems";
@@ -24,9 +24,11 @@ import RequestRevisionModal from "./RequestRevisionModal";
 
 const QuotePreview = () => {
   const { id } = useParams();
+  const location = useLocation();
+  const isPublicUrl = location.pathname.includes("/quotes/public/");
   const { user } = useSelector((s: RootState) => s.auth);
 
-  const isAdmin = user?.role === "SUPER_ADMIN";
+  const isAdmin = !isPublicUrl && user?.role === "SUPER_ADMIN";
 
   const { data: adminData, isLoading: adminLoading } = useGetQuoteByIdQuery(
     id!,
@@ -207,7 +209,16 @@ const QuotePreview = () => {
           <div className="flex flex-col md:flex-row gap-3 items-start printable-area">
             <CardContainer size="lg" className="flex-1 w-full">
               <QuoteHeader quote={quote} />
-              <QuoteLineItems quote={quote} isAdmin={isAdmin} />
+              <QuoteLineItems
+                quote={quote}
+                isAdmin={isAdmin}
+                showActions={isPublicUrl || !isAdmin || isAdminView}
+                onApprove={handleApprove}
+                onRevision={() => setShowRevisionModal(true)}
+                onDecline={handleDecline}
+                isApproving={isApproving}
+                isDeclining={isDeclining}
+              />
             </CardContainer>
 
             {!isAdminView && isAdmin && (
@@ -217,33 +228,6 @@ const QuotePreview = () => {
             )}
           </div>
         </>
-      )}
-
-      {!isAdmin && (
-        <CardContainer className="py-6 flex gap-4 mt-6 no-print">
-          <CommonButton
-            isLoading={isApproving}
-            loadingText="Processing..."
-            onClick={handleApprove}
-            variant="primaryBlue"
-          >
-            Approve
-          </CommonButton>
-          <CommonButton
-            onClick={() => setShowRevisionModal(true)}
-            variant="ghost"
-          >
-            Revision
-          </CommonButton>
-          <CommonButton
-            isLoading={isDeclining}
-            loadingText="Declining..."
-            onClick={handleDecline}
-            variant="destructive"
-          >
-            Decline
-          </CommonButton>
-        </CardContainer>
       )}
 
       {showRevisionModal && id && (

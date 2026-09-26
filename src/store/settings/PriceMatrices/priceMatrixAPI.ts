@@ -1,6 +1,7 @@
 import { baseAPI } from "@/store/BaseApi/baseAPI";
 import {
   CreatePriceMatrix,
+  CreatePriceTierPayload,
   CreatePriceTierResponse,
   GetPriceMatrixByIdResponse,
   GetPriceMatrixResponse,
@@ -54,7 +55,7 @@ export const priceMatrixAPI = baseAPI.injectEndpoints({
       CreatePriceTierResponse,
       {
         priceMatrixId: string;
-        data: { quantity: number; basePrice: number; markup: number };
+        data: CreatePriceTierPayload;
       }
     >({
       query: ({ priceMatrixId, data }) => ({

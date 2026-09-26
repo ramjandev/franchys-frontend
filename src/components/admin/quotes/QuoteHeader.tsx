@@ -1,5 +1,4 @@
 import logo from "@/assets/images/textLogo.png";
-import CommonHeader from "@/components/shared/CommonHeader";
 import { Quote } from "@/store/quote/types/quoteTypes";
 
 interface QuoteHeaderProps {
@@ -29,12 +28,7 @@ const QuoteHeader: React.FC<QuoteHeaderProps> = ({ quote }) => {
       ? `${customer?.firstName ?? ""} ${customer?.lastName ?? ""}`.trim()
       : null;
 
-  const addressLines = [
-    customer?.street,
-    [customer?.city, customer?.state, customer?.postalCode]
-      .filter(Boolean)
-      .join(", "),
-  ].filter((line): line is string => Boolean(line));
+
 
   const orderDetails = [
     {
@@ -63,85 +57,112 @@ const QuoteHeader: React.FC<QuoteHeaderProps> = ({ quote }) => {
 
   return (
     <div className="mb-6">
-      <div className="flex justify-between items-start pb-4 mb-4 ">
+      {/* Top Company & Quote Title Bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-5 mb-2">
         <div>
-          <div className=" w-25 h-22.5 mb-3">
+          <div className="w-32 h-auto mb-3">
             <img
               src={logo}
               alt="logo"
-              className=" w-full h-full object-cover"
+              className="w-full h-auto object-contain max-h-16"
             />
           </div>
-          <CommonHeader size="xs" className="">
-            456 Commerce Avenue
-            <br />
-            Los Angeles, CA 90001
-            <br />
-            (555) 987-6543
-            <br />
-            quotes@printflowpro.com
-          </CommonHeader>
+          <div className="text-xs text-slate-500 space-y-0.5 leading-relaxed">
+            <div>456 Commerce Avenue</div>
+            <div>Los Angeles, CA 90001</div>
+            <div>(555) 987-6543</div>
+            <div>quotes@printflowpro.com</div>
+          </div>
         </div>
-        <div className=" flex flex-col justify-end ">
-          <CommonHeader size="2xl" className="mb-1 justify-end!">
-            QUOTE
-          </CommonHeader>
-          <CommonHeader size="lg" className="text-skyBlue justify-end!">
-            {quote?.quoteNumber || "-"}
-          </CommonHeader>
 
-          <CommonHeader size="xs" className=" mt-1 justify-end!">
-            Date: {formatDate(quote?.createdAt)}
-          </CommonHeader>
-          <CommonHeader size="xs" className=" mt-1 justify-end!">
-            {/* No dedicated "expires" field on Quote — using dueDate */}
-            Expires: {formatDate(quote?.dueDate)}
-          </CommonHeader>
+        <div className="flex flex-col sm:items-end text-left sm:text-right">
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            QUOTE
+          </div>
+          <div className="text-base sm:text-lg font-bold text-sky-600 mt-0.5">
+            {quote?.quoteNumber || "-"}
+          </div>
+
+          <div className="mt-2 text-xs text-slate-500 space-y-0.5">
+            <div>
+              <span className="font-semibold text-slate-700">Date:</span>{" "}
+              {formatDate(quote?.createdAt)}
+            </div>
+            <div>
+              <span className="font-semibold text-slate-700">Expires:</span>{" "}
+              {formatDate(quote?.dueDate)}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div>
-          <div className="text-xs text-[#62748E] font-medium mb-1">
-            QUOTE FOR:
+      {/* Quote For & Order Details Bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pt-5 border-t border-slate-200">
+        {/* Customer Information */}
+        <div className="flex-1 space-y-1">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+            Quote For:
           </div>
-          <CommonHeader size="lg" className="text-[#0F172B]! font-bold!">
+          <div className="text-xl font-bold text-slate-900">
             {customerDisplayName}
-          </CommonHeader>{" "}
-          <br />
-          <CommonHeader size="xs" className=" mt-0.5">
-            {contactName && (
-              <>
-                {contactName}
-                <br />
-              </>
+          </div>
+          {contactName && (
+            <div className="text-sm font-semibold text-slate-700">
+              {contactName}
+            </div>
+          )}
+          {customer?.street && (
+            <div className="text-xs text-slate-600">{customer.street}</div>
+          )}
+          {[customer?.city, customer?.state, customer?.postalCode]
+            .filter(Boolean)
+            .join(", ") && (
+            <div className="text-xs text-slate-600">
+              {[customer?.city, customer?.state, customer?.postalCode]
+                .filter(Boolean)
+                .join(", ")}
+            </div>
+          )}
+          {customer?.country && (
+            <div className="text-xs text-slate-600">{customer.country}</div>
+          )}
+          <div className="pt-2 flex flex-col gap-1 text-xs text-slate-600">
+            {customer?.email && (
+              <div className="flex items-center gap-1.5">
+                <span className="font-medium text-slate-700">Email:</span>
+                <span className="text-slate-600">{customer.email}</span>
+              </div>
             )}
-            {addressLines.map((line) => (
-              <span key={line}>
-                {line}
-                <br />
-              </span>
-            ))}
-            {customer?.email}
-            <br />
-            {customer?.phone}
-          </CommonHeader>
+            {customer?.phone && (
+              <div className="flex items-center gap-1.5">
+                <span className="font-medium text-slate-700">Phone:</span>
+                <span className="text-slate-600">{customer.phone}</span>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="w-full  sm:w-60 space-y-3">
+
+        {/* Order Details / Metadata table on right */}
+        <div className="w-full sm:w-72 bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2.5">
           {orderDetails.map((detail, i) => (
             <div
               key={detail.label}
-              className="w-full flex justify-between gap-3"
+              className="w-full flex items-center justify-between text-xs"
             >
-              <CommonHeader size="xs" className="">
+              <span className="text-slate-500 font-medium">
                 {detail.label}
-              </CommonHeader>
-              <CommonHeader
-                size="xs"
-                className={` ${i === 0 ? "text-[#0F172B]! font-bold" : ""} ${i === 3 ? "text-[#E7000B]! font-bold" : ""}`}
+              </span>
+              <span
+                className={`font-semibold text-right ${
+                  i === 0
+                    ? "text-slate-900 font-bold"
+                    : i === 3
+                      ? "text-red-600 font-bold"
+                      : "text-slate-800"
+                }`}
               >
                 {detail.value}
-              </CommonHeader>
+              </span>
             </div>
           ))}
         </div>

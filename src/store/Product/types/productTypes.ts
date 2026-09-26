@@ -23,9 +23,9 @@ export interface CreateColorPayload {
 
 export type UpdateColorPayload = Partial<CreateColorPayload>;
 
-// ---- Product ----
+// ---- System Product Entity ----
 
-export interface Product {
+export interface SystemProductDetail {
   id: string;
   productName: string;
   itemNo: string;
@@ -42,8 +42,53 @@ export interface Product {
   updatedAt: string;
   colors: ProductColor[];
   category: Category | null;
-  brand: Brand;
+  brand: Brand | null;
+  isSanMar?: false;
 }
+
+// Backward compatibility alias
+export type Product = SystemProductDetail;
+
+// ---- SanMar Product Entity ----
+
+export interface SanMarProductDetail {
+  productId: string;
+  isSanMar: true;
+  style: string;
+  inventoryKey: string;
+  productName: string;
+  colorName?: string;
+  colorCode?: string;
+  brand?: string;
+  category?: string;
+  subCategory?: string;
+  piecePrice?: number;
+  casePrice?: number;
+  salePrice?: number;
+  description?: string;
+  primaryImageUrl?: string;
+  colorSquareUrl?: string;
+  images: string[];
+  availableSizes: string[];
+}
+
+// ---- Discriminated Union for Single Product (GET /product/:id) ----
+
+export type SingleProduct = SystemProductDetail | SanMarProductDetail;
+
+// Type guards
+export function isSanMarProduct(
+  product: SingleProduct | undefined | null,
+): product is SanMarProductDetail {
+  return Boolean(product && "isSanMar" in product && product.isSanMar === true);
+}
+
+export function isSystemProduct(
+  product: SingleProduct | undefined | null,
+): product is SystemProductDetail {
+  return Boolean(product && !isSanMarProduct(product));
+}
+
 // ---- Create/Update payload (multipart/form-data) ----
 
 export interface CreateProductPayload {
@@ -96,7 +141,8 @@ export interface ProductAutocompleteItem {
 // ---- Response envelopes ----
 
 export type GetProductsResponse = PaginatedApiResponse<Product[]>;
-export type GetProductByIdResponse = ApiResponse<Product>;
+export type GetProductByIdResponse = ApiResponse<SingleProduct>;
+export type SingleProductResponse = ApiResponse<SingleProduct>;
 export type CreateProductResponse = ApiResponse<Product>;
 export type UpdateProductResponse = ApiResponse<Product>;
 

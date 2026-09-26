@@ -1,3 +1,4 @@
+import CommonButton from "@/components/shared/CommonButton";
 import CommonHeader from "@/components/shared/CommonHeader";
 import { Quote } from "@/store/quote/types/quoteTypes";
 import { Image, Plus, Zap } from "lucide-react";
@@ -9,7 +10,20 @@ import TotalPriceInQuote from "./TotalPriceInQuote";
 interface QuoteLineItemsProps {
   quote?: Quote;
   isAdmin?: boolean;
+  showActions?: boolean;
+  onApprove?: () => void;
+  onRevision?: () => void;
+  onDecline?: () => void;
+  isApproving?: boolean;
+  isDeclining?: boolean;
 }
+
+const decodeHtmlEntities = (str?: string) => {
+  if (!str) return "";
+  const txt = document.createElement("textarea");
+  txt.innerHTML = str;
+  return txt.value;
+};
 
 const colorThemes = [
   {
@@ -43,7 +57,16 @@ const colorThemes = [
 
 const formatMoney = (n: number | string) => `$${Number(n).toFixed(2)}`;
 
-const QuoteLineItems: React.FC<QuoteLineItemsProps> = ({ quote, isAdmin }) => {
+const QuoteLineItems: React.FC<QuoteLineItemsProps> = ({
+  quote,
+  isAdmin,
+  showActions,
+  onApprove,
+  onRevision,
+  onDecline,
+  isApproving,
+  isDeclining,
+}) => {
   const lineItems = (quote?.groups ?? []).flatMap((group) =>
     group.lineItems.map((li) => ({ ...li, groupName: group.name })),
   );
@@ -123,7 +146,9 @@ const QuoteLineItems: React.FC<QuoteLineItemsProps> = ({ quote, isAdmin }) => {
 
               <div className="px-6 space-y-4.5 pb-4">
                 <div className="pt-4.5 ">
-                  <CommonHeader size="xl">{item.description}</CommonHeader>
+                  <CommonHeader size="xl">
+                    {decodeHtmlEntities(item.description)}
+                  </CommonHeader>
                 </div>
                 {sizeEntries.length > 0 && (
                   <>
@@ -229,8 +254,41 @@ const QuoteLineItems: React.FC<QuoteLineItemsProps> = ({ quote, isAdmin }) => {
         previewImage={previewImage}
         setPreviewImage={setPreviewImage}
       />
-      <div className="mt-8 pt-8 border-t border-border w-full  flex justify-end ">
-        <TotalPriceInQuote quote={quote} />
+      <div className="mt-8 pt-8 border-t border-border w-full flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+        {showActions ? (
+          <div className="flex flex-wrap items-center gap-3 no-print mb-4 sm:mb-0">
+            <CommonButton
+              isLoading={isApproving}
+              loadingText="Approving..."
+              onClick={onApprove}
+              variant="primaryBlue"
+              className="px-6! py-2.5! font-medium rounded-lg text-sm"
+            >
+              Approve
+            </CommonButton>
+            <CommonButton
+              onClick={onRevision}
+              variant="secondary"
+              className="bg-slate-100! hover:bg-slate-200! text-slate-700! border border-slate-300! px-6! py-2.5! font-medium rounded-lg text-sm"
+            >
+              Revision
+            </CommonButton>
+            <CommonButton
+              isLoading={isDeclining}
+              loadingText="Declining..."
+              onClick={onDecline}
+              variant="destructive"
+              className="px-6! py-2.5! font-medium rounded-lg text-sm"
+            >
+              Decline
+            </CommonButton>
+          </div>
+        ) : (
+          <div />
+        )}
+        <div className="w-full sm:w-80 ml-auto">
+          <TotalPriceInQuote quote={quote} />
+        </div>
       </div>
     </div>
   );

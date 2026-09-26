@@ -130,8 +130,13 @@ export const CanvasToolStrip: React.FC<CanvasToolStripProps> = ({
         const isActive = activeTool === tool.id;
         return (
           <button
+            type="button"
             key={tool.id}
-            onClick={() => onActionClick(tool.id)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onActionClick(tool.id);
+            }}
             className={`w-[60px] md:w-[80px] h-[60px] md:h-[80px] rounded-xl px-4 py-2 xl:py-0 xl:px-0 flex flex-col items-center justify-center gap-1 transition-all border shadow-sm ${isActive
               ? "bg-[#007FFF] text-white border-[#007FFF]"
               : "bg-white text-[#6B7280] border-[#E6EBF2] hover:bg-gray-50"

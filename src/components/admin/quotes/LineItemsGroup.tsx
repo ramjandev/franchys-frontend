@@ -19,10 +19,15 @@ import {
   ProductType,
   setProductType,
   setSelectedProduct,
+  addLineItemMockups,
+  removeLineItemMockup,
+  setActiveLineItemTarget,
 } from "@/store/imageSlice/imageSlice";
+import { useUploadMockupsMutation } from "@/store/quote/quoteAPI";
 import { RootState } from "@/store/store";
-import { Columns, Plus, Trash2, X } from "lucide-react";
+import { Columns, Loader2, Palette, Plus, Trash2, Upload, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import { toast } from "react-toastify";
 import {
   Control,
   Controller,
@@ -42,6 +47,7 @@ import {
 } from "./data";
 import PriceMatrixModal from "./matrix/PriceMatrixModal";
 import { makeDefaultLineItem, QuoteFormValues } from "./schema/quoteFormSchema";
+import MockupBuilderPage from "@/pages/Admin/MockupBuilder/MockupBuilderPage";
 
 interface LineItemsGroupProps {
   groupIndex: number;
@@ -134,7 +140,106 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
     { search: debouncedSearch },
     { skip: productType !== "sanmar" || !debouncedSearch },
   );
-  const { selectedProduct } = useSelector((state: RootState) => state.image);
+  const { selectedProduct } = useSelector(
+    (state: RootState) => state.image,
+  );
+  const [uploadMockups] = useUploadMockupsMutation();
+  const [uploadingRow, setUploadingRow] = useState<number | null>(null);
+  const [previewMockupUrl, setPreviewMockupUrl] = useState<string | null>(null);
+  const [mockupModalRowIndex, setMockupModalRowIndex] = useState<number | null>(null);
+
+  const handleUploadLineItemMockup = async (
+    rowIdx: number,
+    files: FileList | null,
+  ) => {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
+
+    const oversized = fileArray.find((f) => f.size > 10 * 1024 * 1024);
+    if (oversized) {
+      toast.error("One or more files exceed 10MB limit.");
+      return;
+    }
+
+    try {
+      setUploadingRow(rowIdx);
+      const res = await uploadMockups(fileArray).unwrap();
+      const newUrls = res.data?.urls || [];
+
+      if (newUrls.length > 0) {
+        const key = `${groupIndex}-${rowIdx}`;
+        dispatch(addLineItemMockups({ key, urls: newUrls }));
+
+        const currentMockups =
+          watch(`groups.${groupIndex}.lineItems.${rowIdx}.mockups`) || [];
+        const merged = Array.from(new Set([...currentMockups, ...newUrls]));
+        setValue(`groups.${groupIndex}.lineItems.${rowIdx}.mockups`, merged, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+
+        toast.success(
+          `${newUrls.length} mockup(s) uploaded to line item successfully!`,
+        );
+      }
+    } catch (err) {
+      console.error("Failed to upload mockups:", err);
+      toast.error("Failed to upload mockup files.");
+    } finally {
+      setUploadingRow(null);
+    }
+  };
+
+  const handleRemoveLineItemMockup = (rowIdx: number, urlToRemove: string) => {
+    const key = `${groupIndex}-${rowIdx}`;
+    dispatch(removeLineItemMockup({ key, url: urlToRemove }));
+
+    const currentMockups =
+      watch(`groups.${groupIndex}.lineItems.${rowIdx}.mockups`) || [];
+    const filtered = currentMockups.filter((u) => u !== urlToRemove);
+    setValue(`groups.${groupIndex}.lineItems.${rowIdx}.mockups`, filtered, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const handleOpenMockupBuilder = (rowIdx: number) => {
+    dispatch(
+      setActiveLineItemTarget({
+        groupIndex,
+        lineItemIndex: rowIdx,
+        itemNumber: watch(
+          `groups.${groupIndex}.lineItems.${rowIdx}.itemNumber`,
+        ),
+        productId: selectedProduct?.productId,
+      }),
+    );
+    setMockupModalRowIndex(rowIdx);
+  };
+
+  const handleMockupModalSave = (urls: string[]) => {
+    if (mockupModalRowIndex !== null && urls.length > 0) {
+      const key = `${groupIndex}-${mockupModalRowIndex}`;
+      dispatch(addLineItemMockups({ key, urls }));
+
+      const currentMockups =
+        watch(`groups.${groupIndex}.lineItems.${mockupModalRowIndex}.mockups`) || [];
+      const merged = Array.from(new Set([...currentMockups, ...urls]));
+      setValue(
+        `groups.${groupIndex}.lineItems.${mockupModalRowIndex}.mockups`,
+        merged,
+        {
+          shouldValidate: true,
+          shouldDirty: true,
+        },
+      );
+      toast.success(
+        `${urls.length} mockup(s) attached to line item! All quote details preserved.`,
+      );
+    }
+    setMockupModalRowIndex(null);
+  };
+
   const [activeRow, setActiveRow] = useState<number | null>(null);
   const justSelectedRef = useRef(false);
 
@@ -507,6 +612,9 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
             const rowSizes = watch(
               `groups.${groupIndex}.lineItems.${idx}.sizes`,
             );
+            const rowTotal = watch(
+              `groups.${groupIndex}.lineItems.${idx}.total`,
+            );
 
             return (
               <div
@@ -795,18 +903,94 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
 
                 {/* Total */}
                 <span className="text-[13px] font-semibold text-slate-800">
-                  ${calcTotal(rowItems, rowPrice, rowMarkup)}
+                  $
+                  {rowTotal !== undefined && rowTotal !== null && rowTotal > 0
+                    ? Number(rowTotal).toFixed(2)
+                    : calcTotal(rowItems, rowPrice, rowMarkup)}
                 </span>
 
                 {/* Mockup */}
                 {columnVisibility.mockup !== false && (
-                  <CommonButton
-                    to={`../mockups/${selectedProduct?.productId!}`}
-                    size="xs"
-                    className="w-fit!"
-                  >
-                    Mockup
-                  </CommonButton>
+                  <div className="flex items-center gap-1.5 flex-wrap min-w-[120px]">
+                    {/* Render saved mockup thumbnails */}
+                    {(() => {
+                      const rowMockups: string[] =
+                        watch(`groups.${groupIndex}.lineItems.${idx}.mockups`) || [];
+                      return (
+                        <>
+                          {rowMockups.map((url, mIdx) => (
+                            <div
+                              key={mIdx}
+                              className="relative group/mockup w-8 h-8 rounded border border-slate-200 overflow-hidden bg-slate-50 shrink-0 cursor-pointer shadow-2xs"
+                              onClick={() => setPreviewMockupUrl(url)}
+                              title="Click to view full preview"
+                            >
+                              <img
+                                src={url}
+                                alt={`Mockup ${mIdx + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveLineItemMockup(idx, url);
+                                }}
+                                className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full p-0.5 opacity-0 group-hover/mockup:opacity-100 transition-opacity hover:bg-red-700 shadow-xs cursor-pointer z-10"
+                                title="Remove mockup"
+                              >
+                                <X size={10} />
+                              </button>
+                            </div>
+                          ))}
+
+                          {/* Loading spinner while uploading */}
+                          {uploadingRow === idx && (
+                            <div
+                              className="w-8 h-8 rounded border border-blue-200 bg-blue-50/60 flex items-center justify-center shrink-0"
+                              title="Uploading mockup..."
+                            >
+                              <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                            </div>
+                          )}
+
+                          {/* Action Buttons: Direct Upload & Mockup Builder */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            {/* Hidden file input for direct upload */}
+                            <label
+                              htmlFor={`mockup-upload-${groupIndex}-${idx}`}
+                              className="p-1.5 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition cursor-pointer flex items-center justify-center"
+                              title="Upload mockup image directly"
+                            >
+                              <Upload size={13} />
+                              <input
+                                id={`mockup-upload-${groupIndex}-${idx}`}
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                className="hidden"
+                                disabled={uploadingRow === idx}
+                                onChange={(e) => {
+                                  handleUploadLineItemMockup(idx, e.target.files);
+                                  e.target.value = "";
+                                }}
+                              />
+                            </label>
+
+                            {/* Open Mockup Builder */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenMockupBuilder(idx)}
+                              className="p-1.5 rounded-md border border-slate-200 text-slate-500 hover:text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition cursor-pointer flex items-center justify-center"
+                              title="Design mockup in Mockup Builder"
+                            >
+                              <Palette size={13} />
+                            </button>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
                 )}
 
                 {/* Delete Row Action */}
@@ -867,7 +1051,92 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
       </div>
 
       {isPriceMatrixOpen && (
-        <PriceMatrixModal setShowModal={setIsPriceMatrixOpen} />
+        <PriceMatrixModal
+          setShowModal={setIsPriceMatrixOpen}
+          initialMatrixId={watch(`groups.${groupIndex}.priceMatrixId`)}
+          initialColumn={watch(`groups.${groupIndex}.priceMatrixColumn`)}
+          onSave={(matrixId, column, details) => {
+            setValue(`groups.${groupIndex}.priceMatrixId`, matrixId, {
+              shouldDirty: true,
+            });
+            setValue(`groups.${groupIndex}.priceMatrixColumn`, column, {
+              shouldDirty: true,
+            });
+            lineItemFields.forEach((_, idx) => {
+              setValue(
+                `groups.${groupIndex}.lineItems.${idx}.matrixId`,
+                matrixId,
+                { shouldDirty: true },
+              );
+              setValue(
+                `groups.${groupIndex}.lineItems.${idx}.matrixColumn`,
+                column,
+                { shouldDirty: true },
+              );
+              if (details) {
+                setValue(
+                  `groups.${groupIndex}.lineItems.${idx}.imprintType`,
+                  details,
+                  { shouldDirty: true },
+                );
+              }
+            });
+            toast.success("Pricing matrix & column applied to group!");
+          }}
+        />
+      )}
+
+      {/* Mockup Full-Size Preview Modal */}
+      {previewMockupUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={() => setPreviewMockupUrl(null)}
+        >
+          <div
+            className="relative max-w-3xl max-h-[85vh] bg-white rounded-xl shadow-2xl p-4 overflow-hidden flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+              <span className="text-sm font-semibold text-slate-800">
+                Mockup Preview
+              </span>
+              <div className="flex items-center gap-2">
+                <a
+                  href={previewMockupUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-blue-600 hover:underline font-medium"
+                >
+                  Open Original
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMockupUrl(null)}
+                  className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto flex items-center justify-center max-h-[70vh]">
+              <img
+                src={previewMockupUrl}
+                alt="Mockup Preview"
+                className="max-w-full max-h-full object-contain rounded-lg shadow-inner"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full-Screen Mockup Tools Modal */}
+      {mockupModalRowIndex !== null && (
+        <MockupBuilderPage
+          isModal={true}
+          productIdOverride={selectedProduct?.productId}
+          onClose={() => setMockupModalRowIndex(null)}
+          onSaveSuccess={handleMockupModalSave}
+        />
       )}
     </div>
   );

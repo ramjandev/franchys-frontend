@@ -13,11 +13,16 @@ export const lineItemSchema = z.object({
   price: z.number(),
   taxed: z.boolean(),
   mockups: z.array(z.string()).optional(),
+  matrixId: z.string().optional(),
+  matrixColumn: z.string().optional(),
+  printCost: z.number().optional(),
+  total: z.number().optional(),
 });
 
 export const groupSchema = z.object({
   name: z.string().trim().min(1, "Group name is required"),
   priceMatrixId: z.string().trim(),
+  priceMatrixColumn: z.string().optional(),
   lineItems: z.array(lineItemSchema).min(1, "Add at least one line item"),
 });
 
@@ -52,6 +57,10 @@ export const makeDefaultLineItem = (
   price: 0,
   taxed: false,
   mockups: [],
+  matrixId: "",
+  matrixColumn: "",
+  printCost: 0,
+  total: 0,
 });
 
 export const makeDefaultGroup = (
@@ -60,5 +69,6 @@ export const makeDefaultGroup = (
 ): GroupFormValues => ({
   name: `Group ${groupNumber}`,
   priceMatrixId: "",
+  priceMatrixColumn: "",
   lineItems: [makeDefaultLineItem(sizeKeys)],
 });

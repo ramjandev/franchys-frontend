@@ -1,30 +1,36 @@
 import CardContainer from "@/components/shared/CardContainer";
+import { getCorsSafeUrl } from "@/lib/corsImage";
 import { mockupCaptureRef } from "@/lib/mockupCaptureRef";
-import { GARMENT_OPTIONS, useMockup } from "@/store/mockUp/hooks/useMockup";
-import { ZoomIn, ZoomOut } from "lucide-react";
+import { useMockup } from "@/store/mockUp/hooks/useMockup";
+import { Image as ImageIcon, ZoomIn, ZoomOut } from "lucide-react";
 import React, { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 // Subcomponents & hooks
-import { BlankGarmentPlaceholder } from "./BlankGarmentPlaceholder";
 import { CanvasLayers } from "./CanvasLayers";
 import { CanvasToolStrip } from "./CanvasToolStrip";
 import { FillPopover } from "./FillPopover";
-import { HoodieSVG, SHIRT_H, SHIRT_W, TShirtSVG } from "./GarmentSVGs";
 import { ProductModal } from "./ProductModal";
 import { ShapePopover } from "./ShapePopover";
 import { useDrawing } from "./useDrawing";
 
-const CenterCanvasArea: React.FC = () => {
+export const CANVAS_W = 420;
+export const CANVAS_H = 500;
+
+interface CenterCanvasAreaProps {
+  onOpenProductModal?: () => void;
+  onSelectProduct?: (productId: string, initialImage?: string) => void;
+}
+
+const CenterCanvasArea: React.FC<CenterCanvasAreaProps> = ({
+  onOpenProductModal,
+  onSelectProduct,
+}) => {
   const {
-    hasGarment,
-    setHasGarment,
-    selectedGarment,
-    setSelectedGarment,
-    productColor,
-    setProductColor,
+    canvasProductImage,
+    setCanvasProductImage,
     activeView,
-    setActiveView,
     layersByView,
     setLayersByView,
     selectedLayerId,
@@ -36,40 +42,64 @@ const CenterCanvasArea: React.FC = () => {
     addLayer,
     updateLayer,
     removeLayer,
-    setClothingCode,
   } = useMockup();
 
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const jsonInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // States
+  // Responsive scaling states
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [isTablet, setIsTablet] = useState(
-    window.innerWidth > 1439 && window.innerWidth < 1536,
-  );
 
   React.useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
-      setIsTablet(window.innerWidth > 1439 && window.innerWidth < 1536);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const [canvasDimensions, setCanvasDimensions] = useState({
+    width: 650,
+    height: 650,
+  });
+
+  React.useEffect(() => {
+    if (!canvasProductImage) return;
+    const img = new Image();
+    img.onload = () => {
+      const nw = img.naturalWidth || 650;
+      const nh = img.naturalHeight || 650;
+      const maxW = isMobile ? 360 : 700;
+      const maxH = isMobile ? 480 : 660;
+
+      let targetW = maxW;
+      let targetH = Math.round((nh / nw) * maxW);
+
+      if (targetH > maxH) {
+        targetH = maxH;
+        targetW = Math.round((nw / nh) * maxH);
+      }
+
+      targetW = Math.max(isMobile ? 300 : 450, targetW);
+      targetH = Math.max(isMobile ? 320 : 450, targetH);
+
+      setCanvasDimensions({ width: targetW, height: targetH });
+    };
+    img.src = canvasProductImage;
+  }, [canvasProductImage, isMobile]);
+
   React.useEffect(() => {
     mockupCaptureRef.current = containerRef.current;
-  }, [hasGarment, selectedGarment, activeView, productColor]);
+  }, [canvasProductImage, activeView, canvasDimensions]);
 
   const [showProductModal, setShowProductModal] = useState(false);
   const [showShapePopover, setShowShapePopover] = useState(false);
   const [activeColor, setActiveColor] = useState("#EF4444");
 
-  const canvasW = SHIRT_W; // 420
-  const canvasH = SHIRT_H; // 500
-  const canvasLeft = 0;
-  const canvasTop = 0;
+  const canvasW = canvasDimensions.width;
+  const canvasH = canvasDimensions.height;
 
   const activeLayers = layersByView[activeView] || [];
 
@@ -84,14 +114,11 @@ const CenterCanvasArea: React.FC = () => {
     setLayersByView,
   });
 
-  const handleSelectQuickGarment = (code: string) => {
-    const found = GARMENT_OPTIONS.find((g) => g.code === code);
-    if (found) {
-      setSelectedGarment(found);
-      setProductColor(found.colors[0].hex);
-      setClothingCode(code);
-      setHasGarment(true);
-      setShowProductModal(false);
+  const handleOpenProductSelection = () => {
+    if (onOpenProductModal) {
+      onOpenProductModal();
+    } else {
+      setShowProductModal(true);
     }
   };
 
@@ -100,7 +127,7 @@ const CenterCanvasArea: React.FC = () => {
     setShowShapePopover(false);
 
     if (toolId === "add-product") {
-      setShowProductModal(true);
+      handleOpenProductSelection();
     } else if (toolId === "erase") {
       if (selectedLayerId) {
         removeLayer(selectedLayerId);
@@ -136,7 +163,8 @@ const CenterCanvasArea: React.FC = () => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       const src = ev.target?.result as string;
-      addLayer("image", { src });
+      addLayer("image", { src, w: 120, h: 120 });
+      toast.success("Logo added to mockup! Drag & resize it on the canvas.");
     };
     reader.readAsDataURL(file);
     e.target.value = "";
@@ -152,11 +180,8 @@ const CenterCanvasArea: React.FC = () => {
         const parsed = JSON.parse(ev.target?.result as string);
         if (parsed.layersByView) {
           setLayersByView(parsed.layersByView);
-          if (parsed.productColor) setProductColor(parsed.productColor);
-          if (parsed.selectedGarment) {
-            setSelectedGarment(parsed.selectedGarment);
-            setClothingCode(parsed.selectedGarment.code);
-            setHasGarment(true);
+          if (parsed.canvasProductImage) {
+            setCanvasProductImage(parsed.canvasProductImage);
           }
           toast.success("Project imported successfully!");
         } else {
@@ -196,8 +221,6 @@ const CenterCanvasArea: React.FC = () => {
           setActiveColor(color);
           if (selectedLayerId) {
             updateLayer(selectedLayerId, { color });
-          } else {
-            setProductColor(color);
           }
         }}
       />
@@ -205,105 +228,120 @@ const CenterCanvasArea: React.FC = () => {
       <ProductModal
         show={showProductModal}
         onClose={() => setShowProductModal(false)}
-        onSelect={handleSelectQuickGarment}
+        onSelectProduct={(productId, initialImage) => {
+          if (initialImage) {
+            setCanvasProductImage(initialImage);
+          }
+          if (onSelectProduct) {
+            onSelectProduct(productId, initialImage);
+          } else {
+            navigate(`/admin/mockups/${productId}`);
+          }
+          setShowProductModal(false);
+        }}
+        onCustomImageUpload={(customImg) => {
+          setCanvasProductImage(customImg);
+          setShowProductModal(false);
+        }}
       />
 
       <div className="flex-1 flex flex-col bg-[#F9FAFB] border border-[#E6EBF2] rounded-xl shadow-sm overflow-hidden relative">
-        <div className="flex flex-wrap gap-4 md:items-center justify-between px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
-          <div className="flex flex-col md:flex-row gap-1.5">
-            {["Front", "Back", "Left Sleeve", "Right Sleeve"].map((view) => (
-              <button
-                key={view}
-                onClick={() => setActiveView(view)}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                  activeView === view
-                    ? "bg-[#3B82F6] text-white shadow-sm"
-                    : "text-[#5C7899] hover:bg-gray-100"
-                }`}
-              >
-                {view}
-              </button>
-            ))}
-          </div>
+        {/* Top Controls Bar */}
+        <div className="flex flex-wrap gap-4 md:items-center justify-end px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
           <div className="flex items-center gap-3 text-[#5C7899]">
             <button
               onClick={() => setZoom(Math.max(50, zoom - 10))}
-              className="p-1.5 border border-[#E6EBF2] rounded-lg hover:text-[#111827] hover:bg-gray-50 bg-white shadow-sm"
+              className="p-1.5 border border-[#E6EBF2] rounded-lg hover:text-[#111827] hover:bg-gray-50 bg-white shadow-sm cursor-pointer"
             >
               <ZoomOut size={15} />
             </button>
             <span className="text-xs font-bold w-9 text-center">{zoom}%</span>
             <button
               onClick={() => setZoom(Math.min(200, zoom + 10))}
-              className="p-1.5 border border-[#E6EBF2] rounded-lg hover:text-[#111827] hover:bg-gray-50 bg-white shadow-sm"
+              className="p-1.5 border border-[#E6EBF2] rounded-lg hover:text-[#111827] hover:bg-gray-50 bg-white shadow-sm cursor-pointer"
             >
               <ZoomIn size={15} />
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto flex items-center justify-center bg-[#F3F4F6] relative p-8">
-          {!hasGarment ? (
-            <BlankGarmentPlaceholder
-              onSelectQuickGarment={handleSelectQuickGarment}
-            />
+        {/* Canvas Area */}
+        <div className="flex-1 overflow-auto flex items-center justify-center bg-[#F3F4F6] relative p-3 md:p-6">
+          {!canvasProductImage ? (
+            <div className="flex flex-col items-center gap-4 max-w-sm text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-200">
+              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+                <ImageIcon size={32} />
+              </div>
+              <div>
+                <h4 className="font-bold text-[#111827] text-base">
+                  No Product Image Selected
+                </h4>
+                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                  Select a product image from the left panel, or choose a product
+                  from the SanMar or System catalog to begin adding your logo.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleOpenProductSelection}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors cursor-pointer"
+              >
+                Choose Product
+              </button>
+            </div>
           ) : (
             <CardContainer
-              className="relative shadow-xl overflow-hidden border-0"
+              className="relative shadow-xl overflow-hidden border border-gray-200/80 rounded-2xl"
               style={{
                 transform: `scale(${zoom / 100})`,
                 transformOrigin: "center center",
                 transition: "transform 0.15s ease",
                 padding: 0,
-                width: isMobile || isTablet ? SHIRT_W * 0.5 : SHIRT_W,
-                height: isMobile || isTablet ? SHIRT_H * 0.5 : SHIRT_H,
-                background: "transparent",
+                width: canvasDimensions.width,
+                height: canvasDimensions.height,
+                maxWidth: "100%",
+                background: "#FFFFFF",
               }}
             >
               <div
-                style={{
-                  transform: isMobile || isTablet ? "scale(0.5)" : "scale(1)",
-                  transformOrigin: "top left",
-                  width: SHIRT_W,
-                  height: SHIRT_H,
-                }}
+                ref={containerRef}
+                className="relative w-full h-full flex items-center justify-center bg-white"
+                onClick={() => setSelectedLayerId(null)}
               >
-                <div
-                  ref={containerRef}
-                  className="relative w-full h-full"
-                  onClick={() => setSelectedLayerId(null)}
-                >
-                  {selectedGarment?.code === "18500" ? (
-                    <HoodieSVG color={productColor} template={activeView} />
-                  ) : (
-                    <TShirtSVG color={productColor} template={activeView} />
-                  )}
+                <img
+                  src={getCorsSafeUrl(canvasProductImage)}
+                  crossOrigin="anonymous"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (canvasProductImage && target.src !== canvasProductImage) {
+                      target.removeAttribute("crossorigin");
+                      target.src = canvasProductImage;
+                    }
+                  }}
+                  alt="Product Canvas"
+                  className="w-full h-full object-contain pointer-events-none select-none"
+                />
 
-                  <div
-                    className="absolute border border-dashed border-[#3B82F6]/40 overflow-hidden"
-                    style={{
-                      left: canvasLeft,
-                      top: canvasTop,
-                      width: canvasW,
-                      height: canvasH,
-                      zIndex: 10,
-                      touchAction: "none",
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    onPointerDown={handlePointerDown}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerUp}
-                  >
-                    <CanvasLayers
-                      activeLayers={activeLayers}
-                      selectedLayerId={selectedLayerId}
-                      setSelectedLayerId={setSelectedLayerId}
-                      activeTool={activeTool}
-                      zoom={zoom}
-                      updateLayer={updateLayer}
-                      removeLayer={removeLayer}
-                    />
-                  </div>
+                <div
+                  className="absolute inset-0 overflow-hidden"
+                  style={{
+                    zIndex: 10,
+                    touchAction: "none",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                >
+                  <CanvasLayers
+                    activeLayers={activeLayers}
+                    selectedLayerId={selectedLayerId}
+                    setSelectedLayerId={setSelectedLayerId}
+                    activeTool={activeTool}
+                    zoom={zoom}
+                    updateLayer={updateLayer}
+                    removeLayer={removeLayer}
+                  />
                 </div>
               </div>
             </CardContainer>

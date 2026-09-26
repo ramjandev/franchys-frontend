@@ -27,6 +27,7 @@ export interface QuoteLineItemPayload {
   sizeBreakdown: SizeBreakdown;
   markupPrice?: number;
   matrixId?: string;
+  matrixColumn?: string;
   printCost?: number;
   unitPrice: number;
   isTaxed: boolean;
@@ -48,6 +49,7 @@ export interface QuoteLineItem {
   itemsCount: number;
   markupPrice: string;
   matrixId: string | null;
+  matrixColumn?: string | null;
   printCost: string;
   unitPrice: string;
   isTaxed: boolean;

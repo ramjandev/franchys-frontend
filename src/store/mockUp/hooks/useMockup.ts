@@ -1,6 +1,5 @@
-import type { GarmentOption, MockupLayer } from "@/store/mockUp/designSlice";
+import type { MockupLayer } from "@/store/mockUp/designSlice";
 import {
-  GARMENT_OPTIONS,
   addLayer as addLayerAction,
   duplicateLayer as duplicateLayerAction,
   redo as redoAction,
@@ -8,11 +7,9 @@ import {
   resetCanvas as resetCanvasAction,
   setActiveTool as setActiveToolAction,
   setActiveView as setActiveViewAction,
-  setClothingCode as setClothingCodeAction,
-  setHasGarment as setHasGarmentAction,
+  setCanvasProductImage as setCanvasProductImageAction,
+  setProductViews as setProductViewsAction,
   setLayersByView as setLayersByViewAction,
-  setProductColor as setProductColorAction,
-  setSelectedGarment as setSelectedGarmentAction,
   setSelectedLayerId as setSelectedLayerIdAction,
   setZoom as setZoomAction,
   undo as undoAction,
@@ -21,12 +18,7 @@ import {
 import { AppDispatch, RootState } from "@/store/store";
 import { useDispatch, useSelector } from "react-redux";
 
-export type {
-  GarmentColor,
-  GarmentOption,
-  MockupLayer,
-} from "@/store/mockUp/designSlice";
-export { GARMENT_OPTIONS };
+export type { MockupLayer } from "@/store/mockUp/designSlice";
 
 export const useMockup = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -63,15 +55,12 @@ export const useMockup = () => {
   };
 
   return {
-    clothingCode: state.clothingCode,
-    setClothingCode: (code: string) => dispatch(setClothingCodeAction(code)),
-    hasGarment: state.hasGarment,
-    setHasGarment: (val: boolean) => dispatch(setHasGarmentAction(val)),
-    selectedGarment: state.selectedGarment,
-    setSelectedGarment: (g: GarmentOption | null) =>
-      dispatch(setSelectedGarmentAction(g)),
-    productColor: state.productColor,
-    setProductColor: (color: string) => dispatch(setProductColorAction(color)),
+    canvasProductImage: state.canvasProductImage,
+    setCanvasProductImage: (image: string | null) =>
+      dispatch(setCanvasProductImageAction(image)),
+    productViews: state.productViews,
+    setProductViews: (views: string[]) =>
+      dispatch(setProductViewsAction(views)),
     activeView: state.activeView,
     setActiveView: (view: string) => dispatch(setActiveViewAction(view)),
     layersByView: state.layersByView,

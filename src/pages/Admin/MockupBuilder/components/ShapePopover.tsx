@@ -18,8 +18,13 @@ export const ShapePopover: React.FC<ShapePopoverProps> = ({ show, onSelect }) =>
           { id: "star", label: "Star" }
         ].map((s) => (
           <button
+            type="button"
             key={s.id}
-            onClick={() => onSelect(s.id as any)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onSelect(s.id as any);
+            }}
             className="px-3.5 py-1.5 bg-gray-50 border border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-xs font-bold text-[#4B5563] transition-all"
           >
             {s.label}
