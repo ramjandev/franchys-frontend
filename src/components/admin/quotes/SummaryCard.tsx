@@ -79,7 +79,9 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
           Total
         </CommonHeader>
         <CommonHeader size="xl" className="text-[#0F172B]!">
-          {formatMoney(total)}
+          {formatMoney(
+            total > 0 ? total : Math.max(0, subtotal - discountAmount + taxAmount),
+          )}
         </CommonHeader>
       </div>
 

@@ -365,6 +365,24 @@ const CreateQuoteForm = () => {
         result = res.data;
       }
 
+      // If server returns total <= 0, ensure result has the calculated total so it's never 0
+      const serverCalcSubtotal =
+        Number(result.subtotal) > 0 ? Number(result.subtotal) : subtotal;
+      const serverCalcDiscount =
+        Number(result.discount) >= 0 && (values.discount || 0) > 0
+          ? Number(result.discount)
+          : discountAmount;
+      const serverCalcTax =
+        Number(result.taxAmount) >= 0 ? Number(result.taxAmount) : taxAmount;
+      const computedTotal = Math.max(
+        0,
+        serverCalcSubtotal - serverCalcDiscount + serverCalcTax,
+      );
+
+      if (!result.total || Number(result.total) <= 0) {
+        result.total = computedTotal.toFixed(2);
+      }
+
       isRefreshingPricingRef.current = true;
       setRecalculatedPricing(result);
 
@@ -609,37 +627,54 @@ const CreateQuoteForm = () => {
             </div>
           </div>
         </CardContainer>
-        <SummaryCard
-          register={register}
-          subtotal={
-            recalculatedPricing
+        {(() => {
+          const effectiveSubtotal =
+            recalculatedPricing && Number(recalculatedPricing.subtotal) > 0
               ? Number(recalculatedPricing.subtotal)
-              : subtotal
-          }
-          discountAmount={
-            recalculatedPricing
+              : subtotal;
+
+          const effectiveDiscount =
+            recalculatedPricing &&
+            Number(recalculatedPricing.discount) >= 0 &&
+            (watchedDiscount || 0) > 0
               ? Number(recalculatedPricing.discount)
-              : discountAmount
-          }
-          taxAmount={
-            recalculatedPricing
+              : discountAmount;
+
+          const effectiveTax =
+            recalculatedPricing && Number(recalculatedPricing.taxAmount) >= 0
               ? Number(recalculatedPricing.taxAmount)
-              : taxAmount
-          }
-          taxRate={
-            recalculatedPricing && Number(recalculatedPricing.taxRate)
-              ? Number(recalculatedPricing.taxRate)
-              : FIXED_TAX_RATE
-          }
-          total={
-            recalculatedPricing ? Number(recalculatedPricing.total) : total
-          }
-          onSaveDraft={handleSubmit(onSubmit)}
-          onSaveAndContinue={handleSaveAndContinue}
-          isSaving={isSaving}
-          isSavingAndContinuing={isSavingAndContinuing}
-          isEditMode={isEditMode}
-        />
+              : taxAmount;
+
+          const serverTotal =
+            recalculatedPricing && Number(recalculatedPricing.total) > 0
+              ? Number(recalculatedPricing.total)
+              : 0;
+
+          const effectiveTotal =
+            serverTotal > 0
+              ? serverTotal
+              : Math.max(0, effectiveSubtotal - effectiveDiscount + effectiveTax);
+
+          return (
+            <SummaryCard
+              register={register}
+              subtotal={effectiveSubtotal}
+              discountAmount={effectiveDiscount}
+              taxAmount={effectiveTax}
+              taxRate={
+                recalculatedPricing && Number(recalculatedPricing.taxRate)
+                  ? Number(recalculatedPricing.taxRate)
+                  : FIXED_TAX_RATE
+              }
+              total={effectiveTotal}
+              onSaveDraft={handleSubmit(onSubmit)}
+              onSaveAndContinue={handleSaveAndContinue}
+              isSaving={isSaving}
+              isSavingAndContinuing={isSavingAndContinuing}
+              isEditMode={isEditMode}
+            />
+          );
+        })()}
       </div>
 
       {groupFields.map((field, groupIndex) => (
