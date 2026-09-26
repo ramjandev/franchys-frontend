@@ -3,6 +3,7 @@ import { useGetPriceMatrixQuery } from "@/store/settings/PriceMatrices/priceMatr
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, X } from "lucide-react";
 import React from "react";
+import { createPortal } from "react-dom";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -101,7 +102,9 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
     value: m.priceMatrixId,
   }));
 
-  const handleAddImprint = () => {
+  const handleAddImprint = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     append({
       matrix: "",
       column: "",
@@ -122,9 +125,21 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
     setShowModal(false);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white w-full max-w-xl max-h-[90vh] flex flex-col rounded-xl overflow-hidden shadow-2xl border border-slate-200">
+  const handleDone = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleSubmit(onSubmit)(e);
+  };
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={() => setShowModal(false)}
+    >
+      <div
+        className="bg-white w-full max-w-xl max-h-[90vh] flex flex-col rounded-xl overflow-hidden shadow-2xl border border-slate-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="px-6 py-4 flex items-center justify-between border-b border-slate-200 shrink-0">
           <h2 className="text-lg font-bold text-slate-900 tracking-tight">
@@ -140,10 +155,7 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
         </div>
 
         {/* Content */}
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="flex-1 overflow-y-auto flex flex-col justify-between"
-        >
+        <div className="flex-1 overflow-y-auto flex flex-col justify-between">
           <div className="p-6 space-y-4">
             {fields.map((field, index) => {
               const currentMatrixId = imprintsValues?.[index]?.matrix;
@@ -286,7 +298,8 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
           {/* Modal Footer */}
           <div className="p-4 px-6 border-t border-slate-200 flex items-center justify-between bg-slate-50/50">
             <button
-              type="submit"
+              type="button"
+              onClick={handleDone}
               className="px-5 py-2 rounded-md bg-white border border-slate-300 text-sm font-semibold text-slate-800 hover:bg-slate-50 transition shadow-xs cursor-pointer"
             >
               Done
@@ -299,9 +312,10 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
               Cancel
             </button>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

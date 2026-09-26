@@ -1163,14 +1163,22 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setIsPriceMatrixOpen(true)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsPriceMatrixOpen(true);
+                    }}
                     className="px-3 py-1 bg-white border border-slate-300 rounded text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs cursor-pointer"
                   >
                     Edit
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDeleteImprint(idx)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDeleteImprint(idx);
+                    }}
                     className="px-2 py-1 text-xs font-medium text-slate-500 hover:text-red-600 transition cursor-pointer"
                   >
                     Delete
@@ -1195,7 +1203,11 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
           <CommonButton
             type="button"
             variant="secondary"
-            onClick={() => setIsPriceMatrixOpen(true)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsPriceMatrixOpen(true);
+            }}
           >
             <BsFillLightningChargeFill size={13} /> Imprint
           </CommonButton>
