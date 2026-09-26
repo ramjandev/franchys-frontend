@@ -224,8 +224,13 @@ const QuoteLineItems: React.FC<QuoteLineItemsProps> = ({
 
                         {isAdmin && (
                           <div
-                            onClick={() => navigate("/admin/mockups")}
-                            className="w-12 h-12 rounded-md border border-dashed border-gray-300 flex items-center justify-center cursor-pointer"
+                            onClick={() => {
+                              if (quote?.id) {
+                                navigate(`/admin/quotes/edit/${quote.id}`);
+                              }
+                            }}
+                            className="w-12 h-12 rounded-md border border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-gray-400 hover:bg-slate-50 transition"
+                            title="Edit Quote"
                           >
                             <Plus className="w-3.5 h-3.5 text-gray-400" />
                           </div>
