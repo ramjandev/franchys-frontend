@@ -192,6 +192,11 @@ const CreateQuoteForm = () => {
             price: Number(li.unitPrice) || 0,
             taxed: li.isTaxed,
             mockups: li.mockups || [],
+            productId:
+              (li as any).productId ||
+              (li as any).product?.id ||
+              (li as any).product?.productId ||
+              "",
             matrixId: li.matrixId || "",
             matrixColumn: li.matrixColumn || "",
             printCost: Number(li.printCost) || 0,

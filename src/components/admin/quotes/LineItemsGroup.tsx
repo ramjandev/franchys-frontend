@@ -305,6 +305,12 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
   };
 
   const handleOpenMockupBuilder = (rowIdx: number) => {
+    const singleProductId =
+      (selectedProduct as any)?.productId ||
+      (selectedProduct as any)?.id ||
+      (selectedProduct as any)?._id ||
+      watch(`groups.${groupIndex}.lineItems.${rowIdx}.productId`);
+
     dispatch(
       setActiveLineItemTarget({
         groupIndex,
@@ -312,7 +318,7 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
         itemNumber: watch(
           `groups.${groupIndex}.lineItems.${rowIdx}.itemNumber`,
         ),
-        productId: selectedProduct?.productId,
+        productId: singleProductId,
       }),
     );
     setMockupModalRowIndex(rowIdx);
@@ -355,6 +361,13 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
   ) => {
     dispatch(setSelectedProduct(item));
     justSelectedRef.current = true;
+    const singleProdId =
+      item.productId || (item as any).id || (item as any)._id;
+    setValue(
+      `groups.${groupIndex}.lineItems.${idx}.productId`,
+      singleProdId,
+      { shouldDirty: true },
+    );
     setValue(`groups.${groupIndex}.lineItems.${idx}.itemNumber`, item.itemNo);
     setValue(`groups.${groupIndex}.lineItems.${idx}.color`, item.color ?? "");
     setValue(
@@ -379,6 +392,13 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
   ) => {
     dispatch(setSelectedProduct(item));
     justSelectedRef.current = true;
+    const singleProdId =
+      item.productId || (item as any).id || (item as any)._id;
+    setValue(
+      `groups.${groupIndex}.lineItems.${idx}.productId`,
+      singleProdId,
+      { shouldDirty: true },
+    );
     setValue(
       `groups.${groupIndex}.lineItems.${idx}.itemNumber`,
       item.style || item.itemNo,
@@ -1337,7 +1357,14 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
       {mockupModalRowIndex !== null && (
         <MockupBuilderPage
           isModal={true}
-          productIdOverride={selectedProduct?.productId}
+          productIdOverride={
+            (selectedProduct as any)?.productId ||
+            (selectedProduct as any)?.id ||
+            (selectedProduct as any)?._id ||
+            watch(
+              `groups.${groupIndex}.lineItems.${mockupModalRowIndex}.productId`,
+            )
+          }
           onClose={() => setMockupModalRowIndex(null)}
           onSaveSuccess={handleMockupModalSave}
         />

@@ -1,4 +1,7 @@
-import { setProductViews } from "@/store/mockUp/designSlice";
+import {
+  setCanvasProductImage,
+  setProductViews,
+} from "@/store/mockUp/designSlice";
 import { useGetProductByIdQuery } from "@/store/Product/productAPI";
 import { RootState } from "@/store/store";
 import { X } from "lucide-react";
@@ -31,17 +34,27 @@ const MockupBuilderPage: React.FC<MockupBuilderPageProps> = ({
   // Fallback to selectedProduct in imageSlice if URL param is empty
   const { selectedProduct } = useSelector((state: RootState) => state.image);
 
+  const selectedProductId =
+    productIdOverride ||
+    productId ||
+    (selectedProduct as any)?.productId ||
+    (selectedProduct as any)?.id ||
+    (selectedProduct as any)?._id;
+
   const [activeProductId, setActiveProductId] = useState<string | undefined>(
-    productIdOverride || productId || selectedProduct?.productId,
+    selectedProductId,
   );
 
   React.useEffect(() => {
-    if (productIdOverride) {
-      setActiveProductId(productIdOverride);
-    } else if (productId) {
-      setActiveProductId(productId);
-    } else if (selectedProduct?.productId) {
-      setActiveProductId(selectedProduct.productId);
+    const idToUse =
+      productIdOverride ||
+      productId ||
+      (selectedProduct as any)?.productId ||
+      (selectedProduct as any)?.id ||
+      (selectedProduct as any)?._id;
+
+    if (idToUse) {
+      setActiveProductId(idToUse);
     }
   }, [productIdOverride, productId, selectedProduct]);
 
@@ -54,20 +67,22 @@ const MockupBuilderPage: React.FC<MockupBuilderPageProps> = ({
   const dispatch = useDispatch();
 
   React.useEffect(() => {
-    if (product) {
+    const targetProduct = data?.data || (selectedProduct as any);
+    if (targetProduct) {
       const imgs: string[] = [];
-      if (product.images && Array.isArray(product.images)) {
-        imgs.push(...product.images);
+      if (targetProduct.images && Array.isArray(targetProduct.images)) {
+        imgs.push(...targetProduct.images);
       }
-      if ("primaryImageUrl" in product && product.primaryImageUrl) {
-        imgs.push(product.primaryImageUrl);
+      if ("primaryImageUrl" in targetProduct && targetProduct.primaryImageUrl) {
+        imgs.push(targetProduct.primaryImageUrl);
       }
       const unique = Array.from(new Set(imgs.filter(Boolean)));
       if (unique.length > 0) {
         dispatch(setProductViews(unique));
+        dispatch(setCanvasProductImage(unique[0]));
       }
     }
-  }, [product, dispatch]);
+  }, [data, selectedProduct, dispatch]);
 
   const handleSelectProduct = (newProductId: string) => {
     setActiveProductId(newProductId);

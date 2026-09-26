@@ -13,6 +13,7 @@ export const lineItemSchema = z.object({
   price: z.number(),
   taxed: z.boolean(),
   mockups: z.array(z.string()).optional(),
+  productId: z.string().optional(),
   matrixId: z.string().optional(),
   matrixColumn: z.string().optional(),
   printCost: z.number().optional(),
