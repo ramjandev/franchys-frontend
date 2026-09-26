@@ -18,11 +18,8 @@ export interface ActiveLineItemTarget {
 interface ImageState {
   productType: ProductType;
   selectedProduct: SelectProduct;
-  // All recently uploaded mockup URLs
   mockupUrls: string[];
-  // Mockup URLs organized by target line item key, e.g. "0-0" (groupIndex-lineItemIndex)
   lineItemMockups: Record<string, string[]>;
-  // Current active target line item from quote
   activeLineItemTarget: ActiveLineItemTarget | null;
 }
 
@@ -49,7 +46,9 @@ const imageSlice = createSlice({
     },
     addMockupUrls(state, action: PayloadAction<string[]>) {
       const incoming = action.payload || [];
-      state.mockupUrls = Array.from(new Set([...state.mockupUrls, ...incoming]));
+      state.mockupUrls = Array.from(
+        new Set([...state.mockupUrls, ...incoming]),
+      );
 
       if (state.activeLineItemTarget) {
         const key = `${state.activeLineItemTarget.groupIndex}-${state.activeLineItemTarget.lineItemIndex}`;

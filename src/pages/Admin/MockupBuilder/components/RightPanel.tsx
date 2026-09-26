@@ -1,15 +1,26 @@
 import CardContainer from "@/components/shared/CardContainer";
 import CommonButton from "@/components/shared/CommonButton";
+import { renderMockupToBlob } from "@/lib/corsImage";
 import { mockupCaptureRef } from "@/lib/mockupCaptureRef";
+import {
+  addLineItemMockups,
+  addMockupUrls,
+} from "@/store/imageSlice/imageSlice";
 import { useMockup } from "@/store/mockUp/hooks/useMockup";
 import { useUploadMockupsMutation } from "@/store/quote/quoteAPI";
-import { addLineItemMockups, addMockupUrls } from "@/store/imageSlice/imageSlice";
-import { renderMockupToBlob } from "@/lib/corsImage";
 import { RootState } from "@/store/store";
+import {
+  ArrowLeft,
+  Download,
+  Eye,
+  EyeOff,
+  Loader2,
+  Save,
+  Trash2,
+} from "lucide-react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, Eye, EyeOff, Loader2, Save, Trash2 } from "lucide-react";
-import React, { useState } from "react";
 import { toast } from "react-toastify";
 
 const CANVAS_W = 650;
@@ -124,10 +135,6 @@ const RightPanel: React.FC<RightPanelProps> = ({
         }
       });
 
-      console.log(
-        `Rendering all ${allTargetViews.length} product image view(s) for mockup payload...`,
-      );
-
       // Render each product view into a separate file in the payload
       for (let i = 0; i < allTargetViews.length; i++) {
         const viewUrl = allTargetViews[i];
@@ -158,10 +165,6 @@ const RightPanel: React.FC<RightPanelProps> = ({
         throw new Error("Canvas capture returned empty result");
       }
 
-      console.log(
-        `Uploading ${files.length} mockup view(s) to POST /quote/upload-mockups...`,
-      );
-
       // Upload all mockup files to POST /quote/upload-mockups
       const res = await uploadMockups(files).unwrap();
       const urls = res.data?.urls || [];
@@ -174,11 +177,6 @@ const RightPanel: React.FC<RightPanelProps> = ({
         const key = `${activeLineItemTarget.groupIndex}-${activeLineItemTarget.lineItemIndex}`;
         dispatch(addLineItemMockups({ key, urls }));
       }
-
-      console.log("Mockup(s) saved and uploaded successfully:", urls);
-      toast.success(
-        `All ${urls.length} mockup view(s) saved and uploaded to quote successfully!`,
-      );
 
       if (isModal) {
         onSaveSuccess?.(urls);

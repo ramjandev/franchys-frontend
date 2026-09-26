@@ -1,15 +1,18 @@
 import {
+  DEFAULT_GARMENT_SVG,
+  extractProductImages,
+} from "@/lib/defaultGarment";
+import {
   setCanvasProductImage,
   setProductViews,
 } from "@/store/mockUp/designSlice";
-import { DEFAULT_GARMENT_SVG, extractProductImages } from "@/lib/defaultGarment";
 import { useGetProductByIdQuery } from "@/store/Product/productAPI";
 import { RootState } from "@/store/store";
 import { X } from "lucide-react";
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import CenterCanvasArea from "./components/CenterCanvasArea";
 import LeftPanel from "./components/LeftPanel";
 import { ProductModal } from "./components/ProductModal";
@@ -28,13 +31,12 @@ const MockupBuilderPage: React.FC<MockupBuilderPageProps> = ({
   onClose,
   onSaveSuccess,
 }) => {
-  const { productId } = useParams();
   const navigate = useNavigate();
   const [showProductModal, setShowProductModal] = useState(false);
 
-  // Fallback to selectedProduct in imageSlice if URL param is empty
   const { selectedProduct } = useSelector((state: RootState) => state.image);
 
+  const productId = selectedProduct?.productId;
   const selectedProductId =
     productIdOverride ||
     productId ||

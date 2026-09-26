@@ -1,6 +1,6 @@
 import CardContainer from "@/components/shared/CardContainer";
-import { DEFAULT_GARMENT_SVG } from "@/lib/defaultGarment";
 import { getCorsSafeUrl } from "@/lib/corsImage";
+import { DEFAULT_GARMENT_SVG } from "@/lib/defaultGarment";
 import { mockupCaptureRef } from "@/lib/mockupCaptureRef";
 import { useMockup } from "@/store/mockUp/hooks/useMockup";
 import { ZoomIn, ZoomOut } from "lucide-react";
@@ -179,7 +179,6 @@ const CenterCanvasArea: React.FC<CenterCanvasAreaProps> = ({
     reader.onload = (ev) => {
       const src = ev.target?.result as string;
       addLayer("image", { src, w: 120, h: 120 });
-      toast.success("Logo added to mockup! Drag & resize it on the canvas.");
     };
     reader.readAsDataURL(file);
     e.target.value = "";
@@ -301,11 +300,14 @@ const CenterCanvasArea: React.FC<CenterCanvasAreaProps> = ({
               onClick={() => setSelectedLayerId(null)}
             >
               <img
-                src={getCorsSafeUrl(canvasProductImage || effectiveProductImage)}
+                src={getCorsSafeUrl(
+                  canvasProductImage || effectiveProductImage,
+                )}
                 crossOrigin="anonymous"
                 onError={(e) => {
                   const target = e.currentTarget;
-                  const currentSrc = canvasProductImage || effectiveProductImage;
+                  const currentSrc =
+                    canvasProductImage || effectiveProductImage;
                   if (currentSrc && target.src !== currentSrc) {
                     target.removeAttribute("crossorigin");
                     target.src = currentSrc;
@@ -315,29 +317,29 @@ const CenterCanvasArea: React.FC<CenterCanvasAreaProps> = ({
                 className="w-full h-full object-contain pointer-events-none select-none"
               />
 
-                <div
-                  className="absolute inset-0 overflow-hidden"
-                  style={{
-                    zIndex: 10,
-                    touchAction: "none",
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  onPointerDown={handlePointerDown}
-                  onPointerMove={handlePointerMove}
-                  onPointerUp={handlePointerUp}
-                >
-                  <CanvasLayers
-                    activeLayers={activeLayers}
-                    selectedLayerId={selectedLayerId}
-                    setSelectedLayerId={setSelectedLayerId}
-                    activeTool={activeTool}
-                    zoom={zoom}
-                    updateLayer={updateLayer}
-                    removeLayer={removeLayer}
-                  />
-                </div>
+              <div
+                className="absolute inset-0 overflow-hidden"
+                style={{
+                  zIndex: 10,
+                  touchAction: "none",
+                }}
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+              >
+                <CanvasLayers
+                  activeLayers={activeLayers}
+                  selectedLayerId={selectedLayerId}
+                  setSelectedLayerId={setSelectedLayerId}
+                  activeTool={activeTool}
+                  zoom={zoom}
+                  updateLayer={updateLayer}
+                  removeLayer={removeLayer}
+                />
               </div>
-            </CardContainer>
+            </div>
+          </CardContainer>
         </div>
       </div>
     </div>

@@ -374,13 +374,20 @@ const CreateQuoteForm = () => {
 
       // Calculate tax only on items that are checked as taxed
       let currentTaxable = 0;
-      values.groups.forEach((g) => {
-        g.lineItems.forEach((li) => {
+      values.groups.forEach((g, groupIdx) => {
+        g.lineItems.forEach((li, lineItemIdx) => {
           if (li.taxed) {
+            const serverLineTotal = Number(
+              result.groups?.[groupIdx]?.lineItems?.[lineItemIdx]?.total,
+            );
             const lineTotal =
-              li.total !== undefined && Number(li.total) > 0
-                ? Number(li.total)
-                : (li.items || 0) * (li.price || 0) * (1 + (li.markup || 0) / 100);
+              !isNaN(serverLineTotal) && serverLineTotal > 0
+                ? serverLineTotal
+                : li.total !== undefined && Number(li.total) > 0
+                  ? Number(li.total)
+                  : (li.items || 0) *
+                    (li.price || 0) *
+                    (1 + (li.markup || 0) / 100);
             currentTaxable += lineTotal;
           }
         });
@@ -391,17 +398,20 @@ const CreateQuoteForm = () => {
           ? Number((currentTaxable * (FIXED_TAX_RATE / 100)).toFixed(2))
           : 0;
 
-      result.taxAmount = serverCalcTax.toFixed(2);
-      result.total = Math.max(
-        0,
-        serverCalcSubtotal - serverCalcDiscount + serverCalcTax,
-      ).toFixed(2);
+      const updatedResult: RefreshPricingResult = {
+        ...result,
+        taxAmount: serverCalcTax.toFixed(2),
+        total: Math.max(
+          0,
+          serverCalcSubtotal - serverCalcDiscount + serverCalcTax,
+        ).toFixed(2),
+      };
 
       isRefreshingPricingRef.current = true;
-      setRecalculatedPricing(result);
+      setRecalculatedPricing(updatedResult);
 
       // Apply server-recalculated unitPrice, markup, total, printCost, and matrix fields
-      result.groups.forEach((g, groupIdx) => {
+      updatedResult.groups.forEach((g, groupIdx) => {
         g.lineItems.forEach((li, lineItemIdx) => {
           setValue(
             `groups.${groupIdx}.lineItems.${lineItemIdx}.price`,
@@ -644,15 +654,20 @@ const CreateQuoteForm = () => {
         {(() => {
           // Calculate taxable subtotal strictly from line items where taxed is checked
           let taxableSubtotal = 0;
-          watchedGroups.forEach((g) => {
-            g.lineItems.forEach((li) => {
+          watchedGroups.forEach((g, groupIdx) => {
+            g.lineItems.forEach((li, lineItemIdx) => {
               if (li.taxed) {
+                const recalculatedLineItem =
+                  recalculatedPricing?.groups?.[groupIdx]?.lineItems?.[lineItemIdx];
+                const serverLineTotal = Number(recalculatedLineItem?.total);
                 const lineTotal =
-                  li.total !== undefined && Number(li.total) > 0
-                    ? Number(li.total)
-                    : (li.items || 0) *
-                      (li.price || 0) *
-                      (1 + (li.markup || 0) / 100);
+                  !isNaN(serverLineTotal) && serverLineTotal > 0
+                    ? serverLineTotal
+                    : li.total !== undefined && Number(li.total) > 0
+                      ? Number(li.total)
+                      : (li.items || 0) *
+                        (li.price || 0) *
+                        (1 + (li.markup || 0) / 100);
                 taxableSubtotal += lineTotal;
               }
             });

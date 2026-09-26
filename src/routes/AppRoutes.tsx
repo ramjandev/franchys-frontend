@@ -22,7 +22,6 @@ import ProtectedRoute from "./ProtectedRoute";
 import AllCampaigns from "@/components/admin/message/AllCampaigns";
 import QuotePreview from "@/components/admin/quotes/QuotePreview";
 import JobDetails from "@/pages/Admin/JobDetails";
-import MockupBuilderPage from "@/pages/Admin/MockupBuilder/MockupBuilderPage";
 import InvoiceFeesSettings from "@/pages/Admin/Settings/InvoiceFeesSettings";
 import InvoiceSettings from "@/pages/Admin/Settings/InvoiceSettings";
 import LineItemsSettings from "@/pages/Admin/Settings/LineItemsSettings";
@@ -85,8 +84,7 @@ const router = createBrowserRouter([
               { path: "customers/edit/:id", element: <AddNewCustomer /> },
               { path: "job-board", element: <JobBoard /> },
               { path: "job-board/:id", element: <JobDetails /> },
-              { path: "mockups", element: <MockupBuilderPage /> },
-              { path: "mockups/:productId", element: <MockupBuilderPage /> },
+
               { path: "category-brand", element: <CategoryBrandManager /> },
               { path: "products", element: <Products /> },
               { path: "messages", element: <Messages /> },

@@ -1,7 +1,6 @@
 import { logout } from "@/store/Auth/authSlice";
 import { Package } from "lucide-react";
 import { memo } from "react";
-import { BiSolidImageAlt } from "react-icons/bi";
 import { BsBookFill } from "react-icons/bs";
 import { CiSliderHorizontal } from "react-icons/ci";
 import { FaFileInvoiceDollar, FaPowerOff } from "react-icons/fa6";
@@ -45,7 +44,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { path: "invoices", label: "Invoices", icon1: FaFileInvoiceDollar },
         { path: "customers", label: "Customers", icon1: PiUsersThreeFill },
         { path: "job-board", label: "Job Board", icon1: SlHandbag },
-        { path: "mockups", label: "Mockups", icon1: BiSolidImageAlt },
         {
           path: "category-brand",
           label: "Category & Brand",

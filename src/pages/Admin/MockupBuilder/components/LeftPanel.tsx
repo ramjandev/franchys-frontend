@@ -1,6 +1,9 @@
-import { DEFAULT_GARMENT_SVG, extractProductImages } from "@/lib/defaultGarment";
 import CardContainer from "@/components/shared/CardContainer";
 import CommonButton from "@/components/shared/CommonButton";
+import {
+  DEFAULT_GARMENT_SVG,
+  extractProductImages,
+} from "@/lib/defaultGarment";
 import { inputClass } from "@/pages/Login";
 import { useMockup } from "@/store/mockUp/hooks/useMockup";
 import { SingleProduct } from "@/store/Product/types/productTypes";
@@ -54,7 +57,13 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
         setActiveView(productImages[0]);
       }
     }
-  }, [productImages, canvasProductImage, setCanvasProductImage, setActiveView, setProductViews]);
+  }, [
+    productImages,
+    canvasProductImage,
+    setCanvasProductImage,
+    setActiveView,
+    setProductViews,
+  ]);
 
   // Handle uploading logo to place on product
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,7 +81,6 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
     reader.onload = (event) => {
       const src = event.target?.result as string;
       addLayer("image", { src, w: 120, h: 120 });
-      toast.success("Logo added to mockup! Drag & resize it on the canvas.");
     };
     reader.readAsDataURL(file);
     e.target.value = "";
@@ -91,7 +99,6 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
       setCanvasProductImage(src);
       setActiveView(src);
       setProductViews([src, ...productViews]);
-      toast.success("Custom product image loaded onto canvas!");
     };
     reader.readAsDataURL(file);
     e.target.value = "";
