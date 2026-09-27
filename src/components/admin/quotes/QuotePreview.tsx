@@ -1,5 +1,6 @@
 import CardContainer from "@/components/shared/CardContainer";
 import CommonButton from "@/components/shared/CommonButton";
+import { usePdfExport } from "@/components/shared/htmlToPdf/usePdfExport";
 import VideoSkeleton from "@/components/shared/loading/VideoSkeleton";
 import { useCreateInvoiceMutation } from "@/store/invoice/invoiceAPI";
 import {
@@ -12,7 +13,6 @@ import { RootState } from "@/store/store";
 import { ArrowLeft, FileCheck } from "lucide-react";
 import { useState } from "react";
 import { BiEdit } from "react-icons/bi";
-import { FiFileText, FiPrinter } from "react-icons/fi";
 import { MdOutlineRemoveRedEye } from "react-icons/md";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -55,7 +55,9 @@ const QuotePreview = () => {
   const [declineQuote, { isLoading: isDeclining }] = useDeclineQuoteMutation();
   const [createInvoice, { isLoading: isConverting }] =
     useCreateInvoiceMutation();
-
+  const { targetRef, exportPdf, isExporting } = usePdfExport<HTMLDivElement>({
+    filename: `quote-${quote?.customer}-${new Date().toISOString().slice(0, 10)}.pdf`,
+  });
   const handleApprove = async () => {
     try {
       if (id) {
@@ -107,11 +109,9 @@ const QuotePreview = () => {
               ],
       }).unwrap();
 
-      toast.success("Quote successfully converted to Invoice!");
       navigate("/admin/invoices");
     } catch (err) {
       console.error("Failed to convert quote to invoice", err);
-      toast.error("Failed to convert quote to invoice.");
     }
   };
 
@@ -121,24 +121,6 @@ const QuotePreview = () => {
     <div
       className={`${isAdmin ? "w-full" : "max-w-[1450px] mx-auto px-10 py-10"}`}
     >
-      <style>{`
-        @media print {
-          aside, nav, header, .no-print, button {
-            display: none !important;
-          }
-          body {
-            background: white !important;
-            color: black !important;
-          }
-          .printable-area {
-            width: 100% !important;
-            max-width: 100% !important;
-            box-shadow: none !important;
-            border: none !important;
-          }
-        }
-      `}</style>
-
       {isLoading || !quote ? (
         <VideoSkeleton />
       ) : (
@@ -165,26 +147,6 @@ const QuotePreview = () => {
                   Convert to Invoice
                 </CommonButton>
 
-                {/* Print View Button */}
-                <CommonButton
-                  variant="secondary"
-                  onClick={() => window.print()}
-                  className="bg-white! text-slate-700! border border-slate-300! hover:bg-slate-50!"
-                  title="Print printable quote view"
-                >
-                  <FiPrinter className="w-4 h-4" />
-                  Print
-                </CommonButton>
-
-                <CommonButton
-                  variant="secondary"
-                  className="bg-[#FF8B5A]! text-white!"
-                  to={`../invoices/${quote.id}`}
-                >
-                  <FiFileText />
-                  Production Sheet
-                </CommonButton>
-
                 <CommonButton
                   variant="secondary"
                   onClick={() => setIsAdminView(false)}
@@ -206,7 +168,10 @@ const QuotePreview = () => {
             </div>
           )}
 
-          <div className="flex flex-col md:flex-row gap-3 items-start printable-area">
+          <div
+            ref={targetRef}
+            className="flex flex-col md:flex-row gap-3 items-start printable-area"
+          >
             <CardContainer size="lg" className="flex-1 w-full">
               <QuoteHeader quote={quote} />
               <QuoteLineItems
@@ -223,7 +188,11 @@ const QuotePreview = () => {
 
             {!isAdminView && isAdmin && (
               <div className="w-full md:w-72.5 no-print">
-                <QuoteStatus quote={quote} />
+                <QuoteStatus
+                  quote={quote}
+                  onSubmit={() => exportPdf()}
+                  isExporting={isExporting}
+                />
               </div>
             )}
           </div>

@@ -115,15 +115,6 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
         <div className="border-b border-gray-100 pb-3 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-[#111827] text-base">Mockup Tools</h3>
-            {onOpenProductModal && (
-              <button
-                type="button"
-                onClick={onOpenProductModal}
-                className="text-xs text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
-              >
-                {product ? "Change Product" : "Select Product"}
-              </button>
-            )}
           </div>
 
           {product ? (

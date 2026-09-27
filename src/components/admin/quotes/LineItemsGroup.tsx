@@ -34,6 +34,7 @@ import { useUploadMockupsMutation } from "@/store/quote/quoteAPI";
 import { RootState } from "@/store/store";
 import {
   Columns,
+  Image as ImageIcon,
   Loader2,
   Palette,
   Plus,
@@ -41,7 +42,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Control,
   Controller,
@@ -98,6 +99,67 @@ const distributeEvenly = (
   });
 
   return result;
+};
+
+const decodeHtmlEntities = (str?: string) => {
+  if (!str) return "";
+  const txt = document.createElement("textarea");
+  txt.innerHTML = str;
+  return txt.value;
+};
+
+const getProductImage = (
+  item: ProductAutocompleteItem | SanmarProductAutocompleteItem,
+) => {
+  if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+    const first = item.images[0];
+    if (typeof first === "string" && first.trim()) return first;
+  }
+  const anyItem = item as any;
+  if (anyItem.primaryImageUrl && typeof anyItem.primaryImageUrl === "string") {
+    return anyItem.primaryImageUrl;
+  }
+  if (anyItem.colorSquareUrl && typeof anyItem.colorSquareUrl === "string") {
+    return anyItem.colorSquareUrl;
+  }
+  if (anyItem.thumbnail && typeof anyItem.thumbnail === "string") {
+    return anyItem.thumbnail;
+  }
+  if (anyItem.image && typeof anyItem.image === "string") {
+    return anyItem.image;
+  }
+  return null;
+};
+
+const ProductThumbnail: React.FC<{
+  src?: string | null;
+  alt: string;
+}> = ({ src, alt }) => {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
+  if (!src || hasError) {
+    return (
+      <div className="w-10 h-10 rounded-md bg-slate-100 border border-slate-200 shrink-0 overflow-hidden flex items-center justify-center text-slate-400">
+        <ImageIcon size={18} className="text-slate-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-10 h-10 rounded-md bg-white border border-slate-200 shrink-0 overflow-hidden flex items-center justify-center p-0.5">
+      <img
+        src={src}
+        alt={alt}
+        className="w-full h-full object-contain"
+        onError={() => setHasError(true)}
+        loading="lazy"
+      />
+    </div>
+  );
 };
 
 const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
@@ -407,7 +469,7 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
     setValue(`groups.${groupIndex}.lineItems.${idx}.color`, item.color ?? "");
     setValue(
       `groups.${groupIndex}.lineItems.${idx}.description`,
-      item.productName,
+      decodeHtmlEntities(item.productName || item.label),
     );
     const unitPrice = Number(item.unitPrice ?? item.price) || 0;
     setValue(`groups.${groupIndex}.lineItems.${idx}.price`, unitPrice);
@@ -441,7 +503,7 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
     setValue(`groups.${groupIndex}.lineItems.${idx}.color`, item.color ?? "");
     setValue(
       `groups.${groupIndex}.lineItems.${idx}.description`,
-      item.productName || item.label,
+      decodeHtmlEntities(item.productName || item.label),
     );
     const unitPrice = Number(item.unitPrice ?? item.price) || 0;
     setValue(`groups.${groupIndex}.lineItems.${idx}.price`, unitPrice);
@@ -851,7 +913,7 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
                   <PopoverContent
                     align="start"
                     sideOffset={4}
-                    className="w-115 max-h-85 overflow-hidden p-0 flex flex-col shadow-lg border-slate-200"
+                    className="w-130 max-w-[90vw] max-h-85 overflow-hidden p-0 flex flex-col shadow-lg border-slate-200"
                     onOpenAutoFocus={(e) => e.preventDefault()}
                     onCloseAutoFocus={(e) => e.preventDefault()}
                   >
@@ -861,41 +923,48 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
                         systemProducts?.data &&
                         systemProducts.data.length > 0 ? (
                           systemProducts.data.map(
-                            (item: ProductAutocompleteItem) => (
-                              <button
-                                key={item.productId}
-                                type="button"
-                                onClick={() =>
-                                  handleSelectSystemProduct(idx, item)
-                                }
-                                className="w-full text-left px-2.5 py-2 rounded hover:bg-slate-100 flex items-center justify-between gap-2 border-b border-slate-50 last:border-0 cursor-pointer"
-                              >
-                                <div className="flex flex-col min-w-0">
-                                  <span className="text-[13px] text-slate-800 font-medium truncate">
-                                    {item.label}
-                                  </span>
-                                  <span className="text-[11px] text-slate-500">
-                                    Item #: {item.itemNo}
-                                    {item.color
-                                      ? ` · Color: ${item.color}`
-                                      : ""}
-                                  </span>
-                                </div>
-                                <div className="text-right shrink-0">
-                                  <span className="text-xs font-bold text-blue-600 block">
-                                    $
-                                    {Number(
-                                      item.unitPrice ?? item.price,
-                                    ).toFixed(2)}
-                                  </span>
-                                  {item.brandName && (
-                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                                      {item.brandName}
+                            (item: ProductAutocompleteItem) => {
+                              const previewImg = getProductImage(item);
+                              return (
+                                <button
+                                  key={item.productId}
+                                  type="button"
+                                  onClick={() =>
+                                    handleSelectSystemProduct(idx, item)
+                                  }
+                                  className="w-full text-left px-2.5 py-2 rounded hover:bg-slate-100 flex items-center gap-3 border-b border-slate-50 last:border-0 cursor-pointer"
+                                >
+                                  <ProductThumbnail
+                                    src={previewImg}
+                                    alt={item.label || item.productName}
+                                  />
+                                  <div className="flex flex-col min-w-0 flex-1">
+                                    <span className="text-[13px] text-slate-800 font-medium truncate">
+                                      {decodeHtmlEntities(item.label || item.productName)}
                                     </span>
-                                  )}
-                                </div>
-                              </button>
-                            ),
+                                    <span className="text-[11px] text-slate-500">
+                                      Item #: {item.itemNo}
+                                      {item.color
+                                        ? ` · Color: ${item.color}`
+                                        : ""}
+                                    </span>
+                                  </div>
+                                  <div className="text-right shrink-0">
+                                    <span className="text-xs font-bold text-blue-600 block">
+                                      $
+                                      {Number(
+                                        item.unitPrice ?? item.price,
+                                      ).toFixed(2)}
+                                    </span>
+                                    {item.brandName && (
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                                        {item.brandName}
+                                      </span>
+                                    )}
+                                  </div>
+                                </button>
+                              );
+                            },
                           )
                         ) : (
                           <div className="py-4 text-center text-xs text-slate-400">
@@ -907,40 +976,47 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
                       ) : sanmarProducts?.data &&
                         sanmarProducts.data.length > 0 ? (
                         sanmarProducts.data.map(
-                          (item: SanmarProductAutocompleteItem) => (
-                            <button
-                              key={item.productId || item.itemNo}
-                              type="button"
-                              onClick={() =>
-                                handleSelectSanmarProduct(idx, item)
-                              }
-                              className="w-full text-left px-2.5 py-2 rounded hover:bg-slate-100 flex items-center justify-between gap-2 border-b border-slate-50 last:border-0 cursor-pointer"
-                            >
-                              <div className="flex flex-col min-w-0">
-                                <span className="text-[13px] text-slate-800 font-medium truncate">
-                                  {item.productName || item.label}
-                                </span>
-                                <span className="text-[11px] text-slate-500">
-                                  Style: {item.style || item.itemNo}
-                                  {item.color ? ` · Color: ${item.color}` : ""}
-                                  {item.availableSizes &&
-                                    item.availableSizes.length > 0 &&
-                                    ` · Sizes: ${item.availableSizes.join(", ")}`}
-                                </span>
-                              </div>
-                              <div className="text-right shrink-0">
-                                <span className="text-xs font-bold text-blue-600 block">
-                                  $
-                                  {Number(item.unitPrice ?? item.price).toFixed(
-                                    2,
-                                  )}
-                                </span>
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
-                                  SanMar
-                                </span>
-                              </div>
-                            </button>
-                          ),
+                          (item: SanmarProductAutocompleteItem) => {
+                            const previewImg = getProductImage(item);
+                            return (
+                              <button
+                                key={item.productId || item.itemNo}
+                                type="button"
+                                onClick={() =>
+                                  handleSelectSanmarProduct(idx, item)
+                                }
+                                className="w-full text-left px-2.5 py-2 rounded hover:bg-slate-100 flex items-center gap-3 border-b border-slate-50 last:border-0 cursor-pointer"
+                              >
+                                <ProductThumbnail
+                                  src={previewImg}
+                                  alt={item.productName || item.label}
+                                />
+                                <div className="flex flex-col min-w-0 flex-1">
+                                  <span className="text-[13px] text-slate-800 font-medium truncate">
+                                    {decodeHtmlEntities(item.productName || item.label)}
+                                  </span>
+                                  <span className="text-[11px] text-slate-500">
+                                    Style: {item.style || item.itemNo}
+                                    {item.color ? ` · Color: ${item.color}` : ""}
+                                    {item.availableSizes &&
+                                      item.availableSizes.length > 0 &&
+                                      ` · Sizes: ${item.availableSizes.join(", ")}`}
+                                  </span>
+                                </div>
+                                <div className="text-right shrink-0">
+                                  <span className="text-xs font-bold text-blue-600 block">
+                                    $
+                                    {Number(
+                                      item.unitPrice ?? item.price,
+                                    ).toFixed(2)}
+                                  </span>
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                                    SanMar
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          },
                         )
                       ) : (
                         <div className="py-4 text-center text-xs text-slate-400">

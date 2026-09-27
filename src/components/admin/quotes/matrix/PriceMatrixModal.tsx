@@ -53,7 +53,11 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
   const matrices = matrixResponse?.data ?? [];
 
   // Determine starting imprints
-  const defaultImprints: Array<{ matrix: string; column: string; details?: string }> =
+  const defaultImprints: Array<{
+    matrix: string;
+    column: string;
+    details?: string;
+  }> =
     initialImprints && initialImprints.length > 0
       ? initialImprints.map((item) => ({
           matrix: item.matrixId,
@@ -266,13 +270,6 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
 
                   {/* Actions inside Card */}
                   <div className="flex items-center justify-between pt-1">
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition shadow-xs cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-slate-500" /> Mockups
-                    </button>
-
                     <button
                       type="button"
                       onClick={() => remove(index)}

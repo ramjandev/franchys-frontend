@@ -47,8 +47,6 @@ const Invoices = () => {
 
   const activeStatus = STATUS_TABS.find((t) => t.name === activeTab)?.status;
 
-  // NOTE: search is sent to backend now too (see below) — remove if your
-  // API doesn't support a `search` param yet, and I'll add it server-side instead.
   const { data, isLoading } = useGetInvoicesQuery({
     page,
     limit: 10,
@@ -59,10 +57,8 @@ const Invoices = () => {
   const invoicesData = data?.data ?? [];
   const totalPages = data?.meta.totalPages ?? 1;
 
-  // Backend already filters by status + search, so no client-side filtering needed.
   const filteredInvoices = invoicesData;
 
-  // Tab counts now come from the backend's statusCounts, not the current page.
   const tabs: TabOption[] = useMemo(() => {
     const counts = data?.statusCounts;
     const total = data?.meta.total ?? 0;

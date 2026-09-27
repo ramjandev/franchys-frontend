@@ -9,15 +9,7 @@ import {
 import { useMockup } from "@/store/mockUp/hooks/useMockup";
 import { useUploadMockupsMutation } from "@/store/quote/quoteAPI";
 import { RootState } from "@/store/store";
-import {
-  ArrowLeft,
-  Download,
-  Eye,
-  EyeOff,
-  Loader2,
-  Save,
-  Trash2,
-} from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Loader2, Save, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -91,10 +83,6 @@ const RightPanel: React.FC<RightPanelProps> = ({
     }
 
     updateLayer(selectedLayer.id, { x: newX, y: newY });
-  };
-
-  const handleExport = (format: "PNG" | "JPG" | "SVG") => {
-    toast.success(`Mockup exported successfully as high-resolution ${format}!`);
   };
 
   const handleSaveMockup = async () => {
@@ -172,7 +160,6 @@ const RightPanel: React.FC<RightPanelProps> = ({
       // Save to Redux imageSlice!
       dispatch(addMockupUrls(urls));
 
-      // If this mockup was launched for a specific quote line item, attach URLs directly!
       if (activeLineItemTarget) {
         const key = `${activeLineItemTarget.groupIndex}-${activeLineItemTarget.lineItemIndex}`;
         dispatch(addLineItemMockups({ key, urls }));
@@ -293,19 +280,6 @@ const RightPanel: React.FC<RightPanelProps> = ({
         <h3 className="font-bold text-sm text-[#111827] uppercase tracking-wider">
           Export
         </h3>
-        <div className="flex flex-col gap-2">
-          {(["PNG", "JPG", "SVG"] as const).map((fmt) => (
-            <CommonButton
-              key={fmt}
-              onClick={() => handleExport(fmt)}
-              className="hover:bg-[#155DFC]! hover:text-white!"
-              variant="ghost"
-            >
-              <Download className="" />
-              Export as {fmt}
-            </CommonButton>
-          ))}
-        </div>
 
         <CommonButton
           variant="primaryGreen"
@@ -317,7 +291,7 @@ const RightPanel: React.FC<RightPanelProps> = ({
           ) : (
             <Save size={16} />
           )}
-          {isLoading || isSaving ? "Saving Mockups..." : "Save Mockup"}
+          {isLoading || isSaving ? "Saving..." : "Save Mockup"}
         </CommonButton>
 
         {activeLineItemTarget && !isModal && (

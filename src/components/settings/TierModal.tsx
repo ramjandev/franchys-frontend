@@ -31,7 +31,6 @@ const TierModal: React.FC<TierModalProps> = ({
   editingTier,
 }) => {
   const [quantity, setQuantity] = useState("");
-  const [basePrice, setBasePrice] = useState("");
   const [markup, setMarkup] = useState("");
   const [columnPrices, setColumnPrices] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
@@ -49,7 +48,6 @@ const TierModal: React.FC<TierModalProps> = ({
 
     if (editingTier) {
       setQuantity(String(editingTier.quantity ?? ""));
-      setBasePrice(String(editingTier.basePrice ?? ""));
       setMarkup(String(editingTier.markup ?? ""));
 
       const colPrices: Record<string, string> = {};
@@ -60,7 +58,6 @@ const TierModal: React.FC<TierModalProps> = ({
       setColumnPrices(colPrices);
     } else {
       setQuantity("");
-      setBasePrice("");
       setMarkup("");
       const emptyCols: Record<string, string> = {};
       columns.forEach((col) => {
@@ -89,12 +86,6 @@ const TierModal: React.FC<TierModalProps> = ({
       return;
     }
 
-    const parsedBasePrice = basePrice ? Number(basePrice) : 0;
-    if (Number.isNaN(parsedBasePrice) || parsedBasePrice < 0) {
-      setError("Please provide a valid base price.");
-      return;
-    }
-
     const parsedMarkup = markup ? Number(markup) : 0;
     if (Number.isNaN(parsedMarkup) || parsedMarkup < 0) {
       setError("Please provide a valid markup percentage.");
@@ -114,7 +105,6 @@ const TierModal: React.FC<TierModalProps> = ({
 
     const payload = {
       quantity: parsedQty,
-      basePrice: parsedBasePrice,
       markup: parsedMarkup,
       ...(columns.length > 0 && Object.keys(colPricesPayload).length > 0
         ? { columnPrices: colPricesPayload }
@@ -173,18 +163,6 @@ const TierModal: React.FC<TierModalProps> = ({
           </div>
 
           <div>
-            <label className={inputClass.label}>Base Price ($)</label>
-            <input
-              type="number"
-              step="0.01"
-              placeholder="e.g., 10.00"
-              value={basePrice}
-              onChange={(e) => setBasePrice(e.target.value)}
-              className={inputClass.input}
-            />
-          </div>
-
-          <div>
             <label className={inputClass.label}>Markup (%)</label>
             <input
               type="number"
@@ -213,7 +191,7 @@ const TierModal: React.FC<TierModalProps> = ({
               {columns.map((col) => (
                 <div key={col}>
                   <label className="text-[11px] font-medium text-slate-600 block mb-1">
-                    {col} ($)
+                    {col}
                   </label>
                   <input
                     type="number"

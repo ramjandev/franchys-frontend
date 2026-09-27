@@ -4,9 +4,8 @@ import {
   useCreatePriceMatrixMutation,
   useUpdatePriceMatrixMutation,
 } from "@/store/settings/PriceMatrices/priceMatrixAPI";
-import { Plus, X } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 import React, { useState } from "react";
-import { GoPlusCircle } from "react-icons/go";
 import { useNavigate } from "react-router-dom";
 import ModalAction from "./ModalAction";
 import ModalContainer from "./ModalContainer";
@@ -14,7 +13,7 @@ import ModalContainer from "./ModalContainer";
 export interface PricingTierRow {
   id: number;
   quantity: string;
-  basePrice: string;
+  basePrice?: string;
   markup: string;
   columnPrices: Record<string, string>;
 }
@@ -24,15 +23,6 @@ type PriceType = "percentage" | "fixed";
 const priceTypeOptions: readonly SelectOption<PriceType>[] = [
   { label: "Percentage", value: "percentage" },
   { label: "Fixed", value: "fixed" },
-];
-
-const QUICK_PRESETS = [
-  "1 Color",
-  "2 Colors",
-  "3 Colors",
-  "4 Colors",
-  "5 Colors",
-  "6 Colors",
 ];
 
 interface PriceMatrixModalProps {
@@ -49,7 +39,7 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
   editMatrixId,
   initialName = "",
   initialPriceType = "fixed",
-  initialColumns = ["1 Color", "2 Colors"],
+  initialColumns = ["Column 1", "Column 2"],
   initialTiers,
 }) => {
   const [name, setName] = useState(initialName);
@@ -57,22 +47,21 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
     initialPriceType,
   );
   const [columns, setColumns] = useState<string[]>(initialColumns);
-  const [newColumnName, setNewColumnName] = useState("");
   const [tiers, setTiers] = useState<PricingTierRow[]>(
     initialTiers ?? [
       {
         id: 1,
-        quantity: "12",
-        basePrice: "15",
-        markup: "50",
-        columnPrices: { "1 Color": "3.5", "2 Colors": "4.5" },
+        quantity: "",
+        basePrice: "",
+        markup: "",
+        columnPrices: { "Column 1": "", "Column 2": "" },
       },
       {
         id: 2,
-        quantity: "24",
-        basePrice: "12",
-        markup: "45",
-        columnPrices: { "1 Color": "2.5", "2 Colors": "3.5" },
+        quantity: "",
+        basePrice: "",
+        markup: "",
+        columnPrices: { "Column 1": "", "Column 2": "" },
       },
     ],
   );
@@ -86,16 +75,21 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
   const isSubmitting = isCreating || isUpdating;
   const isEditMode = Boolean(editMatrixId);
 
-  const handleAddColumn = (colName?: string) => {
-    const trimmed = (colName ?? newColumnName).trim();
-    if (!trimmed) return;
-    if (columns.includes(trimmed)) {
-      setError(`Column "${trimmed}" already exists.`);
-      return;
+  const handleAddColumn = () => {
+    let colNum = columns.length + 1;
+    let candidate = `Column ${colNum}`;
+    while (columns.includes(candidate)) {
+      colNum++;
+      candidate = `Column ${colNum}`;
     }
-    setColumns((prev) => [...prev, trimmed]);
-    setNewColumnName("");
+    setColumns((prev) => [...prev, candidate]);
     setError("");
+  };
+
+  const handleRemoveLastColumn = () => {
+    if (columns.length === 0) return;
+    const colToRemove = columns[columns.length - 1];
+    handleRemoveColumn(colToRemove);
   };
 
   const handleRemoveColumn = (colToRemove: string) => {
@@ -104,6 +98,28 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
       prev.map((t) => {
         const nextColPrices = { ...t.columnPrices };
         delete nextColPrices[colToRemove];
+        return { ...t, columnPrices: nextColPrices };
+      }),
+    );
+  };
+
+  const handleRenameColumn = (index: number, newName: string) => {
+    const oldName = columns[index];
+    if (oldName === newName) return;
+
+    setColumns((prev) => {
+      const next = [...prev];
+      next[index] = newName;
+      return next;
+    });
+
+    setTiers((prev) =>
+      prev.map((t) => {
+        const nextColPrices = { ...t.columnPrices };
+        if (oldName in nextColPrices) {
+          nextColPrices[newName] = nextColPrices[oldName];
+          delete nextColPrices[oldName];
+        }
         return { ...t, columnPrices: nextColPrices };
       }),
     );
@@ -121,8 +137,8 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
         ...prev,
         {
           id: Date.now(),
-          quantity: last?.quantity ?? "",
-          basePrice: last?.basePrice ?? "",
+          quantity: "",
+          basePrice: "",
           markup: last?.markup ?? "",
           columnPrices: initialColPrices,
         },
@@ -136,7 +152,7 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
 
   const updateTierField = (
     id: number,
-    field: "quantity" | "basePrice" | "markup",
+    field: "quantity" | "markup",
     value: string,
   ) => {
     setTiers((prev) =>
@@ -181,16 +197,10 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
     const priceTiers = [];
     for (const t of tiers) {
       const quantity = Number(t.quantity);
-      const basePrice = t.basePrice ? Number(t.basePrice) : 0;
       const markup = Number(t.markup);
 
       if (!t.quantity || Number.isNaN(quantity)) {
         setError("Please provide a valid quantity for every tier.");
-        return;
-      }
-
-      if (Number.isNaN(basePrice) || Number.isNaN(markup)) {
-        setError("Please fill in valid numbers for base price and markup.");
         return;
       }
 
@@ -207,8 +217,7 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
 
       priceTiers.push({
         quantity,
-        basePrice,
-        markup,
+        markup: Number.isNaN(markup) ? 0 : markup,
         ...(columns.length > 0 && Object.keys(columnPricesObj).length > 0
           ? { columnPrices: columnPricesObj }
           : {}),
@@ -245,8 +254,8 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
     <ModalContainer
       close={() => setShowModal(false)}
       title={isEditMode ? "Edit Pricing Matrix" : "Create New Pricing Matrix"}
-      description="Define columns and quantity tiers with base prices, markups, and column prices."
-      size="max-w-4xl"
+      description="Define columns and quantity markups, and column prices."
+      size="max-w-[1450px]"
     >
       <div className="p-6 space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -273,85 +282,6 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
           </div>
         </div>
 
-        {/* 2D Columns Section */}
-        <div className="space-y-2.5 p-4 bg-slate-50 border border-slate-200 rounded-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <span className="text-xs font-semibold text-slate-800">
-                Matrix Columns (e.g., Colors, Print Positions, Dimensions)
-              </span>
-              <p className="text-[11px] text-slate-500">
-                Columns add dimensions to your pricing grid. Line items can select a column for specialized pricing.
-              </p>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <input
-                type="text"
-                value={newColumnName}
-                onChange={(e) => setNewColumnName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddColumn();
-                  }
-                }}
-                placeholder="e.g., 3 Colors"
-                className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-blue-500 w-36"
-              />
-              <button
-                type="button"
-                onClick={() => handleAddColumn()}
-                className="flex items-center gap-1 text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition cursor-pointer"
-              >
-                <Plus size={13} /> Add
-              </button>
-            </div>
-          </div>
-
-          {/* Quick presets & active columns */}
-          <div className="flex items-center flex-wrap gap-2 pt-1">
-            {columns.length > 0 ? (
-              columns.map((col) => (
-                <span
-                  key={col}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-xs font-medium"
-                >
-                  {col}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveColumn(col)}
-                    className="hover:text-red-600 transition cursor-pointer"
-                    title={`Remove ${col}`}
-                  >
-                    <X size={12} />
-                  </button>
-                </span>
-              ))
-            ) : (
-              <span className="text-xs text-slate-400 italic">
-                No custom columns added yet. Standard base pricing will be used.
-              </span>
-            )}
-
-            {/* Quick preset suggestions */}
-            <div className="flex items-center gap-1 ml-auto text-[11px] text-slate-400">
-              <span>Quick add:</span>
-              {QUICK_PRESETS.filter((p) => !columns.includes(p))
-                .slice(0, 3)
-                .map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => handleAddColumn(preset)}
-                    className="hover:text-blue-600 hover:underline cursor-pointer"
-                  >
-                    +{preset}
-                  </button>
-                ))}
-            </div>
-          </div>
-        </div>
-
         {/* Pricing Tiers Table */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -365,30 +295,54 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
             <table className="w-full text-left text-xs border-collapse min-w-[550px]">
               <thead>
                 <tr className="bg-[#F8FAFC] border-b border-border text-[#314158] font-semibold">
-                  <th className="px-3 py-2.5 w-24">Quantity</th>
-                  <th className="px-3 py-2.5 w-28">Base Price ($)</th>
-                  <th className="px-3 py-2.5 w-24">Markup (%)</th>
-                  {columns.map((col) => (
-                    <th key={col} className="px-3 py-2.5 min-w-[100px]">
+                  <th className="px-3 py-3 w-28 text-xs font-semibold text-slate-700">
+                    Quantity
+                  </th>
+
+                  {columns.map((col, cIdx) => (
+                    <th
+                      key={col}
+                      className="px-3 py-3 min-w-[120px] text-xs font-semibold text-slate-700"
+                    >
                       <div className="flex items-center justify-between gap-1">
-                        <span className="truncate">{col} ($)</span>
+                        <input
+                          type="text"
+                          value={col}
+                          onChange={(e) =>
+                            handleRenameColumn(cIdx, e.target.value)
+                          }
+                          className="bg-transparent border-0 font-semibold text-xs text-slate-800 focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-400 rounded px-1 -ml-1 w-full"
+                          title="Click to rename column"
+                        />
                         <button
                           type="button"
                           onClick={() => handleRemoveColumn(col)}
-                          className="text-slate-400 hover:text-red-600 transition cursor-pointer"
+                          className="text-slate-400 hover:text-red-600 transition cursor-pointer p-0.5 shrink-0"
                           title={`Remove ${col} column`}
                         >
-                          <X size={12} />
+                          <X size={13} />
                         </button>
                       </div>
                     </th>
                   ))}
-                  <th className="px-3 py-2.5 w-10 text-center" />
+
+                  <th className="px-3 py-3 min-w-[220px] text-xs font-semibold text-slate-700">
+                    <div className="flex flex-col">
+                      <span>Product Markup %</span>
+                      <span className="text-[10px] text-slate-400 font-normal leading-tight mt-0.5">
+                        Markup % should be greater than 100%. Ex: To add a 30%
+                        markup, enter in 130%
+                      </span>
+                    </div>
+                  </th>
+
+                  <th className="px-3 py-3 w-10 text-center" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {tiers.map((tier) => (
                   <tr key={tier.id} className="hover:bg-slate-50/50">
+                    {/* Quantity */}
                     <td className="p-2">
                       <input
                         value={tier.quantity}
@@ -399,26 +353,8 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
                         className={`${inputClass.input} !py-1.5 !text-xs`}
                       />
                     </td>
-                    <td className="p-2">
-                      <input
-                        value={tier.basePrice}
-                        placeholder="10.00"
-                        onChange={(e) =>
-                          updateTierField(tier.id, "basePrice", e.target.value)
-                        }
-                        className={`${inputClass.input} !py-1.5 !text-xs`}
-                      />
-                    </td>
-                    <td className="p-2">
-                      <input
-                        value={tier.markup}
-                        placeholder="20"
-                        onChange={(e) =>
-                          updateTierField(tier.id, "markup", e.target.value)
-                        }
-                        className={`${inputClass.input} !py-1.5 !text-xs`}
-                      />
-                    </td>
+
+                    {/* Column Prices */}
                     {columns.map((col) => (
                       <td key={col} className="p-2">
                         <input
@@ -431,6 +367,20 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
                         />
                       </td>
                     ))}
+
+                    {/* Product Markup % */}
+                    <td className="p-2">
+                      <input
+                        value={tier.markup}
+                        placeholder="130"
+                        onChange={(e) =>
+                          updateTierField(tier.id, "markup", e.target.value)
+                        }
+                        className={`${inputClass.input} !py-1.5 !text-xs`}
+                      />
+                    </td>
+
+                    {/* Delete Row */}
                     <td className="p-2 text-center">
                       <button
                         type="button"
@@ -447,14 +397,35 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
             </table>
           </div>
 
-          <button
-            type="button"
-            onClick={addRow}
-            className="flex items-center gap-1.5 text-xs text-[#155DFC] hover:underline cursor-pointer font-medium"
-          >
-            <GoPlusCircle size={15} />
-            Add Row
-          </button>
+          {/* Action buttons below the table matching Printavo */}
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={addRow}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 rounded-md transition cursor-pointer shadow-xs"
+            >
+              <Plus size={13} className="text-slate-500" />
+              Add Row
+            </button>
+            <button
+              type="button"
+              onClick={handleAddColumn}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 rounded-md transition cursor-pointer shadow-xs"
+            >
+              <Plus size={13} className="text-slate-500" />
+              Add Column
+            </button>
+            {columns.length > 0 && (
+              <button
+                type="button"
+                onClick={handleRemoveLastColumn}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-white border border-slate-300 hover:bg-red-50 hover:border-red-300 rounded-md transition cursor-pointer shadow-xs"
+              >
+                <Minus size={13} className="text-red-500" />
+                Remove Last Column
+              </button>
+            )}
+          </div>
         </div>
 
         {error && <p className="text-xs text-[#E7000B] font-medium">{error}</p>}
@@ -462,9 +433,9 @@ const PriceMatrixModal: React.FC<PriceMatrixModalProps> = ({
 
       <ModalAction
         close={() => setShowModal(false)}
-        create={isEditMode ? "Save Changes" : "Create Matrix"}
+        create={isEditMode ? "Save Changes" : "Save"}
         isSubmitting={isSubmitting}
-        loadingText={isEditMode ? "Saving..." : "Creating..."}
+        loadingText={isEditMode ? "Saving..." : "Saving..."}
         onSubmit={handleSubmit}
       />
     </ModalContainer>

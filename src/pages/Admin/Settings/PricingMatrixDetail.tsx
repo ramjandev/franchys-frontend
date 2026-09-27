@@ -1,145 +1,334 @@
-import TierModal, { TierData } from "@/components/settings/TierModal";
 import CommonButton from "@/components/shared/CommonButton";
 import CommonHeader from "@/components/shared/CommonHeader";
-import IconActionButton from "@/components/shared/IconActionButton";
+import CommonSelect, { SelectOption } from "@/components/shared/CommonSelect";
 import { inputClass } from "@/pages/Login";
 import {
+  useCreatePriceTierMutation,
   useDeletePriceTierMutation,
   useGetPriceMatrixByIdQuery,
   useUpdatePriceMatrixMutation,
+  useUpdatePriceTierMutation,
 } from "@/store/settings/PriceMatrices/priceMatrixAPI";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Plus, Save, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { ArrowLeft, Minus, Plus, Save, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { z } from "zod";
 
-const pricingMatrixSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  productType: z.string().optional(),
-  columns: z.array(z.string()),
-});
+export interface PricingTierRow {
+  id: string | number;
+  priceTierId?: string;
+  quantity: string;
+  markup: string;
+  columnPrices: Record<string, string>;
+}
 
-type PricingMatrixFormValues = z.infer<typeof pricingMatrixSchema>;
+type PriceType = "percentage" | "fixed";
 
-const QUICK_PRESETS = [
-  "1 Color",
-  "2 Colors",
-  "3 Colors",
-  "4 Colors",
-  "5 Colors",
-  "6 Colors",
+const priceTypeOptions: readonly SelectOption<PriceType>[] = [
+  { label: "Percentage", value: "percentage" },
+  { label: "Fixed", value: "fixed" },
 ];
 
 const PricingMatrixDetail = () => {
   const { id } = useParams();
 
-  const { data } = useGetPriceMatrixByIdQuery(id!, {
+  const { data, isLoading } = useGetPriceMatrixByIdQuery(id!, {
     skip: !id,
     refetchOnMountOrArgChange: true,
   });
 
-  const [updatePriceMatrix, { isLoading: isSaving }] =
-    useUpdatePriceMatrixMutation();
-  const [deletePriceTier, { isLoading: isDeletingTier, originalArgs }] =
-    useDeletePriceTierMutation();
+  const [updatePriceMatrix] = useUpdatePriceMatrixMutation();
+  const [deletePriceTier] = useDeletePriceTierMutation();
+  const [createPriceTier] = useCreatePriceTierMutation();
+  const [updatePriceTier] = useUpdatePriceTierMutation();
 
-  const [newColumnName, setNewColumnName] = useState("");
+  const [name, setName] = useState("");
+  const [priceType, setPriceType] = useState<PriceType | undefined>("fixed");
+  const [columns, setColumns] = useState<string[]>(["Column 1", "Column 2"]);
+  const [tiers, setTiers] = useState<PricingTierRow[]>([]);
+  const [deletedTierIds, setDeletedTierIds] = useState<string[]>([]);
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState("");
   const [saveSuccessMsg, setSaveSuccessMsg] = useState("");
 
-  // Tier modal state
-  const [isTierModalOpen, setIsTierModalOpen] = useState(false);
-  const [editingTier, setEditingTier] = useState<TierData | null>(null);
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<PricingMatrixFormValues>({
-    resolver: zodResolver(pricingMatrixSchema),
-    defaultValues: {
-      name: "",
-      productType: "",
-      columns: [],
-    },
-  });
-
-  const activeColumns = watch("columns") ?? [];
-  const tiers = data?.data?.priceTiers ?? [];
-
-  // Sync form with fetched matrix data
+  // Sync state with fetched matrix data
   useEffect(() => {
     if (data?.data) {
-      reset({
-        name: data.data.name ?? "",
-        productType: data.data.priceType ?? "",
-        columns: data.data.columns ?? [],
-      });
+      setName(data.data.name ?? "");
+      setPriceType((data.data.priceType as PriceType) ?? "fixed");
+      const loadedCols =
+        data.data.columns && data.data.columns.length > 0
+          ? data.data.columns
+          : ["Column 1", "Column 2"];
+      setColumns(loadedCols);
+
+      if (data.data.priceTiers && data.data.priceTiers.length > 0) {
+        setTiers(
+          data.data.priceTiers.map((t) => {
+            const colPrices: Record<string, string> = {};
+            loadedCols.forEach((col) => {
+              const val = t.columnPrices?.[col];
+              colPrices[col] =
+                val !== undefined && val !== null ? String(val) : "";
+            });
+            return {
+              id: t.priceTierId || Date.now() + Math.random(),
+              priceTierId: t.priceTierId,
+              quantity:
+                t.quantity !== undefined && t.quantity !== null
+                  ? String(t.quantity)
+                  : "",
+              markup:
+                t.markup !== undefined && t.markup !== null
+                  ? String(t.markup)
+                  : "",
+              columnPrices: colPrices,
+            };
+          }),
+        );
+      } else {
+        setTiers([
+          {
+            id: 1,
+            quantity: "",
+            markup: "130",
+            columnPrices: {
+              [loadedCols[0] || "Column 1"]: "",
+              [loadedCols[1] || "Column 2"]: "",
+            },
+          },
+          {
+            id: 2,
+            quantity: "",
+            markup: "130",
+            columnPrices: {
+              [loadedCols[0] || "Column 1"]: "",
+              [loadedCols[1] || "Column 2"]: "",
+            },
+          },
+        ]);
+      }
     }
-  }, [data, reset]);
+  }, [data]);
 
-  const handleAddColumn = (colName?: string) => {
-    const trimmed = (colName ?? newColumnName).trim();
-    if (!trimmed) return;
-    if (activeColumns.includes(trimmed)) return;
+  const handleAddColumn = () => {
+    let colNum = columns.length + 1;
+    let candidate = `Column ${colNum}`;
+    while (columns.includes(candidate)) {
+      colNum++;
+      candidate = `Column ${colNum}`;
+    }
+    setColumns((prev) => [...prev, candidate]);
+    setError("");
+  };
 
-    const nextCols = [...activeColumns, trimmed];
-    setValue("columns", nextCols, { shouldDirty: true });
-    setNewColumnName("");
+  const handleRemoveLastColumn = () => {
+    if (columns.length === 0) return;
+    const colToRemove = columns[columns.length - 1];
+    handleRemoveColumn(colToRemove);
   };
 
   const handleRemoveColumn = (colToRemove: string) => {
-    const nextCols = activeColumns.filter((c) => c !== colToRemove);
-    setValue("columns", nextCols, { shouldDirty: true });
+    setColumns((prev) => prev.filter((c) => c !== colToRemove));
+    setTiers((prev) =>
+      prev.map((t) => {
+        const nextColPrices = { ...t.columnPrices };
+        delete nextColPrices[colToRemove];
+        return { ...t, columnPrices: nextColPrices };
+      }),
+    );
   };
 
-  // Open modal to add tier (NO network call on click!)
-  const handleOpenAddTier = () => {
-    setEditingTier(null);
-    setIsTierModalOpen(true);
+  const handleRenameColumn = (index: number, newName: string) => {
+    const oldName = columns[index];
+    if (oldName === newName) return;
+
+    setColumns((prev) => {
+      const next = [...prev];
+      next[index] = newName;
+      return next;
+    });
+
+    setTiers((prev) =>
+      prev.map((t) => {
+        const nextColPrices = { ...t.columnPrices };
+        if (oldName in nextColPrices) {
+          nextColPrices[newName] = nextColPrices[oldName];
+          delete nextColPrices[oldName];
+        }
+        return { ...t, columnPrices: nextColPrices };
+      }),
+    );
   };
 
-  // Open modal to edit existing tier
-  const handleOpenEditTier = (tier: TierData) => {
-    setEditingTier(tier);
-    setIsTierModalOpen(true);
+  const addRow = () => {
+    setTiers((prev) => {
+      const last = prev[prev.length - 1];
+      const initialColPrices: Record<string, string> = {};
+      columns.forEach((col) => {
+        initialColPrices[col] = last?.columnPrices?.[col] ?? "";
+      });
+
+      return [
+        ...prev,
+        {
+          id: Date.now() + Math.random(),
+          quantity: "",
+          markup: last?.markup ?? "",
+          columnPrices: initialColPrices,
+        },
+      ];
+    });
   };
 
-  const handleDeleteTier = async (priceTierId?: string) => {
-    if (!id || !priceTierId) return;
-    try {
-      await deletePriceTier({ priceMatrixId: id, priceTierId }).unwrap();
-    } catch (err) {
-      console.error("Failed to delete price tier", err);
+  const removeRow = (id: string | number, priceTierId?: string) => {
+    if (priceTierId) {
+      setDeletedTierIds((prev) => [...prev, priceTierId]);
     }
+    setTiers((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const onSubmit = async (values: PricingMatrixFormValues) => {
+  const updateTierField = (
+    id: string | number,
+    field: "quantity" | "markup",
+    value: string,
+  ) => {
+    setTiers((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)),
+    );
+  };
+
+  const updateColumnPrice = (
+    id: string | number,
+    col: string,
+    value: string,
+  ) => {
+    setTiers((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              columnPrices: {
+                ...t.columnPrices,
+                [col]: value,
+              },
+            }
+          : t,
+      ),
+    );
+  };
+
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!id) return;
+    setError("");
+
+    if (!name.trim()) {
+      setError("Matrix name is required.");
+      return;
+    }
+
+    if (tiers.length === 0) {
+      setError("Add at least one pricing tier.");
+      return;
+    }
+
+    const priceTiersPayload = [];
+    for (const t of tiers) {
+      const quantity = Number(t.quantity);
+      const markup = Number(t.markup);
+
+      if (!t.quantity || Number.isNaN(quantity)) {
+        setError("Please provide a valid quantity for every tier.");
+        return;
+      }
+
+      const columnPricesObj: Record<string, number> = {};
+      columns.forEach((col) => {
+        const val = t.columnPrices[col];
+        if (val !== undefined && val !== "") {
+          const num = Number(val);
+          if (!Number.isNaN(num)) {
+            columnPricesObj[col] = num;
+          }
+        }
+      });
+
+      priceTiersPayload.push({
+        priceTierId: t.priceTierId,
+        quantity,
+        markup: Number.isNaN(markup) ? 0 : markup,
+        ...(columns.length > 0 && Object.keys(columnPricesObj).length > 0
+          ? { columnPrices: columnPricesObj }
+          : {}),
+      });
+    }
+
     try {
+      setIsSaving(true);
       setSaveSuccessMsg("");
+
+      // 1. Delete removed tiers that existed on the backend
+      if (deletedTierIds.length > 0) {
+        await Promise.allSettled(
+          deletedTierIds.map((pId) =>
+            deletePriceTier({ priceMatrixId: id, priceTierId: pId }).unwrap(),
+          ),
+        );
+        setDeletedTierIds([]);
+      }
+
+      // 2. Update price matrix metadata & columns
       await updatePriceMatrix({
         id,
         data: {
-          name: values.name,
-          columns: values.columns,
+          name: name.trim(),
+          priceType,
+          columns,
+          priceTiers: priceTiersPayload.map(
+            ({ priceTierId: _, ...rest }) => rest,
+          ),
         },
       }).unwrap();
 
-      setSaveSuccessMsg("Matrix general settings saved!");
+      // 3. Sync individual tiers in case backend uses tier routes
+      await Promise.allSettled(
+        priceTiersPayload.map((t) => {
+          const tierPayload = {
+            quantity: t.quantity,
+            markup: t.markup,
+            columnPrices: t.columnPrices,
+          };
+          if (t.priceTierId) {
+            return updatePriceTier({
+              priceMatrixId: id,
+              priceTierId: t.priceTierId,
+              data: tierPayload,
+            }).unwrap();
+          } else {
+            return createPriceTier({
+              priceMatrixId: id,
+              data: tierPayload,
+            }).unwrap();
+          }
+        }),
+      );
+
+      setSaveSuccessMsg("Matrix and pricing tiers saved successfully!");
       setTimeout(() => setSaveSuccessMsg(""), 4000);
-    } catch (err) {
-      console.error("Failed to save price matrix", err);
+    } catch (err: any) {
+      console.error(err);
+      setError(
+        err?.data?.message || "Something went wrong while saving the matrix.",
+      );
+    } finally {
+      setIsSaving(false);
     }
   };
 
   return (
     <div className="pb-10">
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSave}>
         <div className="mb-6 pb-4 border-b border-border">
           <CommonHeader size="2xl" className="font-medium!">
             Pricing Matrix Detail
@@ -166,226 +355,183 @@ const PricingMatrixDetail = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className={inputClass.label}>Matrix Name</label>
-              <input {...register("name")} className={inputClass.input} />
-              {errors.name && (
-                <p className="text-xs text-[#E7000B] mt-1">{errors.name.message}</p>
-              )}
+              <input
+                type="text"
+                placeholder="e.g., Screen Printing or Wholesale Tier"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={inputClass.input}
+              />
             </div>
 
             <div>
               <label className={inputClass.label}>Price Type</label>
-              <input
-                {...register("productType")}
-                readOnly
-                className={`${inputClass.input} bg-slate-50 cursor-not-allowed text-slate-600`}
+              <CommonSelect<PriceType>
+                value={priceType}
+                item={priceTypeOptions}
+                onValueChange={(val) => setPriceType(val)}
+                placeholder="Select price type"
+                className="w-full"
               />
             </div>
           </div>
 
-          {/* 2D Columns Section */}
-          <div className="space-y-3 p-4 bg-[#F8FAFC] border border-slate-200 rounded-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <span className="text-xs font-semibold text-slate-800">
-                  Matrix Columns (Dimensions / Locations / Colors)
-                </span>
-                <p className="text-[11px] text-slate-500">
-                  Define columns like &quot;1 Color&quot;, &quot;2 Colors&quot;. In quotes, line items can pick one of these matrix columns.
-                </p>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="text"
-                  value={newColumnName}
-                  onChange={(e) => setNewColumnName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddColumn();
-                    }
-                  }}
-                  placeholder="e.g., 3 Colors"
-                  className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-blue-500 w-36"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleAddColumn()}
-                  className="flex items-center gap-1 text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition cursor-pointer"
-                >
-                  <Plus size={13} /> Add
-                </button>
-              </div>
+          {/* Pricing Tiers Table matching Create Modal */}
+          <div className="space-y-3 border-t border-border pt-5">
+            <div className="flex items-center justify-between">
+              <label className={inputClass.label}>Pricing Tiers</label>
+              <span className="text-xs text-slate-500">
+                {tiers.length} quantity {tiers.length === 1 ? "tier" : "tiers"}
+              </span>
             </div>
 
-            {/* Active column badges & presets */}
-            <div className="flex items-center flex-wrap gap-2 pt-1">
-              {activeColumns.length > 0 ? (
-                activeColumns.map((col) => (
-                  <span
-                    key={col}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-xs font-medium"
-                  >
-                    {col}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveColumn(col)}
-                      className="hover:text-red-600 transition cursor-pointer"
-                      title={`Remove ${col}`}
-                    >
-                      <X size={12} />
-                    </button>
-                  </span>
-                ))
-              ) : (
-                <span className="text-xs text-slate-400 italic">
-                  No custom columns added yet. Standard base pricing is active.
-                </span>
-              )}
-
-              <div className="flex items-center gap-1 ml-auto text-[11px] text-slate-400">
-                <span>Quick add:</span>
-                {QUICK_PRESETS.filter((p) => !activeColumns.includes(p))
-                  .slice(0, 3)
-                  .map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => handleAddColumn(preset)}
-                      className="hover:text-blue-600 hover:underline cursor-pointer"
-                    >
-                      +{preset}
-                    </button>
-                  ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Pricing Tiers Section */}
-          <div className="border-t border-border pt-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <CommonHeader size="lg" className="font-medium!">
-                  Pricing Tiers
-                </CommonHeader>
-                <p className="text-[11px] text-slate-500">
-                  Manage quantity breaks and rates. Click &quot;Add Row&quot; to open the tier modal.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleOpenAddTier}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition cursor-pointer"
-              >
-                <Plus size={14} /> Add Row
-              </button>
-            </div>
-
-            <div className="overflow-x-auto border border-border rounded-xl">
-              <table className="w-full text-xs text-left border-collapse min-w-[600px]">
+            <div className="border border-border rounded-xl overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse min-w-[550px]">
                 <thead>
                   <tr className="bg-[#F8FAFC] border-b border-border text-[#314158] font-semibold">
-                    <th className="px-3 py-2.5 w-24">Quantity</th>
-                    <th className="px-3 py-2.5 w-28">Base Price ($)</th>
-                    <th className="px-3 py-2.5 w-24">Markup (%)</th>
-                    {activeColumns.map((col) => (
-                      <th key={col} className="px-3 py-2.5 min-w-[110px]">
+                    <th className="px-3 py-3 w-28 text-xs font-semibold text-slate-700">
+                      Quantity
+                    </th>
+
+                    {columns.map((col, cIdx) => (
+                      <th
+                        key={col}
+                        className="px-3 py-3 min-w-[120px] text-xs font-semibold text-slate-700"
+                      >
                         <div className="flex items-center justify-between gap-1">
-                          <span className="truncate">{col} ($)</span>
+                          <input
+                            type="text"
+                            value={col}
+                            onChange={(e) =>
+                              handleRenameColumn(cIdx, e.target.value)
+                            }
+                            className="bg-transparent border-0 font-semibold text-xs text-slate-800 focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-400 rounded px-1 -ml-1 w-full"
+                            title="Click to rename column"
+                          />
                           <button
                             type="button"
                             onClick={() => handleRemoveColumn(col)}
-                            className="text-slate-400 hover:text-red-600 transition cursor-pointer"
+                            className="text-slate-400 hover:text-red-600 transition cursor-pointer p-0.5 shrink-0"
                             title={`Remove ${col} column`}
                           >
-                            <X size={12} />
+                            <X size={13} />
                           </button>
                         </div>
                       </th>
                     ))}
-                    <th className="px-3 py-2.5 w-24 text-center">Actions</th>
+
+                    <th className="px-3 py-3 min-w-[220px] text-xs font-semibold text-slate-700">
+                      <div className="flex flex-col">
+                        <span>Product Markup %</span>
+                        <span className="text-[10px] text-slate-400 font-normal leading-tight mt-0.5">
+                          Markup % should be greater than 100%. Ex: To add a 30%
+                          markup, enter in 130%
+                        </span>
+                      </div>
+                    </th>
+
+                    <th className="px-3 py-3 w-10 text-center" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {tiers.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={4 + activeColumns.length}
-                        className="py-8 text-center text-slate-400"
-                      >
-                        No pricing tiers configured yet. Click &quot;Add Row&quot; below to add one.
+                  {tiers.map((tier) => (
+                    <tr key={tier.id} className="hover:bg-slate-50/50">
+                      {/* Quantity */}
+                      <td className="p-2">
+                        <input
+                          value={tier.quantity}
+                          placeholder="12"
+                          onChange={(e) =>
+                            updateTierField(tier.id, "quantity", e.target.value)
+                          }
+                          className={`${inputClass.input} !py-1.5 !text-xs`}
+                        />
+                      </td>
+
+                      {/* Column Prices */}
+                      {columns.map((col) => (
+                        <td key={col} className="p-2">
+                          <input
+                            value={tier.columnPrices[col] ?? ""}
+                            placeholder="0.00"
+                            onChange={(e) =>
+                              updateColumnPrice(tier.id, col, e.target.value)
+                            }
+                            className={`${inputClass.input} !py-1.5 !text-xs`}
+                          />
+                        </td>
+                      ))}
+
+                      {/* Product Markup % */}
+                      <td className="p-2">
+                        <input
+                          value={tier.markup}
+                          placeholder="130"
+                          onChange={(e) =>
+                            updateTierField(tier.id, "markup", e.target.value)
+                          }
+                          className={`${inputClass.input} !py-1.5 !text-xs`}
+                        />
+                      </td>
+
+                      {/* Delete Row */}
+                      <td className="p-2 text-center">
+                        <button
+                          type="button"
+                          onClick={() => removeRow(tier.id, tier.priceTierId)}
+                          className="text-[#E7000B] hover:text-red-700 transition-colors cursor-pointer p-1 rounded"
+                          title="Delete tier"
+                        >
+                          <X size={14} />
+                        </button>
                       </td>
                     </tr>
-                  ) : (
-                    tiers.map((tier) => (
-                      <tr
-                        key={tier.priceTierId}
-                        className="hover:bg-slate-50/60 transition-colors"
-                      >
-                        <td className="px-3 py-2.5 font-medium text-slate-800">
-                          {tier.quantity}+
-                        </td>
-                        <td className="px-3 py-2.5 text-slate-700">
-                          ${Number(tier.basePrice ?? 0).toFixed(2)}
-                        </td>
-                        <td className="px-3 py-2.5 text-slate-700">
-                          {tier.markup}%
-                        </td>
-                        {activeColumns.map((col) => {
-                          const colPrice = tier.columnPrices?.[col];
-                          return (
-                            <td
-                              key={col}
-                              className="px-3 py-2.5 font-medium text-blue-600"
-                            >
-                              {colPrice !== undefined && colPrice !== null && colPrice !== ""
-                                ? `$${Number(colPrice).toFixed(2)}`
-                                : "-"}
-                            </td>
-                          );
-                        })}
-                        <td className="px-3 py-2.5 text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <IconActionButton
-                              variant="edit"
-                              title="Edit Tier"
-                              onClick={() => handleOpenEditTier(tier)}
-                            />
-                            <IconActionButton
-                              variant="delete"
-                              title="Delete Tier"
-                              isLoading={
-                                isDeletingTier &&
-                                originalArgs?.priceTierId === tier.priceTierId
-                              }
-                              onClick={() => handleDeleteTier(tier.priceTierId)}
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
+                  ))}
                 </tbody>
               </table>
+            </div>
 
-              <div className="p-3 bg-slate-50/60 border-t border-border">
+            {/* Action buttons below the table matching Create Modal / Printavo */}
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={addRow}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 rounded-md transition cursor-pointer shadow-xs"
+              >
+                <Plus size={13} className="text-slate-500" />
+                Add Row
+              </button>
+              <button
+                type="button"
+                onClick={handleAddColumn}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 rounded-md transition cursor-pointer shadow-xs"
+              >
+                <Plus size={13} className="text-slate-500" />
+                Add Column
+              </button>
+              {columns.length > 0 && (
                 <button
                   type="button"
-                  onClick={handleOpenAddTier}
-                  className="flex items-center gap-1.5 text-xs text-[#155DFC] hover:underline cursor-pointer font-semibold"
+                  onClick={handleRemoveLastColumn}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-white border border-slate-300 hover:bg-red-50 hover:border-red-300 rounded-md transition cursor-pointer shadow-xs"
                 >
-                  <Plus size={14} />
-                  Add Row
+                  <Minus size={13} className="text-red-500" />
+                  Remove Last Column
                 </button>
-              </div>
+              )}
             </div>
           </div>
+
+          {error && (
+            <p className="text-xs text-[#E7000B] font-medium pt-2">{error}</p>
+          )}
         </div>
 
         <div className="flex items-center gap-4 pt-2">
           <CommonButton
             type="submit"
             className="bg-[#00A63E]! text-white"
-            disabled={isSaving}
+            disabled={isSaving || isLoading}
           >
             <Save size={15} />
             {isSaving ? "Saving..." : "Save changes"}
@@ -397,20 +543,6 @@ const PricingMatrixDetail = () => {
           )}
         </div>
       </form>
-
-      {/* Dedicated Tier Modal */}
-      {id && (
-        <TierModal
-          isOpen={isTierModalOpen}
-          onClose={() => {
-            setIsTierModalOpen(false);
-            setEditingTier(null);
-          }}
-          priceMatrixId={id}
-          columns={activeColumns}
-          editingTier={editingTier}
-        />
-      )}
     </div>
   );
 };

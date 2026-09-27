@@ -12,6 +12,8 @@ import MiniTabs from "./MiniTabs";
 
 interface QuoteStatusProps {
   quote?: Quote;
+  isExporting: boolean;
+  onSubmit: () => void;
 }
 
 const formatDate = (date?: string | null) => {
@@ -43,7 +45,11 @@ const statusLabels: Record<string, string> = {
   REVISION_REQUESTED: "Revision Requested",
 };
 
-const QuoteStatus: React.FC<QuoteStatusProps> = ({ quote }) => {
+const QuoteStatus: React.FC<QuoteStatusProps> = ({
+  quote,
+  isExporting,
+  onSubmit,
+}) => {
   const [activeTab, setActiveTab] = useState<"all" | "email" | "whatsapp">(
     "all",
   );
@@ -135,7 +141,13 @@ const QuoteStatus: React.FC<QuoteStatusProps> = ({ quote }) => {
         >
           <Pencil /> Edit Quote
         </CommonButton>
-        <CommonButton variant="ghost" className=" w-full!">
+        <CommonButton
+          onClick={onSubmit}
+          loadingText="Exporting..."
+          isLoading={isExporting}
+          variant="ghost"
+          className=" w-full!"
+        >
           <Download /> Download PDF
         </CommonButton>
       </CardContainer>

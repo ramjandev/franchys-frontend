@@ -1,9 +1,9 @@
 import { useGetInvoiceByIdQuery } from "@/store/invoice/invoiceAPI";
 import { Image } from "lucide-react";
-import { FiPrinter } from "react-icons/fi";
 import ModalAction from "../settings/ModalAction";
 import ModalContainer from "../settings/ModalContainer";
 import CommonHeader from "../shared/CommonHeader";
+import { usePdfExport } from "../shared/htmlToPdf/usePdfExport";
 import VideoSkeleton from "../shared/loading/VideoSkeleton";
 
 interface InvoicePreviewModalProps {
@@ -20,7 +20,9 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
 }) => {
   const { data, isLoading } = useGetInvoiceByIdQuery(invoiceId);
   const invoice = data?.data;
-
+  const { targetRef, exportPdf, isExporting } = usePdfExport<HTMLDivElement>({
+    filename: `invoice-${invoice?.invoiceNumber}-${new Date().toISOString().slice(0, 10)}.pdf`,
+  });
   if (isLoading || !invoice) {
     return (
       <ModalContainer
@@ -49,27 +51,7 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
       title="Invoice Preview"
       size="max-w-2xl"
     >
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .printable-invoice-content, .printable-invoice-content * {
-            visibility: visible;
-          }
-          .printable-invoice-content {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100% !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
-      `}</style>
-
-      <div className="p-6 printable-invoice-content">
+      <div ref={targetRef} className="p-6 printable-invoice-content">
         <div className="flex items-start justify-between mb-6">
           <div>
             <CommonHeader size="3xl" className="font-medium!">
@@ -230,29 +212,13 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-slate-50 no-print">
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-100 rounded-lg text-slate-700 transition cursor-pointer"
-        >
-          <FiPrinter size={14} /> Print Invoice
-        </button>
-
-        <ModalAction
-          close={() => setShowModal(false)}
-          create="Download PDF"
-          isSubmitting={false}
-          loadingText="Downloading..."
-          onSubmit={() => {
-            if (invoice.invoicePdfUrl) {
-              window.open(invoice.invoicePdfUrl, "_blank");
-            } else {
-              window.print();
-            }
-          }}
-        />
-      </div>
+      <ModalAction
+        close={() => setShowModal(false)}
+        create="Download PDF"
+        isSubmitting={isExporting}
+        loadingText="Downloading..."
+        onSubmit={exportPdf}
+      />
     </ModalContainer>
   );
 };
