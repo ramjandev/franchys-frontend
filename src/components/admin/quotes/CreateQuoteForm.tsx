@@ -6,15 +6,13 @@ import { inputClass } from "@/pages/Login";
 import {
   useCreateQuoteMutation,
   useGetQuoteByIdQuery,
-  useRefreshPricingExistingMutation,
   useRefreshPricingNewMutation,
   useUpdateQuoteMutation,
 } from "@/store/quote/quoteAPI";
 import {
   CreateQuotePayload,
-  QuoteGroupPayload,
-  RefreshPricingExistingPayload,
-  RefreshPricingNewPayload,
+  RefreshPricingLineItemPayload,
+  RefreshPricingLineItemResult,
   RefreshPricingResult,
   UpdateQuotePayload,
 } from "@/store/quote/types/quoteTypes";
@@ -256,7 +254,9 @@ const CreateQuoteForm = () => {
     watchedGroups.forEach((g) => {
       g.lineItems.forEach((li) => {
         const lineTotal =
-          (li.items || 0) * (li.price || 0) * (1 + (li.markup || 0) / 100);
+          li.total !== undefined && Number(li.total) > 0
+            ? Number(li.total)
+            : (li.items || 0) * (li.price || 0) * (1 + (li.markup || 0) / 100);
         subtotalSum += lineTotal;
         if (li.taxed) {
           taxableSum += lineTotal;
@@ -277,48 +277,11 @@ const CreateQuoteForm = () => {
     };
   }, [watchedGroups, watchedDiscount]);
 
-  const buildGroupsPayload = (
-    groups: QuoteFormValues["groups"],
-  ): QuoteGroupPayload[] =>
-    groups.map((g) => ({
-      name: g.name,
-      lineItems: g.lineItems.map((li) => {
-        const lineTotal =
-          li.total !== undefined && li.total > 0
-            ? li.total
-            : Number((li.items * li.price * (1 + li.markup / 100)).toFixed(2));
-        const effectiveBaseCost =
-          li.baseCost && li.baseCost > 0 ? li.baseCost : li.price;
-
-        return {
-          groupName: g.name,
-          category: li.category,
-          itemNumber: li.itemNumber,
-          color: li.color,
-          description: li.description,
-          baseCost: effectiveBaseCost,
-          sizeBreakdown: li.sizes,
-          markupPrice: li.markup,
-          matrixId: li.matrixId || g.priceMatrixId || undefined,
-          matrixColumn: li.matrixColumn || g.priceMatrixColumn || undefined,
-          printCost: li.printCost ?? 0,
-          unitPrice: li.price,
-          isTaxed: li.taxed,
-          total: lineTotal,
-          imprintType: li.imprintType || "",
-          mockups: li.mockups || [],
-        };
-      }),
-    }));
-
   const [recalculatedPricing, setRecalculatedPricing] =
     useState<RefreshPricingResult | null>(null);
   const isRefreshingPricingRef = useRef(false);
-  const [updateRefreshPricing, { isLoading: isRefreshingNew }] =
+  const [updateRefreshPricing, { isLoading: isRefreshingPricing }] =
     useRefreshPricingNewMutation();
-  const [updateRefreshPricingExisting, { isLoading: isRefreshingExisting }] =
-    useRefreshPricingExistingMutation();
-  const isRefreshingPricing = isRefreshingNew || isRefreshingExisting;
 
   // Clear stale recalculated pricing if user manually modifies form fields
   useEffect(() => {
@@ -348,43 +311,148 @@ const CreateQuoteForm = () => {
         return;
       }
 
-      const groupsPayload = buildGroupsPayload(values.groups);
+      // Build RefreshPricingLineItemPayload[] according to single vs multiple imprints
+      const refreshLineItems: RefreshPricingLineItemPayload[] = [];
 
-      let result: RefreshPricingResult;
+      values.groups.forEach((g) => {
+        const groupImprints = (g.imprints || []).filter(
+          (imp) => imp.matrixId && imp.matrixId.trim() !== "",
+        );
 
-      if (quoteId) {
-        const existingPayload: RefreshPricingExistingPayload = {
-          customerId: values.customerId,
-          repId: values.repId,
-          poNumber: values.poNumber,
-          deliveryMethod: values.deliveryMethod,
-          dueDate: values.dueDate
-            ? new Date(values.dueDate).toISOString()
-            : new Date().toISOString(),
-          status: "DRAFT",
-          discount: values.discount,
-          taxRate: FIXED_TAX_RATE,
-          total: Number(total.toFixed(2)),
-          notes: values.notes,
-          groups: groupsPayload,
-        };
+        g.lineItems.forEach((li) => {
+          const effectiveBaseCost =
+            li.baseCost !== undefined && Number(li.baseCost) > 0
+              ? Number(li.baseCost)
+              : li.price !== undefined && Number(li.price) > 0
+                ? Number(li.price)
+                : 0;
 
-        const res = await updateRefreshPricingExisting({
-          id: quoteId,
-          data: existingPayload,
-        }).unwrap();
-        result = res.data;
-      } else {
-        const newPayload: RefreshPricingNewPayload = {
-          discount: values.discount,
-          taxRate: FIXED_TAX_RATE,
-          total: Number(total.toFixed(2)),
-          groups: groupsPayload,
-        };
+          const cleanSizeBreakdown: Record<string, number> = {};
+          if (li.sizes && typeof li.sizes === "object") {
+            Object.entries(li.sizes).forEach(([sz, qty]) => {
+              const num = Number(qty);
+              if (num > 0) {
+                cleanSizeBreakdown[sz] = num;
+              }
+            });
+          }
 
-        const res = await updateRefreshPricing(newPayload).unwrap();
-        result = res.data;
+          if (Object.keys(cleanSizeBreakdown).length === 0) {
+            const qty = Number(li.items) || 0;
+            if (qty > 0) {
+              cleanSizeBreakdown["quantity"] = qty;
+            }
+          }
+
+          const itemPayload: RefreshPricingLineItemPayload = {
+            baseCost: effectiveBaseCost,
+            sizeBreakdown: cleanSizeBreakdown,
+          };
+
+          if (groupImprints.length > 1) {
+            itemPayload.imprints = groupImprints.map((imp) => ({
+              matrixId: imp.matrixId.trim(),
+              matrixColumn: (imp.matrixColumn || "").trim(),
+            }));
+          } else if (groupImprints.length === 1) {
+            itemPayload.matrixId = groupImprints[0].matrixId.trim();
+            itemPayload.matrixColumn = (groupImprints[0].matrixColumn || "").trim();
+          } else {
+            const fallbackMatrixId = (li.matrixId || g.priceMatrixId || "").trim();
+            const fallbackMatrixCol = (li.matrixColumn || g.priceMatrixColumn || "").trim();
+            if (fallbackMatrixId) {
+              itemPayload.matrixId = fallbackMatrixId;
+              itemPayload.matrixColumn = fallbackMatrixCol;
+            }
+          }
+
+          refreshLineItems.push(itemPayload);
+        });
+      });
+
+      const res = await updateRefreshPricing({ lineItems: refreshLineItems }).unwrap();
+      const result: RefreshPricingResult = res.data;
+
+      // Extract all returned line items (from groups or root lineItems)
+      const allReturnedLineItems: RefreshPricingLineItemResult[] = [];
+      if (result.groups && Array.isArray(result.groups)) {
+        result.groups.forEach((g) => {
+          if (g.lineItems && Array.isArray(g.lineItems)) {
+            allReturnedLineItems.push(...g.lineItems);
+          }
+        });
       }
+      if (
+        allReturnedLineItems.length === 0 &&
+        result.lineItems &&
+        Array.isArray(result.lineItems)
+      ) {
+        allReturnedLineItems.push(...result.lineItems);
+      }
+
+      isRefreshingPricingRef.current = true;
+
+      const applyLineItemResult = (
+        groupIdx: number,
+        lineItemIdx: number,
+        liResult: RefreshPricingLineItemResult,
+      ) => {
+        // itemsCount -> Quantity (lineItem.items)
+        if (liResult.itemsCount !== undefined && liResult.itemsCount !== null) {
+          setValue(
+            `groups.${groupIdx}.lineItems.${lineItemIdx}.items`,
+            Number(liResult.itemsCount),
+            { shouldDirty: true },
+          );
+        }
+        // markupPrice -> Markup % (lineItem.markup)
+        if (liResult.markupPrice !== undefined && liResult.markupPrice !== null) {
+          setValue(
+            `groups.${groupIdx}.lineItems.${lineItemIdx}.markup`,
+            Number(liResult.markupPrice),
+            { shouldDirty: true },
+          );
+        }
+        // printCost -> Print Cost (lineItem.printCost)
+        if (liResult.printCost !== undefined && liResult.printCost !== null) {
+          setValue(
+            `groups.${groupIdx}.lineItems.${lineItemIdx}.printCost`,
+            Number(liResult.printCost),
+            { shouldDirty: true },
+          );
+        }
+        // unitPrice -> Price (lineItem.price)
+        if (liResult.unitPrice !== undefined && liResult.unitPrice !== null) {
+          setValue(
+            `groups.${groupIdx}.lineItems.${lineItemIdx}.price`,
+            Number(liResult.unitPrice),
+            { shouldDirty: true },
+          );
+        }
+        // total -> Total (lineItem.total)
+        if (liResult.total !== undefined && liResult.total !== null) {
+          setValue(
+            `groups.${groupIdx}.lineItems.${lineItemIdx}.total`,
+            Number(liResult.total),
+            { shouldDirty: true },
+          );
+        }
+      };
+
+      let flatIdx = 0;
+      values.groups.forEach((g, groupIdx) => {
+        g.lineItems.forEach((_, lineItemIdx) => {
+          const liResult =
+            (result.groups?.length === values.groups.length &&
+              result.groups[groupIdx]?.lineItems?.[lineItemIdx]) ||
+            allReturnedLineItems[flatIdx];
+
+          if (liResult) {
+            applyLineItemResult(groupIdx, lineItemIdx, liResult);
+          }
+          flatIdx++;
+        });
+      });
 
       const serverCalcSubtotal =
         Number(result.subtotal) > 0 ? Number(result.subtotal) : subtotal;
@@ -395,12 +463,15 @@ const CreateQuoteForm = () => {
 
       // Calculate tax only on items that are checked as taxed
       let currentTaxable = 0;
+      let flatTaxIdx = 0;
       values.groups.forEach((g, groupIdx) => {
         g.lineItems.forEach((li, lineItemIdx) => {
           if (li.taxed) {
-            const serverLineTotal = Number(
-              result.groups?.[groupIdx]?.lineItems?.[lineItemIdx]?.total,
-            );
+            const liResult =
+              (result.groups?.length === values.groups.length &&
+                result.groups[groupIdx]?.lineItems?.[lineItemIdx]) ||
+              allReturnedLineItems[flatTaxIdx];
+            const serverLineTotal = Number(liResult?.total);
             const lineTotal =
               !isNaN(serverLineTotal) && serverLineTotal > 0
                 ? serverLineTotal
@@ -411,6 +482,7 @@ const CreateQuoteForm = () => {
                     (1 + (li.markup || 0) / 100);
             currentTaxable += lineTotal;
           }
+          flatTaxIdx++;
         });
       });
 
@@ -421,6 +493,8 @@ const CreateQuoteForm = () => {
 
       const updatedResult: RefreshPricingResult = {
         ...result,
+        subtotal: serverCalcSubtotal,
+        discount: serverCalcDiscount,
         taxAmount: serverCalcTax.toFixed(2),
         total: Math.max(
           0,
@@ -428,50 +502,7 @@ const CreateQuoteForm = () => {
         ).toFixed(2),
       };
 
-      isRefreshingPricingRef.current = true;
       setRecalculatedPricing(updatedResult);
-
-      // Apply server-recalculated unitPrice, markup, total, printCost, and matrix fields
-      updatedResult.groups.forEach((g, groupIdx) => {
-        g.lineItems.forEach((li, lineItemIdx) => {
-          setValue(
-            `groups.${groupIdx}.lineItems.${lineItemIdx}.price`,
-            Number(li.unitPrice),
-            { shouldDirty: true },
-          );
-          setValue(
-            `groups.${groupIdx}.lineItems.${lineItemIdx}.markup`,
-            Number(li.markupPrice),
-            { shouldDirty: true },
-          );
-          setValue(
-            `groups.${groupIdx}.lineItems.${lineItemIdx}.total`,
-            Number(li.total),
-            { shouldDirty: true },
-          );
-          if (li.printCost !== undefined && li.printCost !== null) {
-            setValue(
-              `groups.${groupIdx}.lineItems.${lineItemIdx}.printCost`,
-              Number(li.printCost),
-              { shouldDirty: true },
-            );
-          }
-          if (li.matrixId) {
-            setValue(
-              `groups.${groupIdx}.lineItems.${lineItemIdx}.matrixId`,
-              li.matrixId,
-              { shouldDirty: true },
-            );
-          }
-          if (li.matrixColumn) {
-            setValue(
-              `groups.${groupIdx}.lineItems.${lineItemIdx}.matrixColumn`,
-              li.matrixColumn,
-              { shouldDirty: true },
-            );
-          }
-        });
-      });
 
       setTimeout(() => {
         isRefreshingPricingRef.current = false;
@@ -511,8 +542,6 @@ const CreateQuoteForm = () => {
       groups: values.groups.map((g, groupIdx) => ({
         name: g.name,
         lineItems: g.lineItems.map((li, lineItemIdx) => {
-          const lineTotal = li.items * li.price * (1 + li.markup / 100);
-
           const recalculatedLineItem =
             recalculatedPricing?.groups?.[groupIdx]?.lineItems?.[lineItemIdx];
 
@@ -522,8 +551,8 @@ const CreateQuoteForm = () => {
           const lineItemTotal = recalculatedLineItem
             ? Number(recalculatedLineItem.total)
             : li.total && li.total > 0
-              ? li.total
-              : Number(lineTotal.toFixed(2));
+              ? Number(li.total)
+              : Number((li.items * li.price * (1 + li.markup / 100)).toFixed(2));
           const effectiveBaseCost =
             li.baseCost && li.baseCost > 0 ? li.baseCost : li.price;
 
