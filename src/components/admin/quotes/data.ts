@@ -82,7 +82,7 @@ export const buildGridTemplateColumns = (
   if (visibility.markup !== false) afterCols.push("85px");
   afterCols.push("80px");
   if (visibility.taxed !== false) afterCols.push("40px");
-  afterCols.push("50px");
+  afterCols.push("90px");
   if (visibility.mockup !== false) afterCols.push("130px");
   afterCols.push("36px"); // Delete icon column
 
