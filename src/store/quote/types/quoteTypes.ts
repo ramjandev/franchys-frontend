@@ -164,22 +164,46 @@ export interface GetQuotesParams {
 
 // ---- Refresh pricing payloads ----
 
+export interface RefreshPricingImprintPayload {
+  matrixId: string;
+  matrixColumn: string;
+}
+
+export interface RefreshPricingLineItemPayload {
+  baseCost: number;
+  sizeBreakdown: Record<string, number>;
+  matrixId?: string;
+  matrixColumn?: string;
+  imprints?: RefreshPricingImprintPayload[];
+}
+
 export interface RefreshPricingNewPayload {
-  discount: number;
-  taxRate: number;
-  total: number;
-  groups: QuoteGroupPayload[];
+  lineItems: RefreshPricingLineItemPayload[];
 }
 
 export type RefreshPricingExistingPayload = CreateQuotePayload;
 
+export interface RefreshPricingLineItemResult {
+  itemsCount: number;
+  markupPrice: number;
+  printCost: number;
+  unitPrice: number;
+  total: number;
+}
+
+export interface RefreshPricingGroupResult {
+  name: string;
+  lineItems: RefreshPricingLineItemResult[];
+}
+
 export interface RefreshPricingResult {
-  subtotal: string;
-  discount: string;
-  taxRate: string;
-  taxAmount: string;
-  total: string;
-  groups: QuoteGroup[];
+  subtotal: number | string;
+  total: number | string;
+  discount?: number | string;
+  taxRate?: number | string;
+  taxAmount?: number | string;
+  groups: RefreshPricingGroupResult[];
+  lineItems?: RefreshPricingLineItemResult[];
 }
 
 // ---- Upload mockups payload ----

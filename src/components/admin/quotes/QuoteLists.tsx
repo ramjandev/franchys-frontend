@@ -1,4 +1,3 @@
-import CommonButton from "@/components/shared/CommonButton";
 import DeleteAlert from "@/components/shared/DeleteButton";
 import IconActionButton from "@/components/shared/IconActionButton";
 import Pagination from "@/components/shared/Pagination";
@@ -27,7 +26,6 @@ const tableHeaders = [
   { label: "Total", align: "text-left" },
   { label: "Status", align: "text-center" },
   { label: "Date", align: "text-left" },
-  { label: "Mockup", align: "text-center" },
   { label: "Action", align: "text-center" },
 ];
 
@@ -142,15 +140,6 @@ const QuoteLists: React.FC<QuoteListsProps> = ({
 
                   <td className={tableDesign.td}>
                     {formatDate(quote.createdAt)}
-                  </td>
-
-                  <td className={` ${tableDesign.td} text-center `}>
-                    <CommonButton
-                      to={`../mockups/${quote.customerId}`}
-                      size="xs"
-                    >
-                      Create Mockup
-                    </CommonButton>
                   </td>
 
                   <td className={tableDesign.td}>

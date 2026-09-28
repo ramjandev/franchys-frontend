@@ -80,9 +80,6 @@ interface LineItemsGroupProps {
   isRefreshingPricing?: boolean;
 }
 
-const calcTotal = (items: number, price: number, markup: number) =>
-  (items * price * (1 + markup / 100)).toFixed(2);
-
 const distributeEvenly = (
   total: number,
   keys: string[],
@@ -229,6 +226,7 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
   ]);
 
   const watchedLineItems = watch(`groups.${groupIndex}.lineItems`) || [];
+  const watchedTaxRate = watch("taxRate") ?? 7;
 
   const hasSelectedImprint = useMemo(() => {
     const hasInImprints =
@@ -320,15 +318,32 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
     dispatch(setProductType(ProductType));
   };
 
-  const { data: systemProducts } = useGetProductsForAutoCompleteQuery(
+  const {
+    data: systemProducts,
+    isLoading: isLoadingSystem,
+    isFetching: isFetchingSystem,
+  } = useGetProductsForAutoCompleteQuery(
     { search: debouncedSearch },
     { skip: productType !== "system" || !debouncedSearch },
   );
 
-  const { data: sanmarProducts } = useGetSanmarProductsAutocompleteQuery(
+  const {
+    data: sanmarProducts,
+    isLoading: isLoadingSanmar,
+    isFetching: isFetchingSanmar,
+  } = useGetSanmarProductsAutocompleteQuery(
     { search: debouncedSearch },
     { skip: productType !== "sanmar" || !debouncedSearch },
   );
+
+  const isDebouncing =
+    Boolean(search.trim()) && search.trim() !== debouncedSearch.trim();
+  const isQueryFetching =
+    productType === "system"
+      ? isLoadingSystem || isFetchingSystem
+      : isLoadingSanmar || isFetchingSanmar;
+  const isSearching =
+    Boolean(search.trim()) && (isDebouncing || isQueryFetching);
   const { selectedProduct } = useSelector((state: RootState) => state.image);
   const [uploadMockups] = useUploadMockupsMutation();
   const [uploadingRow, setUploadingRow] = useState<number | null>(null);
@@ -788,7 +803,7 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
 
       {/* Table with Dynamic Columns */}
       <div className="overflow-x-auto">
-        <div className="min-w-225">
+        <div className="min-w-240">
           <div
             className="grid gap-1.5 pb-2 border-b border-[#CAD5E2] mb-2 items-center"
             style={{ gridTemplateColumns }}
@@ -835,6 +850,20 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
             const rowTotal = watch(
               `groups.${groupIndex}.lineItems.${idx}.total`,
             );
+            const rowTaxed = watch(
+              `groups.${groupIndex}.lineItems.${idx}.taxed`,
+            );
+
+            const baseLineTotal =
+              rowTotal !== undefined && rowTotal !== null && Number(rowTotal) > 0
+                ? Number(rowTotal)
+                : (Number(rowItems) || 0) *
+                  (Number(rowPrice) || 0) *
+                  (1 + (Number(rowMarkup) || 0) / 100);
+
+            const displayTotal = rowTaxed
+              ? baseLineTotal * (1 + (watchedTaxRate || 0) / 100)
+              : baseLineTotal;
 
             return (
               <div
@@ -889,25 +918,32 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
                   }}
                 >
                   <PopoverTrigger asChild>
-                    <input
-                      type="text"
-                      placeholder="Product description (search catalog)..."
-                      value={rowDescription}
-                      onFocus={() => {
-                        if (justSelectedRef.current) return;
-                        openDropdown(idx);
-                        setSearch(rowDescription);
-                      }}
-                      onChange={(e) => {
-                        setValue(
-                          `groups.${groupIndex}.lineItems.${idx}.description`,
-                          e.target.value,
-                        );
-                        setSearch(e.target.value);
-                        openDropdown(idx);
-                      }}
-                      className={inputClass.input}
-                    />
+                    <div className="relative w-full">
+                      <input
+                        type="text"
+                        placeholder="Product description (search catalog)..."
+                        value={rowDescription}
+                        onFocus={() => {
+                          if (justSelectedRef.current) return;
+                          openDropdown(idx);
+                          setSearch(rowDescription);
+                        }}
+                        onChange={(e) => {
+                          setValue(
+                            `groups.${groupIndex}.lineItems.${idx}.description`,
+                            e.target.value,
+                          );
+                          setSearch(e.target.value);
+                          openDropdown(idx);
+                        }}
+                        className={`${inputClass.input} ${activeRow === idx && isSearching ? "pr-8" : ""}`}
+                      />
+                      {activeRow === idx && isSearching && (
+                        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-blue-600">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        </div>
+                      )}
+                    </div>
                   </PopoverTrigger>
 
                   <PopoverContent
@@ -919,7 +955,14 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
                   >
                     {/* Results list */}
                     <div className="overflow-y-auto max-h-72 p-1">
-                      {productType === "system" ? (
+                      {isSearching ? (
+                        <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-500">
+                          <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                          <span className="text-xs font-medium text-slate-600">
+                            Searching {productType === "system" ? "system" : "SanMar"} products...
+                          </span>
+                        </div>
+                      ) : productType === "system" ? (
                         systemProducts?.data &&
                         systemProducts.data.length > 0 ? (
                           systemProducts.data.map(
@@ -967,7 +1010,7 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
                             },
                           )
                         ) : (
-                          <div className="py-4 text-center text-xs text-slate-400">
+                          <div className="py-6 text-center text-xs text-slate-400">
                             {debouncedSearch
                               ? "No system products found"
                               : "Type to search system catalog..."}
@@ -1019,7 +1062,7 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
                           },
                         )
                       ) : (
-                        <div className="py-4 text-center text-xs text-slate-400">
+                        <div className="py-6 text-center text-xs text-slate-400">
                           {debouncedSearch
                             ? "No SanMar products found"
                             : "Type to search SanMar catalog..."}
@@ -1136,16 +1179,15 @@ const LineItemsGroup: React.FC<LineItemsGroupProps> = ({
                 )}
 
                 {/* Total */}
-                <span className="text-[13px] font-semibold text-slate-800">
-                  $
-                  {rowTotal !== undefined && rowTotal !== null && rowTotal > 0
-                    ? Number(rowTotal).toFixed(2)
-                    : calcTotal(rowItems, rowPrice, rowMarkup)}
-                </span>
+                <div className="flex items-center min-w-0 pr-2">
+                  <span className="text-[13px] font-semibold text-slate-800 whitespace-nowrap">
+                    ${displayTotal.toFixed(2)}
+                  </span>
+                </div>
 
                 {/* Mockup */}
                 {columnVisibility.mockup !== false && (
-                  <div className="flex items-center gap-1.5 flex-wrap min-w-[120px]">
+                  <div className="flex items-center gap-1.5 flex-wrap min-w-[120px] pl-1">
                     {/* Render saved mockup thumbnails */}
                     {(() => {
                       const rowMockups: string[] =
