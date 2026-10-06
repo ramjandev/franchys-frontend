@@ -10,6 +10,7 @@ import {
   JobSortOrder,
   JobStatus,
 } from "@/store/jobs/types/jobTypes";
+import { Calendar, RotateCcw, X } from "lucide-react";
 import { useState } from "react";
 import { IoSearchSharp } from "react-icons/io5";
 
@@ -133,6 +134,75 @@ export default function JobBoard() {
             className="w-full! sm:w-auto!"
             w={170}
           />
+
+          {/* Date Filter */}
+          <div className="relative flex items-center border border-border bg-white rounded-md px-3 py-2 w-full sm:w-auto">
+            <Calendar className="w-4 h-4 text-[#90A1B9] mr-2 shrink-0" />
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                setPage(1);
+              }}
+              className="outline-none text-sm text-[#0F172B] bg-transparent cursor-pointer"
+              title="Filter by date (YYYY-MM-DD)"
+            />
+            {dateFilter && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDateFilter("");
+                  setPage(1);
+                }}
+                className="ml-1.5 text-gray-400 hover:text-gray-600 p-0.5 cursor-pointer"
+                title="Clear date filter"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Amount Filter */}
+          <div className="relative flex items-center border border-border bg-white rounded-md px-3 py-2 w-full sm:w-auto">
+            <span className="text-[#90A1B9] text-sm font-medium mr-1">$</span>
+            <input
+              type="number"
+              placeholder="Amount"
+              value={amountFilter}
+              onChange={(e) => {
+                setAmountFilter(e.target.value);
+                setPage(1);
+              }}
+              className="outline-none text-sm text-[#0F172B] w-20 bg-transparent placeholder:text-[#90A1B9]"
+              title="Filter by amount"
+            />
+            {amountFilter && (
+              <button
+                type="button"
+                onClick={() => {
+                  setAmountFilter("");
+                  setPage(1);
+                }}
+                className="ml-1 text-gray-400 hover:text-gray-600 p-0.5 cursor-pointer"
+                title="Clear amount filter"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Reset Filters */}
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md border border-red-200 transition-colors cursor-pointer whitespace-nowrap"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset
+            </button>
+          )}
         </div>
       </div>
 
