@@ -26,31 +26,37 @@ export const permissionUiConfig: {
   label: string;
   keys: (keyof AdminPermissions)[];
 }[] = [
-  { label: "Can view customers", keys: ["canViewCustomers"] },
   {
     label: "Can add/edit customers",
     keys: ["canCreateCustomers", "canUpdateCustomers"],
   },
   { label: "Can delete customers", keys: ["canDeleteCustomers"] },
-  { label: "Can view quotes", keys: ["canViewQuotes"] },
   {
     label: "Can create/edit quotes",
     keys: ["canCreateQuotes", "canUpdateQuotes"],
   },
   { label: "Can delete quotes", keys: ["canDeleteQuotes"] },
   { label: "Can approve quotes", keys: ["canApproveQuotes"] },
-  { label: "Can view jobs", keys: ["canViewJobs"] },
-  { label: "Can create/edit jobs", keys: ["canCreateJobs", "canUpdateJobs"] },
+  {
+    label: "Can create/edit jobs",
+    keys: ["canCreateJobs", "canUpdateJobs"],
+  },
   { label: "Can delete jobs", keys: ["canDeleteJobs"] },
-  { label: "Can view invoices", keys: ["canViewInvoices"] },
   {
     label: "Can create/edit invoices",
     keys: ["canCreateInvoices", "canUpdateInvoices"],
   },
   { label: "Can delete invoices", keys: ["canDeleteInvoices"] },
+  { label: "Can approve invoices", keys: ["canApproveInvoices"] },
   { label: "Can take payments", keys: ["canTakePayment"] },
-  { label: "Can view reports", keys: ["canViewReports"] },
-  { label: "Can view analytics", keys: ["canViewAnalytics"] },
+  {
+    label: "Can manage invoice fees",
+    keys: [
+      "canCreateInvoiceFees",
+      "canUpdateInvoiceFees",
+      "canDeleteInvoiceFees",
+    ],
+  },
   {
     label: "Can manage users",
     keys: ["canCreateUsers", "canUpdateUsers", "canDeleteUsers"],
@@ -63,10 +69,13 @@ export const permissionUiConfig: {
     label: "Can manage vendors",
     keys: ["canCreateVendor", "canUpdateVendor", "canDeleteVendor"],
   },
-  { label: "Can view mockups", keys: ["canViewMockups"] },
   {
     label: "Can create/edit mockups",
     keys: ["canCreateProducts", "canUpdateProducts"],
+  },
+  {
+    label: "Can delete mockups",
+    keys: ["canDeleteProducts"],
   },
 ];
 

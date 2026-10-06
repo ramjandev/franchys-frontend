@@ -6,39 +6,45 @@ interface CheckboxProps {
   checked?: boolean;
   onChange?: (checked: boolean) => void;
   className?: string;
+  disabled?: boolean;
 }
 
 const InfoCheckbox: React.FC<CheckboxProps> = ({
   label,
-  checked = false,
+  checked,
   onChange,
   className,
+  disabled = false,
 }) => {
-  const [isChecked, setIsChecked] = useState(checked);
+  const [internalChecked, setInternalChecked] = useState(false);
+  const isChecked = checked !== undefined ? checked : internalChecked;
 
-  const handleToggle = () => {
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (disabled) return;
     const next = !isChecked;
-    setIsChecked(next);
+    if (checked === undefined) {
+      setInternalChecked(next);
+    }
     onChange?.(next);
   };
 
   return (
     <div
       onClick={handleToggle}
-      className={`flex items-center gap-3 ${className}`}
+      className={`flex items-center gap-3 select-none ${
+        disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+      } ${className || ""}`}
     >
       <div
-        onClick={handleToggle}
-        className={`w-7 h-7 rounded-[10px] border-[1.5px] flex items-center justify-center shrink-0 transition-all duration-150 cursor-pointer ${
+        className={`w-7 h-7 rounded-[10px] border-[1.5px] flex items-center justify-center shrink-0 transition-all duration-150 ${
           isChecked
             ? "bg-[#2B4EFF] border-[#2B4EFF]"
             : "bg-transparent border-[#294566]"
         }`}
       >
         {isChecked && (
-          <span className="cursor-pointer">
-            <FaCheck className="w-4 h-4 text-white " />
-          </span>
+          <FaCheck className="w-4 h-4 text-white" />
         )}
       </div>
       {label && <span className="text-sm text-[#1E293B]">{label}</span>}

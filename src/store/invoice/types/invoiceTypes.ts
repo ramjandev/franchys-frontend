@@ -26,7 +26,7 @@ export interface InvoiceLineItem {
 export interface InvoiceCustomerSummary {
   id: string;
   firstName: string;
-  lastName: string;
+  lastName?: string | null;
   companyName: string | null;
   email: string;
 }
@@ -70,7 +70,7 @@ export interface InvoiceQuoteDetail {
 export interface InvoiceCustomerDetail {
   id: string;
   firstName: string;
-  lastName: string;
+  lastName?: string | null;
   email: string;
   phone: string;
   language: string | null;

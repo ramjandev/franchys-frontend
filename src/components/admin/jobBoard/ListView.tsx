@@ -8,8 +8,10 @@ import {
 import IconActionButton from "@/components/shared/IconActionButton";
 import Pagination from "@/components/shared/Pagination";
 import { formatDate } from "@/lib/utils";
-import { Job, JobStatus } from "@/store/jobs/types/jobTypes";
+import { Job, JobSortBy, JobStatus } from "@/store/jobs/types/jobTypes";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { z } from "zod";
 import { tableDesign } from "../quotes/QuoteLists";
 import StatusPill from "./StatusPill";
@@ -37,6 +39,9 @@ interface ListViewProps {
   setPage: (page: number) => void;
   totalPages: number;
   isLoading: boolean;
+  sortBy?: string;
+  sortOrder?: string;
+  onSort?: (field: JobSortBy) => void;
 }
 
 const ListView: React.FC<ListViewProps> = ({
@@ -44,30 +49,53 @@ const ListView: React.FC<ListViewProps> = ({
   page,
   setPage,
   totalPages,
+  sortBy,
+  sortOrder,
+  onSort,
 }) => {
   const [updateJobStatus] = useUpdateJobStatusMutation();
   const [deleteJob] = useDeleteJobMutation();
 
   const total = jobs.reduce((sum, j) => sum + (parseFloat(j.amount) || 0), 0);
 
-  const tableHeaders = [
+  const tableHeaders: {
+    label: string;
+    align: string;
+    sortable?: boolean;
+    sortField?: JobSortBy;
+  }[] = [
     { label: "Job Number", align: "text-left" },
     { label: "Client", align: "text-left" },
     { label: "Description", align: "text-left" },
     { label: "Status", align: "text-left" },
-    { label: "Date", align: "text-left" },
-    { label: "Amount", align: "text-left" },
+    {
+      label: "Date",
+      align: "text-left",
+      sortable: true,
+      sortField: "dueDate",
+    },
+    {
+      label: "Amount",
+      align: "text-left",
+      sortable: true,
+      sortField: "amount",
+    },
     { label: "Action", align: "text-center" },
   ];
 
   const handleStatusChange = async (jobId: string, newStatus: string) => {
+    let normalized = newStatus.trim().toUpperCase().replace(/\s+/g, "_");
+    if (normalized === "NEEDORDER") normalized = "NEED_TO_ORDER";
+    if (normalized === "ARRIVED") normalized = "ORDER_ARRIVED";
+
     const result = statusChangeSchema.safeParse({
-      status: newStatus, // already uppercase from the caller
+      status: normalized,
       note: "changed status",
     });
 
     if (!result.success) {
       console.error("Invalid status", result.error);
+      toast.error("Invalid status selected");
       return;
     }
 
@@ -79,8 +107,10 @@ const ListView: React.FC<ListViewProps> = ({
           note: result.data.note,
         },
       }).unwrap();
-    } catch (err) {
+      toast.success("Job status updated successfully");
+    } catch (err: any) {
       console.error("Failed to update job status", err);
+      toast.error(err?.data?.message || "Failed to update job status");
     }
   };
   const handleDelete = async (jobId: string) => {
@@ -102,11 +132,49 @@ const ListView: React.FC<ListViewProps> = ({
           <table className={tableDesign.table}>
             <thead className={tableDesign.thead}>
               <tr>
-                {tableHeaders.map((item, index) => (
-                  <th key={index} className={`${item.align} ${tableDesign.th}`}>
-                    {item.label}
-                  </th>
-                ))}
+                {tableHeaders.map((item, index) => {
+                  const isCurrentSorted =
+                    item.sortField &&
+                    (sortBy === item.sortField ||
+                      (item.sortField === "dueDate" && sortBy === "date"));
+
+                  return (
+                    <th
+                      key={index}
+                      className={`${item.align} ${tableDesign.th} ${
+                        item.sortable
+                          ? "cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        if (item.sortable && item.sortField && onSort) {
+                          onSort(item.sortField);
+                        }
+                      }}
+                    >
+                      <div
+                        className={`inline-flex items-center gap-1.5 ${
+                          item.align === "text-center" ? "justify-center" : ""
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        {item.sortable && (
+                          <span className="text-[#90A1B9]">
+                            {isCurrentSorted ? (
+                              sortOrder === "asc" ? (
+                                <ArrowUp className="w-3.5 h-3.5 text-blue-600" />
+                              ) : (
+                                <ArrowDown className="w-3.5 h-3.5 text-blue-600" />
+                              )
+                            ) : (
+                              <ArrowUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100" />
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody className={tableDesign.tbody}>
@@ -123,10 +191,8 @@ const ListView: React.FC<ListViewProps> = ({
                   </td>
                   <td className={tableDesign.td}>
                     <StatusPill
-                      statusKey={job.status.toLowerCase()}
-                      onChange={(key) =>
-                        handleStatusChange(job.id, key.toUpperCase())
-                      }
+                      statusKey={job.status}
+                      onChange={(key) => handleStatusChange(job.id, key)}
                     />
                   </td>
 

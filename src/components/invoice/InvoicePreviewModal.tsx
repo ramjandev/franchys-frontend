@@ -102,7 +102,7 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
             </CommonHeader>
             <CommonHeader className="text-[#45556C]!">
               {invoice.customer.companyName ||
-                `${invoice.customer.firstName} ${invoice.customer.lastName}`}
+                `${invoice.customer.firstName} ${invoice.customer.lastName || ""}`.trim()}
             </CommonHeader>
 
             <CommonHeader size="sm" className="text-[#45556C]!">

@@ -50,7 +50,7 @@ const CustomerSearchSelect: React.FC<CustomerSearchSelectProps> = ({
   const options = useMemo(
     () =>
       data?.data.map((customer) => ({
-        label: `${customer.firstName} ${customer.lastName}`,
+        label: `${customer.firstName} ${customer.lastName || ""}`.trim(),
         value: customer.id,
       })) ?? [],
     [data],
@@ -65,7 +65,7 @@ const CustomerSearchSelect: React.FC<CustomerSearchSelectProps> = ({
     if (fromResults) return fromResults;
     if (selectedCustomerData?.data) {
       const c = selectedCustomerData.data;
-      return `${c.firstName} ${c.lastName}`;
+      return `${c.firstName} ${c.lastName || ""}`.trim();
     }
     return undefined;
   }, [options, value, selectedCustomerData]);

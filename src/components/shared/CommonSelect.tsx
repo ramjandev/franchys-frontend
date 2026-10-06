@@ -4,7 +4,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"; // update path if needed
+} from "@/components/ui/select";
 
 export interface SelectOption<T extends string> {
   label: string;

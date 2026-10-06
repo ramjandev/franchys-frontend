@@ -57,7 +57,7 @@ const CustomerList = () => {
 
                     <td className={tableDesign.td}>
                       <div className="font-semibold text-[#0077FF]">
-                        {item.firstName} {item.lastName}
+                        {item.firstName} {item.lastName || ""}
                       </div>
 
                       <div className="text-[#6A7282] text-xs mt-0.5">

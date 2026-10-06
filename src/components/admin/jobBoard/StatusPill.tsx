@@ -16,7 +16,8 @@ interface MenuPosition {
 }
 
 const StatusPill: React.FC<StatusPillProps> = ({ statusKey, onChange }) => {
-  const s = STATUS_MAP[statusKey] ?? STATUS_MAP["quote"];
+  const normalizedKey = statusKey ? statusKey.toUpperCase().replace(/\s+/g, "_") : "QUOTE";
+  const s = STATUS_MAP[statusKey] ?? STATUS_MAP[normalizedKey] ?? STATUS_MAP[statusKey?.toLowerCase()] ?? STATUS_MAP["QUOTE"] ?? STATUS_OPTIONS[0];
   const { open, setOpen, ref } = useDropdown();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);

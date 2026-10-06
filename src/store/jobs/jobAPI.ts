@@ -5,6 +5,8 @@ import {
   GetJobByIdResponse,
   GetJobsParams,
   GetJobsResponse,
+  UpdateJobChecklistPayload,
+  UpdateJobChecklistResponse,
   UpdateJobPayload,
   UpdateJobResponse,
   UpdateJobStatusPayload,
@@ -22,12 +24,25 @@ export const jobAPI = baseAPI.injectEndpoints({
       invalidatesTags: ["Job"],
     }),
 
-    getJobs: build.query<GetJobsResponse, GetJobsParams>({
-      query: (params) => ({
-        url: `/job`,
-        method: "GET",
-        params,
-      }),
+    getJobs: build.query<GetJobsResponse, GetJobsParams | void>({
+      query: (params) => {
+        const queryParams: Record<string, string | number> = {};
+        if (params?.page) queryParams.page = params.page;
+        if (params?.limit) queryParams.limit = params.limit;
+        if (params?.search) queryParams.search = params.search;
+        if (params?.status) queryParams.status = params.status;
+        if (params?.date) queryParams.date = params.date;
+        if (params?.amount !== undefined && params?.amount !== "")
+          queryParams.amount = params.amount;
+        if (params?.sortBy) queryParams.sortBy = params.sortBy;
+        if (params?.sortOrder) queryParams.sortOrder = params.sortOrder;
+
+        return {
+          url: `/job`,
+          method: "GET",
+          params: queryParams,
+        };
+      },
       providesTags: ["Job"],
     }),
 
@@ -70,6 +85,21 @@ export const jobAPI = baseAPI.injectEndpoints({
       }),
       invalidatesTags: ["Job"],
     }),
+
+    updateJobChecklist: build.mutation<
+      UpdateJobChecklistResponse,
+      { id: string; data: UpdateJobChecklistPayload }
+    >({
+      query: ({ id, data }) => ({
+        url: `/job/${id}/checklist`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Job", id },
+        { type: "Job", id: "LIST" },
+      ],
+    }),
   }),
 });
 
@@ -80,4 +110,5 @@ export const {
   useUpdateJobMutation,
   useDeleteJobMutation,
   useUpdateJobStatusMutation,
+  useUpdateJobChecklistMutation,
 } = jobAPI;

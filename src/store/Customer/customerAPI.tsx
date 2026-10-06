@@ -18,12 +18,26 @@ export const customerAPI = baseAPI.injectEndpoints({
       invalidatesTags: ["Customer"],
     }),
 
-    getAllCustomers: build.query<GetAllCustomersResponse, GetCustomersParams>({
-      query: (params) => ({
-        url: "/customer",
-        method: "GET",
-        params,
-      }),
+    getAllCustomers: build.query<
+      GetAllCustomersResponse,
+      GetCustomersParams | void
+    >({
+      query: (params) => {
+        const queryParams: Record<string, string | number> = {};
+        if (params?.page) queryParams.page = params.page;
+        if (params?.limit) queryParams.limit = params.limit;
+        if (params?.search) queryParams.search = params.search;
+        if (params?.customerType)
+          queryParams.customerType = params.customerType;
+        if (params?.sortBy) queryParams.sortBy = params.sortBy;
+        if (params?.sortOrder) queryParams.sortOrder = params.sortOrder;
+
+        return {
+          url: "/customer",
+          method: "GET",
+          params: queryParams,
+        };
+      },
       providesTags: ["Customer"],
     }),
 

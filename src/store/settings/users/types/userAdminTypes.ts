@@ -9,20 +9,16 @@ export interface AdminPermissions {
   canCreateCustomers: boolean;
   canUpdateCustomers: boolean;
   canDeleteCustomers: boolean;
-  canViewCustomers: boolean;
   canCreateQuotes: boolean;
   canUpdateQuotes: boolean;
   canDeleteQuotes: boolean;
   canApproveQuotes: boolean;
-  canViewQuotes: boolean;
   canCreateJobs: boolean;
   canUpdateJobs: boolean;
   canDeleteJobs: boolean;
-  canViewJobs: boolean;
   canCreateProducts: boolean;
   canUpdateProducts: boolean;
   canDeleteProducts: boolean;
-  canViewMockups: boolean;
   canCreateUsers: boolean;
   canUpdateUsers: boolean;
   canDeleteUsers: boolean;
@@ -31,7 +27,6 @@ export interface AdminPermissions {
   canDeleteInvoices: boolean;
   canApproveInvoices: boolean;
   canTakePayment: boolean;
-  canViewInvoices: boolean;
   canCreateInvoiceFees: boolean;
   canUpdateInvoiceFees: boolean;
   canDeleteInvoiceFees: boolean;
@@ -40,8 +35,6 @@ export interface AdminPermissions {
   canCreateVendor: boolean;
   canUpdateVendor: boolean;
   canDeleteVendor: boolean;
-  canViewReports: boolean;
-  canViewAnalytics: boolean;
 }
 
 export interface AdminPermissionsWithMeta extends AdminPermissions {

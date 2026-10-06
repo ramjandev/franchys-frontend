@@ -162,7 +162,7 @@ const AddNewCustomer = () => {
       const formData = new FormData();
 
       formData.append("firstName", data.firstName);
-      formData.append("lastName", data.lastName);
+      if (data.lastName) formData.append("lastName", data.lastName);
       formData.append("email", data.email);
       formData.append("phone", data.phone);
       formData.append("customerType", data.customerType);

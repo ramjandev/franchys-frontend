@@ -122,7 +122,7 @@ const QuoteLists: React.FC<QuoteListsProps> = ({
 
                   <td className={` ${tableDesign.td} text-left! `}>
                     {quote.customer
-                      ? `${quote.customer.firstName} ${quote.customer.lastName}`
+                      ? `${quote.customer.firstName} ${quote.customer.lastName || ""}`.trim()
                       : "—"}
                   </td>
 

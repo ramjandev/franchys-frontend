@@ -58,7 +58,7 @@ export interface ListRow extends JobCard {
 
 export const STATUS_OPTIONS: StatusOption[] = [
   {
-    key: "quote",
+    key: "QUOTE",
     label: "Quote",
     color: "#FF6B6B",
     bg: "bg-[#FF6B6B]/[.125]",
@@ -66,7 +66,7 @@ export const STATUS_OPTIONS: StatusOption[] = [
     text: "text-[#FF6B6B]",
   },
   {
-    key: "approved",
+    key: "APPROVED",
     label: "Approved",
     color: "#4ECDC4",
     bg: "bg-[#4ECDC4]/[.125]",
@@ -74,7 +74,7 @@ export const STATUS_OPTIONS: StatusOption[] = [
     text: "text-[#4ECDC4]",
   },
   {
-    key: "art",
+    key: "ART",
     label: "Art",
     color: "#95E1D3",
     bg: "bg-[#95E1D3]/[.125]",
@@ -82,7 +82,7 @@ export const STATUS_OPTIONS: StatusOption[] = [
     text: "text-[#95E1D3]",
   },
   {
-    key: "needOrder",
+    key: "NEED_TO_ORDER",
     label: "Need to Order",
     color: "#F38181",
     bg: "bg-[#F38181]/[.125]",
@@ -90,7 +90,7 @@ export const STATUS_OPTIONS: StatusOption[] = [
     text: "text-[#F38181]",
   },
   {
-    key: "arrived",
+    key: "ORDER_ARRIVED",
     label: "Order Arrived",
     color: "#AA96DA",
     bg: "bg-[#AA96DA]/[.125]",
@@ -98,7 +98,7 @@ export const STATUS_OPTIONS: StatusOption[] = [
     text: "text-[#AA96DA]",
   },
   {
-    key: "production",
+    key: "PRODUCTION",
     label: "Production",
     color: "#FF8B5A",
     bg: "bg-[#FF8B5A]/[.125]",
@@ -106,7 +106,7 @@ export const STATUS_OPTIONS: StatusOption[] = [
     text: "text-[#FF8B5A]",
   },
   {
-    key: "payment",
+    key: "PAYMENT",
     label: "Payment",
     color: "#4ADE80",
     bg: "bg-[#4ADE80]/[.125]",
@@ -114,7 +114,7 @@ export const STATUS_OPTIONS: StatusOption[] = [
     text: "text-[#4ADE80]",
   },
   {
-    key: "ship",
+    key: "SHIP",
     label: "Ship",
     color: "#3B82F6",
     bg: "bg-[#3B82F6]/[.125]",
@@ -122,7 +122,7 @@ export const STATUS_OPTIONS: StatusOption[] = [
     text: "text-[#1E40AF]",
   },
   {
-    key: "completed",
+    key: "COMPLETED",
     label: "Completed",
     color: "#8B5CF6",
     bg: "bg-[#8B5CF6]/[.125]",
@@ -131,9 +131,14 @@ export const STATUS_OPTIONS: StatusOption[] = [
   },
 ];
 
-export const STATUS_MAP: Record<string, StatusOption> = Object.fromEntries(
-  STATUS_OPTIONS.map((s) => [s.key, s]),
-);
+export const STATUS_MAP: Record<string, StatusOption> = {
+  ...Object.fromEntries(STATUS_OPTIONS.map((s) => [s.key, s])),
+  ...Object.fromEntries(STATUS_OPTIONS.map((s) => [s.key.toLowerCase(), s])),
+  needorder: STATUS_OPTIONS.find((s) => s.key === "NEED_TO_ORDER")!,
+  need_to_order: STATUS_OPTIONS.find((s) => s.key === "NEED_TO_ORDER")!,
+  arrived: STATUS_OPTIONS.find((s) => s.key === "ORDER_ARRIVED")!,
+  order_arrived: STATUS_OPTIONS.find((s) => s.key === "ORDER_ARRIVED")!,
+};
 
 export const WORKFLOW_STAGES: WorkflowStage[] = [
   {

@@ -13,7 +13,10 @@ const typeBadgeStyles: Record<CustomerType, string> = {
   BUSINESS: "bg-amber-100 text-amber-600",
 };
 
-function getInitials(firstName: string, lastName: string) {
+function getInitials(
+  firstName?: string | null,
+  lastName?: string | null,
+) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
 }
 
@@ -91,7 +94,7 @@ const AllCampaigns = () => {
         >
           {customers.map((c) => {
             const sel = selected.includes(c.id);
-            const fullName = `${c.firstName} ${c.lastName}`.trim();
+            const fullName = `${c.firstName} ${c.lastName || ""}`.trim();
 
             return (
               <button

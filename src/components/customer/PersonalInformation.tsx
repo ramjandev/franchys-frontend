@@ -86,9 +86,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
           )}
         </div>
         <div className="space-y-2">
-          <label className={inputClass.label}>
-            Last Name <span className="text-red-500">*</span>
-          </label>
+          <label className={inputClass.label}>Last Name</label>
           <input
             placeholder="Smith"
             className={inputClass.input}

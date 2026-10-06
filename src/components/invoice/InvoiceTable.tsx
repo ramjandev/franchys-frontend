@@ -98,7 +98,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 </td>
                 <td className={tableDesign.td}>
                   <div className="text-[#101828] font-medium">
-                    {`${invoice.customer.firstName} ${invoice.customer.lastName}`}
+                    {`${invoice.customer.firstName} ${invoice.customer.lastName || ""}`.trim()}
                   </div>
                   {invoice.quote?.quoteNumber && (
                     <div className="text-xs text-[#A0B0C0] mt-0.5">

@@ -8,14 +8,14 @@ export type CustomerType = "PERSONAL" | "BUSINESS";
 export interface Customer {
   id: string;
   firstName: string;
-  lastName: string;
+  lastName?: string | null;
   email: string;
   phone: string;
   language: string | null;
   website: string | null;
   companyName: string | null;
   taxId: string | null;
-  isTaxExempt?: boolean;
+  isTaxExempt?: boolean | null;
   taxExemptNumber?: string | null;
   secondaryEmail: string | null;
   secondaryPhone: string | null;
@@ -43,7 +43,7 @@ export interface Customer {
 
 export interface CreateCustomerPayload {
   firstName: string;
-  lastName: string;
+  lastName?: string;
   email: string;
   phone: string;
   language?: string;
@@ -70,11 +70,16 @@ export interface CreateCustomerPayload {
 
 export type UpdateCustomerPayload = Partial<CreateCustomerPayload>;
 
+export type CustomerSortBy = "orders" | "totalSpent";
+export type CustomerSortOrder = "asc" | "desc";
+
 export interface GetCustomersParams {
   search?: string;
   page?: number;
   limit?: number;
   customerType?: CustomerType;
+  sortBy?: CustomerSortBy;
+  sortOrder?: CustomerSortOrder;
 }
 
 // ---- Response envelopes ----

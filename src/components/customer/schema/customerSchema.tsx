@@ -4,7 +4,7 @@ export const customerSchema = z.object({
   // Required
   firstName: z.string().min(1, "First name is required"),
 
-  lastName: z.string().min(1, "Last name is required"),
+  lastName: z.string().optional(),
 
   email: z
     .string()

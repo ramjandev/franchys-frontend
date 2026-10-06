@@ -81,7 +81,7 @@ export type QuoteStatus =
 export interface QuoteCustomer {
   id: string;
   firstName: string;
-  lastName: string;
+  lastName?: string | null;
   email: string;
   phone: string;
   language: string | null;
