@@ -2,6 +2,7 @@ import PaymentTermModal from "@/components/settings/PaymentTermModal";
 import CardContainer from "@/components/shared/CardContainer";
 import CommonButton from "@/components/shared/CommonButton";
 import CommonHeader from "@/components/shared/CommonHeader";
+import DeleteAlert from "@/components/shared/DeleteButton";
 import IconActionButton from "@/components/shared/IconActionButton";
 import DashboardCardSkeleton from "@/components/shared/loading/DashboardCardSkeleton";
 import { loadingArray } from "@/lib/utils";
@@ -12,16 +13,17 @@ import {
 import { PaymentTerm } from "@/store/settings/paymentTerms/types/paymentTermTypes";
 import { useState } from "react";
 import { GoPlusCircle } from "react-icons/go";
+import { toast } from "react-toastify";
 
 const PaymentTermsSettings = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingTerm, setEditingTerm] = useState<PaymentTerm | undefined>();
 
   const { data, isLoading } = useGetPaymentTermsQuery();
-  const [deletePaymentTerm, { isLoading: isDeleting, originalArgs }] =
-    useDeletePaymentTermMutation();
+  const [deletePaymentTerm] = useDeletePaymentTermMutation();
 
-  const termsData = data?.data ?? [];
+  // Exclude soft-deleted (archived) payment terms so they immediately disappear
+  const termsData = (data?.data ?? []).filter((term) => !term.isArchived);
 
   const openAdd = () => {
     setEditingTerm(undefined);
@@ -35,13 +37,14 @@ const PaymentTermsSettings = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDelete = async (id: string) => {
     try {
       await deletePaymentTerm(id).unwrap();
-    } catch (err) {
+      toast.success("Payment term deleted successfully");
+    } catch (err: unknown) {
       console.error("Failed to delete payment term", err);
+      const apiErr = err as { data?: { message?: string } };
+      toast.error(apiErr?.data?.message || "Failed to delete payment term");
     }
   };
 
@@ -78,7 +81,7 @@ const PaymentTermsSettings = () => {
             <CardContainer
               key={term.id}
               size="sm"
-              className={`relative group ${term.isArchived ? "opacity-60" : ""}`}
+              className="relative group"
             >
               <div className="absolute top-3 right-3 flex items-center gap-1">
                 <IconActionButton
@@ -87,14 +90,7 @@ const PaymentTermsSettings = () => {
                     openEdit(e as unknown as React.MouseEvent, term)
                   }
                 />
-                <IconActionButton
-                  title="Delete term"
-                  variant="delete"
-                  isLoading={isDeleting && originalArgs === term.id}
-                  onClick={(e) =>
-                    handleDelete(e as unknown as React.MouseEvent, term.id)
-                  }
-                />
+                <DeleteAlert action={() => handleDelete(term.id)} />
               </div>
 
               <CommonHeader size="lg">{term.name}</CommonHeader>

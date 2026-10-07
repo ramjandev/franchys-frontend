@@ -95,6 +95,14 @@ export const invoiceAPI = baseAPI.injectEndpoints({
       }),
       invalidatesTags: ["Invoice"],
     }),
+
+    deleteInvoice: build.mutation<void, string>({
+      query: (id) => ({
+        url: `/invoices/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Invoice"],
+    }),
   }),
 });
 
@@ -108,4 +116,5 @@ export const {
   useUpdateInvoiceMutation,
   useSendInvoiceMutation,
   useSendInvoiceReminderMutation,
+  useDeleteInvoiceMutation,
 } = invoiceAPI;

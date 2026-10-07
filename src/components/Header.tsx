@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useGetMeQuery } from "@/store/Auth/authApi";
-import { Lock, Settings, User } from "lucide-react";
+import { Lock, Settings } from "lucide-react";
 import { FiBell } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import DashboardSearch from "./shared/DashboardSearch";
@@ -16,8 +16,7 @@ const Header = () => {
   const { data } = useGetMeQuery();
   const user = data?.data;
 
-  const profileImageUrl =
-    user?.profileImage || user?.avatar || defaultImage;
+  const profileImageUrl = user?.profileImage || user?.avatar || defaultImage;
 
   return (
     <div className="pr-8 py-4 pl-16 lg:pl-8">
@@ -69,13 +68,6 @@ const Header = () => {
                 </p>
               </div>
 
-              <DropdownMenuItem
-                onClick={() => navigate("/admin/settings")}
-                className="cursor-pointer flex items-center gap-2 px-3 py-2 text-sm text-[#0F172B] hover:bg-slate-50 rounded-lg"
-              >
-                <User className="w-4 h-4 text-[#5C7899]" />
-                Profile Settings
-              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => navigate("/admin/change-password")}
                 className="cursor-pointer flex items-center gap-2 px-3 py-2 text-sm text-[#0F172B] hover:bg-slate-50 rounded-lg"

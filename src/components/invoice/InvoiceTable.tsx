@@ -1,10 +1,13 @@
 import {
+  useDeleteInvoiceMutation,
   useSendInvoiceMutation,
   useSendInvoiceReminderMutation,
 } from "@/store/invoice/invoiceAPI";
 import { InvoiceListItem } from "@/store/invoice/types/invoiceTypes";
+import { toast } from "react-toastify";
 import { tableDesign } from "../admin/quotes/QuoteLists";
 import CommonButton from "../shared/CommonButton";
+import DeleteAlert from "../shared/DeleteButton";
 import IconActionButton from "../shared/IconActionButton";
 import Pagination from "../shared/Pagination";
 import StatusBadge from "../shared/StatusBadge";
@@ -42,6 +45,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
     sendInvoiceReminder,
     { isLoading: isLoadingReminder, originalArgs: originalArgsReminder },
   ] = useSendInvoiceReminderMutation();
+  const [deleteInvoice] = useDeleteInvoiceMutation();
 
   const handleSend = async (id: string) => {
     try {
@@ -59,6 +63,17 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
       await sendInvoiceReminder(id).unwrap();
     } catch (err) {
       console.error("Failed to send invoice reminder", err);
+    }
+  };
+
+  const handleDeleteInvoice = async (id: string) => {
+    try {
+      await deleteInvoice(id).unwrap();
+      toast.success("Invoice deleted successfully");
+    } catch (err: unknown) {
+      console.error("Failed to delete invoice", err);
+      const apiErr = err as { data?: { message?: string } };
+      toast.error(apiErr?.data?.message || "Failed to delete invoice");
     }
   };
 
@@ -136,6 +151,8 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                         onClick={() => onOpenPayment(invoice.id)}
                       />
                     )}
+
+                    <DeleteAlert action={() => handleDeleteInvoice(invoice.id)} />
 
                     {invoice.status === "OVERDUE" && (
                       <CommonButton
