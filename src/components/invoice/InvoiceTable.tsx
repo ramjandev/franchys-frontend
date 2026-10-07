@@ -4,6 +4,7 @@ import {
   useSendInvoiceReminderMutation,
 } from "@/store/invoice/invoiceAPI";
 import { InvoiceListItem } from "@/store/invoice/types/invoiceTypes";
+import { RxLapTimer } from "react-icons/rx";
 import { toast } from "react-toastify";
 import { tableDesign } from "../admin/quotes/QuoteLists";
 import CommonButton from "../shared/CommonButton";
@@ -152,21 +153,39 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                       />
                     )}
 
-                    <DeleteAlert action={() => handleDeleteInvoice(invoice.id)} />
+                    <DeleteAlert
+                      action={() => handleDeleteInvoice(invoice.id)}
+                    />
 
                     {invoice.status === "OVERDUE" && (
-                      <CommonButton
+                      <button
+                        className="cursor-pointer"
                         onClick={() => handleSendReminder(invoice.id)}
-                        isLoading={
+                        disabled={
                           originalArgsReminder === invoice.id &&
                           isLoadingReminder
                         }
-                        loadingText="Sending..."
-                        size="xs"
-                        variant="destructive"
+                        title={
+                          originalArgsReminder === invoice.id &&
+                          isLoadingReminder
+                            ? "Sending..."
+                            : "Send Reminder"
+                        }
                       >
-                        Send Reminder
-                      </CommonButton>
+                        <RxLapTimer className="w-4 h-4 mr-1" />
+                      </button>
+                      // <CommonButton
+                      //   onClick={() => handleSendReminder(invoice.id)}
+                      //   isLoading={
+                      //     originalArgsReminder === invoice.id &&
+                      //     isLoadingReminder
+                      //   }
+                      //   loadingText="Sending..."
+                      //   size="xs"
+                      //   variant="destructive"
+                      // >
+                      //   <RxLapTimer className="w-4 h-4 mr-1" />
+                      // </CommonButton>
                     )}
                   </div>
                 </td>
