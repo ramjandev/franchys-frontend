@@ -1,4 +1,5 @@
 import logo from "@/assets/images/logo.png";
+import defaultImage from "@/assets/images/profile.png";
 import { useGetMeQuery } from "@/store/Auth/authApi";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 import CommonHeader from "../shared/CommonHeader";
@@ -13,6 +14,10 @@ const LogoWithSearch: React.FC<LogoWithSearchProps> = ({
   isCollapsed = false,
 }) => {
   const { data } = useGetMeQuery();
+  const user = data?.data;
+
+  const profileImageUrl =
+    user?.profileImage || user?.avatar || defaultImage;
 
   if (isCollapsed) {
     return (
@@ -23,9 +28,12 @@ const LogoWithSearch: React.FC<LogoWithSearchProps> = ({
 
         <div className="relative">
           <img
-            src={data?.data?.profileImage || "https://i.pravatar.cc/100"}
+            src={profileImageUrl}
             className="w-10 h-10 rounded-full object-cover ring-2 ring-[#E6EBF2]"
-            alt={data?.data?.name || "Profile"}
+            alt={user?.name || "Profile"}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = defaultImage;
+            }}
           />
           <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-[#17E933] rounded-full ring-2 ring-white"></span>
         </div>
@@ -55,17 +63,21 @@ const LogoWithSearch: React.FC<LogoWithSearchProps> = ({
       <div className="flex justify-between items-center gap-3 mb-6 pl-5">
         <div className="relative">
           <img
-            src={data?.data?.profileImage || " https://i.pravatar.cc/100"}
+            src={profileImageUrl}
             className="w-16 h-16 rounded-full object-cover ring-3 ring-[#E6EBF2] ring-offset-6"
+            alt={user?.name || "Profile"}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = defaultImage;
+            }}
           />
           <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-[#17E933] rounded-full"></span>
         </div>
         <div>
           <CommonHeader size="md" className="font-semibold! text-[#294566]!">
-            {data?.data?.name}
+            {user?.name}
           </CommonHeader>
           <CommonHeader size="xs" className="font-semibold!">
-            {data?.data?.email}
+            {user?.email}
           </CommonHeader>
         </div>
         <button
