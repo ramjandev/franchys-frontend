@@ -15,9 +15,8 @@ import { toast } from "react-toastify";
 import { z } from "zod";
 import { tableDesign } from "../quotes/QuoteLists";
 import StatusPill from "./StatusPill";
-import WorkflowStages from "./WorkflowStages";
 
-export const statusChangeSchema = z.object({
+const statusChangeSchema = z.object({
   status: z.enum([
     "QUOTE",
     "APPROVED",
@@ -31,8 +30,6 @@ export const statusChangeSchema = z.object({
   ]),
   note: z.string().trim(),
 });
-
-export type StatusChangeValues = z.infer<typeof statusChangeSchema>;
 interface ListViewProps {
   jobs: Job[];
   page: number;
@@ -108,9 +105,10 @@ const ListView: React.FC<ListViewProps> = ({
         },
       }).unwrap();
       toast.success("Job status updated successfully");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to update job status", err);
-      toast.error(err?.data?.message || "Failed to update job status");
+      const apiErr = err as { data?: { message?: string } };
+      toast.error(apiErr?.data?.message || "Failed to update job status");
     }
   };
   const handleDelete = async (jobId: string) => {
@@ -125,8 +123,6 @@ const ListView: React.FC<ListViewProps> = ({
 
   return (
     <div className="space-y-6">
-      <WorkflowStages />
-
       <div className="bg-white rounded-xl  overflow-hidden">
         <div className="overflow-x-auto">
           <table className={tableDesign.table}>

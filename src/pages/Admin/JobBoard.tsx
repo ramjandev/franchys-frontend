@@ -1,31 +1,15 @@
+import JobFilters, {
+  StatusFilterValue,
+} from "@/components/admin/jobBoard/JobFilters";
 import ListView from "@/components/admin/jobBoard/ListView";
+import WorkflowStages from "@/components/admin/jobBoard/WorkflowStages";
 import DashboardTopSection from "@/components/shared/DashboardTopSection";
 import LoadingStatus from "@/components/shared/loading/LoadingStatus";
-import SearchSpinner from "@/components/shared/loading/SearchSpinner";
 import { useDebounce } from "@/components/shared/useDebounce";
 import { useGetJobsQuery } from "@/store/jobs/jobAPI";
-import {
-  JobSortBy,
-  JobSortOrder,
-  JobStatus,
-} from "@/store/jobs/types/jobTypes";
+import { JobSortBy, JobSortOrder } from "@/store/jobs/types/jobTypes";
+import { RotateCcw } from "lucide-react";
 import { useState } from "react";
-import { IoSearchSharp } from "react-icons/io5";
-
-type StatusFilterValue = JobStatus | "all";
-
-const jobStatusOptions: { label: string; value: StatusFilterValue }[] = [
-  { label: "All", value: "all" },
-  { label: "Quote", value: "QUOTE" },
-  { label: "Approved", value: "APPROVED" },
-  { label: "Art", value: "ART" },
-  { label: "Need to Order", value: "NEED_TO_ORDER" },
-  { label: "Order Arrived", value: "ORDER_ARRIVED" },
-  { label: "Production", value: "PRODUCTION" },
-  { label: "Payment", value: "PAYMENT" },
-  { label: "Ship", value: "SHIP" },
-  { label: "Completed", value: "COMPLETED" },
-];
 
 export default function JobBoard() {
   const [page, setPage] = useState(1);
@@ -71,6 +55,15 @@ export default function JobBoard() {
     }
   };
 
+  const handleSortChange = (
+    field: JobSortBy | "none",
+    order: JobSortOrder | "none",
+  ) => {
+    setPage(1);
+    setSortBy(field);
+    setSortOrder(order);
+  };
+
   const hasActiveFilters = Boolean(
     search ||
     statusFilter !== "all" ||
@@ -100,27 +93,62 @@ export default function JobBoard() {
         />
       </div>
 
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        {/* Search Input */}
-        <div className="flex-1 relative w-full border border-border bg-white rounded-md outline-none text-text text-base placeholder:text-[#90A1B9] flex items-center gap-2 pl-3">
-          <IoSearchSharp className="text-xl text-[#90A1B9]" />
-          <input
-            type="text"
-            placeholder="Search jobs..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="py-2.5 w-full outline-none text-text text-sm sm:text-base placeholder:text-[#90A1B9]"
-          />
-          {isSearchFetching && (
-            <SearchSpinner className="absolute right-3 top-1/2 -translate-y-1/2" />
-          )}
-        </div>
-      </div>
+      {/* Interactive Workflow Stages Pipeline Filter */}
+      <WorkflowStages
+        activeStatus={statusFilter}
+        onStatusSelect={(newStatus) => {
+          setStatusFilter(newStatus);
+          setPage(1);
+        }}
+      />
+
+      {/* Functional Job Filters Bar */}
+      <JobFilters
+        search={search}
+        onSearchChange={(val) => {
+          setSearch(val);
+          setPage(1);
+        }}
+        statusFilter={statusFilter}
+        onStatusChange={(val) => {
+          setStatusFilter(val);
+          setPage(1);
+        }}
+        dateFilter={dateFilter}
+        onDateChange={(val) => {
+          setDateFilter(val);
+          setPage(1);
+        }}
+        amountFilter={amountFilter}
+        onAmountChange={(val) => {
+          setAmountFilter(val);
+          setPage(1);
+        }}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={handleSortChange}
+        onResetFilters={handleResetFilters}
+        hasActiveFilters={hasActiveFilters}
+        isFetching={isSearchFetching}
+        totalResults={jobs.length}
+      />
 
       <LoadingStatus isLoading={isLoading} items={jobs} itemName="jobs" />
+
+      {/* When no jobs match active filters, offer reset button */}
+      {!isLoading && jobs.length === 0 && hasActiveFilters && (
+        <div className="flex justify-center -mt-3">
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer border border-blue-200"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Clear all filters
+          </button>
+        </div>
+      )}
+
       {!isLoading && jobs.length > 0 && (
         <ListView
           jobs={jobs}
