@@ -21,6 +21,7 @@ import {
 
 import { RotateCcw, ShieldBan, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 export const permissionUiConfig: {
   label: string;
@@ -151,32 +152,44 @@ const UserPermissionCard: React.FC<UserPermissionCardProps> = ({
         id: admin.userId,
         data: { permissions },
       }).unwrap();
-    } catch (err) {
+      toast.success("Permissions updated successfully");
+    } catch (err: unknown) {
       console.error("Failed to update permissions", err);
+      const apiErr = err as { data?: { message?: string } };
+      toast.error(apiErr?.data?.message || "Failed to update permissions");
     }
   };
 
   const handleDelete = async () => {
     try {
       await deleteAdmin(admin.userId).unwrap();
-    } catch (err) {
+      toast.success("User deleted successfully");
+    } catch (err: unknown) {
       console.error("Failed to delete user", err);
+      const apiErr = err as { data?: { message?: string } };
+      toast.error(apiErr?.data?.message || "Failed to delete user");
     }
   };
 
   const handleRestore = async () => {
     try {
       await restoreAdmin(admin.userId).unwrap();
-    } catch (err) {
+      toast.success("User restored successfully");
+    } catch (err: unknown) {
       console.error("Failed to restore user", err);
+      const apiErr = err as { data?: { message?: string } };
+      toast.error(apiErr?.data?.message || "Failed to restore user");
     }
   };
 
   const handleBan = async () => {
     try {
       await banAdmin(admin.userId).unwrap();
-    } catch (err) {
+      toast.success("User banned successfully");
+    } catch (err: unknown) {
       console.error("Failed to ban user", err);
+      const apiErr = err as { data?: { message?: string } };
+      toast.error(apiErr?.data?.message || "Failed to ban user");
     }
   };
 
@@ -203,6 +216,9 @@ const UserPermissionCard: React.FC<UserPermissionCardProps> = ({
           <div className="min-w-0">
             <CommonHeader size="2xl" className="text-white! truncate">
               {admin.name}
+            </CommonHeader>
+            <CommonHeader size="sm" className="text-white! truncate">
+              {admin.email}
             </CommonHeader>
             {admin.isDeleted && (
               <span className="text-xs text-white/80">Deleted</span>
