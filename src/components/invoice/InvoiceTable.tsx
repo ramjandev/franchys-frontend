@@ -3,7 +3,11 @@ import {
   useSendInvoiceMutation,
   useSendInvoiceReminderMutation,
 } from "@/store/invoice/invoiceAPI";
-import { InvoiceListItem } from "@/store/invoice/types/invoiceTypes";
+import {
+  InvoiceListItem,
+  InvoiceSortBy,
+} from "@/store/invoice/types/invoiceTypes";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { RxLapTimer } from "react-icons/rx";
 import { toast } from "react-toastify";
 import { tableDesign } from "../admin/quotes/QuoteLists";
@@ -13,14 +17,21 @@ import IconActionButton from "../shared/IconActionButton";
 import Pagination from "../shared/Pagination";
 import StatusBadge from "../shared/StatusBadge";
 
-const tableHeaders = [
-  { label: "Invoice", align: "text-left" },
-  { label: "Customer", align: "text-left" },
-  { label: "Amount", align: "text-left" },
-  { label: "Balance", align: "text-left" },
-  { label: "Status", align: "text-center" },
-  { label: "Invoice", align: "text-left" },
-  { label: "Action", align: "text-center" },
+export interface InvoiceTableHeaderItem {
+  label: string;
+  align: string;
+  key: string;
+  sortable?: boolean;
+}
+
+const tableHeaders: InvoiceTableHeaderItem[] = [
+  { label: "Invoice", align: "text-left", key: "createdAt", sortable: true },
+  { label: "Customer", align: "text-left", key: "customer" },
+  { label: "Amount", align: "text-left", key: "total", sortable: true },
+  { label: "Balance", align: "text-left", key: "amountDue", sortable: true },
+  { label: "Status", align: "text-center", key: "status" },
+  { label: "Invoice", align: "text-left", key: "send" },
+  { label: "Action", align: "text-center", key: "action" },
 ];
 
 const formatMoney = (n: string) => `$${Number(n).toFixed(2)}`;
@@ -32,6 +43,9 @@ interface InvoiceTableProps {
   onPageChange: (page: number) => void;
   onOpenDetails: (invoiceId: string) => void;
   onOpenPayment: (invoiceId: string) => void;
+  sortBy?: string;
+  sortOrder?: string;
+  onSort?: (field: InvoiceSortBy) => void;
 }
 const InvoiceTable: React.FC<InvoiceTableProps> = ({
   invoicesData,
@@ -40,6 +54,9 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
   onPageChange,
   onOpenDetails,
   onOpenPayment,
+  sortBy,
+  sortOrder,
+  onSort,
 }) => {
   const [sendInvoice, { isLoading, originalArgs }] = useSendInvoiceMutation();
   const [
@@ -85,8 +102,39 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
           <thead className={tableDesign.thead}>
             <tr>
               {tableHeaders.map((item, index) => (
-                <th key={index} className={`${item.align} ${tableDesign.th}`}>
-                  {item.label}
+                <th
+                  key={index}
+                  className={`${item.align} ${tableDesign.th} ${
+                    item.sortable
+                      ? "cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                      : ""
+                  }`}
+                  onClick={() => {
+                    if (item.sortable && onSort) {
+                      onSort(item.key as InvoiceSortBy);
+                    }
+                  }}
+                >
+                  <div
+                    className={`inline-flex items-center gap-1.5 ${
+                      item.align === "text-center" ? "justify-center" : ""
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    {item.sortable && (
+                      <span className="text-[#90A1B9]">
+                        {sortBy === item.key ? (
+                          sortOrder === "asc" ? (
+                            <ArrowUp className="w-3.5 h-3.5 text-blue-600" />
+                          ) : (
+                            <ArrowDown className="w-3.5 h-3.5 text-blue-600" />
+                          )
+                        ) : (
+                          <ArrowUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100" />
+                        )}
+                      </span>
+                    )}
+                  </div>
                 </th>
               ))}
             </tr>

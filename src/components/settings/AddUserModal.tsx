@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import { z } from "zod";
 import ModalAction from "./ModalAction";
 import ModalContainer from "./ModalContainer";
@@ -49,7 +50,6 @@ const addUserSchema = z
       .string()
       .min(1, "Email is required")
       .email("Invalid email address"),
-    phone: z.string().min(1, "Phone is required"),
     password: z.string().min(9, "Minimum 9 characters"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
@@ -101,16 +101,16 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ setShowModal }) => {
         password: values.password,
         permissions: defaultPermissions,
       }).unwrap();
+      toast.success("User created successfully");
       setShowModal(false);
     } catch (err) {
       const apiError = err as ApiErrorShape;
-      if (apiError?.status === 409) {
-        setFormError("A user with this email already exists.");
-      } else {
-        setFormError(
-          apiError?.data?.message ?? "Failed to create user. Please try again.",
-        );
-      }
+      const errorMessage =
+        apiError?.status === 409
+          ? "A user with this email already exists."
+          : (apiError?.data?.message ?? "Failed to create user. Please try again.");
+      setFormError(errorMessage);
+      toast.error(errorMessage);
       console.error("Failed to create user", err);
     }
   };
@@ -121,7 +121,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ setShowModal }) => {
       title="Add New User"
       size="max-w-md"
     >
-      <form>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="p-6 space-y-4">
           {formError && (
             <div className="text-sm text-[#E7000B] bg-red-50 border border-red-200 rounded-lg px-3 py-2">
@@ -208,13 +208,13 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ setShowModal }) => {
             )}
           </div>
         </div>
-      </form>{" "}
-      <ModalAction
-        close={() => setShowModal(false)}
-        create="Create User"
-        isSubmitting={isLoading}
-        onSubmit={handleSubmit(onSubmit)}
-      />
+        <ModalAction
+          close={() => setShowModal(false)}
+          create="Create User"
+          isSubmitting={isLoading}
+          onSubmit={handleSubmit(onSubmit)}
+        />
+      </form>
     </ModalContainer>
   );
 };

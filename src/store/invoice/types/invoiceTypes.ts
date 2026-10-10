@@ -174,6 +174,9 @@ export interface CreateInvoicePayload {
   lineItems: InvoiceLineItemPayload[];
 }
 
+export type InvoiceSortBy = "amountDue" | "amountPaid" | "total" | "createdAt";
+export type InvoiceSortOrder = "asc" | "desc";
+
 export interface GetInvoicesParams {
   page?: number;
   limit?: number;
@@ -181,6 +184,8 @@ export interface GetInvoicesParams {
   quoteId?: string;
   search?: string;
   status?: InvoiceStatus;
+  sortBy?: InvoiceSortBy;
+  sortOrder?: InvoiceSortOrder;
 }
 
 export interface SendInvoicePayload {
